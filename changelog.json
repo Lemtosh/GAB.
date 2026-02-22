@@ -1,0 +1,14 @@
+[
+  {
+    "version": "0.36",
+    "date": "2026-02-22",
+    "title": "Préférences interruptions + mode complexe frise",
+    "changes": [
+      "Ajout d’un bouton ⚙️ dans la zone de commentaire ouvrant une modale de configuration.",
+      "Option : Ignorer la dernière interruption — ne pas mentionner un arrêt en fin de relevé (ex. contrat résilié récemment).",
+      "Option : Ignorer les courtes interruptions — masquer les petits trous de couverture avec un seuil configurable (nombre de mois).",
+      "Les préférences sont sauvegardées dans le navigateur et appliquées à la génération du commentaire.",
+      "Ajout d’un mode complexe pour la frise (bouton ⊕ Mode complexe / ✕ Mode simple)."
+    ]
+  }
+]
