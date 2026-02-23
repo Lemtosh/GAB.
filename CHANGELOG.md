@@ -1,6 +1,6 @@
 # Changelog — GAB. Guide Antécédents Bonus-Malus
 
-## v0.32 — Sauvegarde & Mode Complexe
+## v1.0 — Sauvegarde & Mode Complexe
 
 ### Mode Complexe
 - **Switch Simple / Complexe** dans la barre principale pour activer les colonnes avancées
