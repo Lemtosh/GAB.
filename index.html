@@ -1733,7 +1733,7 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
         const remoteVersion = data?.version;
         const downloadUrl = data?.downloadUrl;
 
-        if (remoteVersion && downloadUrl && cmpVersion(remoteVersion, LOCAL_VERSION) > 0) {
+        if (remoteVersion && cmpVersion(remoteVersion, LOCALVERSION) > 0) {
           document.getElementById("updateText").textContent =
             `Nouvelle version disponible (${remoteVersion}). Vous utilisez la ${LOCAL_VERSION}.`;
           /* updateLink removed */
