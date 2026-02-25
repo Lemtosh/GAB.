@@ -2279,7 +2279,7 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.1.5";
+    const LOCAL_VERSION = "1.1.6";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
     const CHANGELOG_SEEN_KEY = "gabChangelogSeen";
@@ -2298,7 +2298,7 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 
     async function checkForUpdate() {
       try {
-        const res = await fetch(VERSION_URL, { cache: "no-store" });
+        const res = await fetch(VERSION_URL + "?_t=" + Date.now(), { cache: "no-store" });
         if (!res.ok) return;
         const data = await res.json();
         const remoteVersion = data?.version;
@@ -3736,29 +3736,10 @@ function toggleExclusive(btnId, cardId, otherBtnId, otherCardId){
 }
 
 
-function reloadWithBust(version){
-  try{
-    const url = new URL(location.href);
-    url.searchParams.set('_v', String(version || Date.now()));
-    location.href = url.toString();
-  }catch(e){ location.reload(true); }
-}
-
 function wireUpdateNow(remoteVersion){
   const btn = document.getElementById('btnUpdateNow');
   if(!btn) return;
-  btn.onclick = () => {
-    // Sécurité : avertir si des données non sauvegardées sont présentes
-    const _hasUnsaved = (typeof _sessionNum !== 'undefined' && _sessionNum &&
-      typeof _dataHash === 'function' && typeof getFormData === 'function' &&
-      _dataHash(getFormData()) !== _sessionHash)
-      || (!( typeof _sessionNum !== 'undefined' && _sessionNum) &&
-          !!(document.getElementById('dateEffet') && document.getElementById('dateEffet').value.trim()));
-    if(_hasUnsaved){
-      if(!confirm('Vous avez des données non sauvegardées.\nMettre à jour maintenant effacera votre saisie.\n\nContinuer quand même ?'))return;
-    }
-    reloadWithBust(remoteVersion);
-  };
+  btn.onclick = () => reloadWithBust(remoteVersion);
 }
 
 // --- Optional: check for update periodically so banner can appear even if page stays open ---
