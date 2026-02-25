@@ -2279,7 +2279,7 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.1.2";
+    const LOCAL_VERSION = "1.1.3";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
     const CHANGELOG_SEEN_KEY = "gabChangelogSeen";
@@ -3735,6 +3735,15 @@ function toggleExclusive(btnId, cardId, otherBtnId, otherCardId){
   setPanelOpen(cardId, btnId, willOpen);
 }
 
+
+function reloadWithBust(version){
+  try{
+    // Recharge la page en forçant le contournement du cache navigateur.
+    const url = new URL(location.href);
+    url.searchParams.set('_v', String(version || Date.now()));
+    location.href = url.toString();
+  }catch(e){ location.reload(true); }
+}
 
 function wireUpdateNow(remoteVersion){
   const btn = document.getElementById('btnUpdateNow');
