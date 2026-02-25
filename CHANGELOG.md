@@ -1,5 +1,35 @@
 # Changelog — GAB. Guide Antécédents Bonus-Malus
 
+## v1.1 — Validation guidée, Menu principal & améliorations
+
+### Mode Validation guidée
+- **Panneau dédié** activable depuis le tableau principal (bouton "Validation guidée"), permettant de saisir et vérifier les éléments clés d'un dossier sans quitter l'outil
+- **Particulièrement recommandé pour les néocollaborateurs** et les collaborateurs présentant un taux de conformité avec une forte marge de progression : le panneau guide étape par étape la vérification de chaque document et réduit les erreurs de saisie ou d'oubli
+- **Section Carte grise** : immatriculation, 1ère MEC, PAD (pas assuré depuis), puissance (P.6), date d'acquisition ; boutons toggle Nom différent, Titulaire, Cotitulaire, Leasing
+- **Section Permis de conduire** : date de naissance, date d'obtention du permis ; boutons toggle Nom différent et Suspension / Annulation
+- **Section Relevé d'informations** : antécédents justifiés (calculés automatiquement depuis le tableau de périodes) et déclarés, CRM justifié et CRM déclaré, résiliation, sinistralité avec alerte visuelle en cas d'écart
+- **Section RIB** : gestion du titulaire, cotitulaire et des divergences de domiciliation
+- **Mode Supp. / Finaux** sur le champ antécédents : bascule selon le type de demande (RI supplémentaire ou relevé final)
+- **Date permis synchronisée** : la date d'obtention saisie dans la validation guidée est automatiquement reportée dans toutes les cases « Date permis » du tableau complexe
+- **CRM suggéré → validation** : le CRM le plus récent calculé par la frise (≤ aujourd'hui) est automatiquement injecté dans le champ CRM justifié de la validation guidée
+- Bouton **Réinitialiser** pour vider le panneau en un clic
+
+### Commentaire client automatique
+- **Génération automatique** d'un commentaire structuré (partie « demande » et partie « modification ») construit en temps réel à partir des éléments cochés et saisis dans le panneau de validation
+- **Messages contextuels** prêts à l'envoi (Titulaire CG, Cotitulaire, Nom différent, RI supplémentaire, divergence RIB…) : un clic sur un bouton copie le message directement dans le presse-papier
+
+### Menu principal (☰)
+- **Bouton menu fixe** (☰) en haut à gauche, remplaçant les anciens boutons flottants en bas d'écran
+- **Panneau latéral** centralisé donnant accès en un clic à tous les outils (Tableau CRM, Impact CRM, CRM max permis, Période précise, Loi Hamon), à la Validation guidée et aux Nouveautés
+- Badge animé sur le bouton menu signalant une mise à jour disponible
+- Bascule thème **clair / sombre** intégrée directement dans le menu
+
+### Correctifs & améliorations
+- **Mode sombre adouci** : les fonds étaient jugés trop sombres ; les couleurs de fond ont été légèrement rehaussées pour un rendu plus confortable sans altérer les contrastes
+- **Persistance du mode après Effacer** : le mode simple / complexe est désormais conservé après un effacement et une fermeture du navigateur. La protection contre l'effacement d'un contrat non sauvegardé reste inchangée
+
+---
+
 ## v1.0 — Sauvegarde & Mode Complexe
 
 ### Mode Complexe
