@@ -1400,6 +1400,9 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
       display: none; pointer-events: none;
     }
     #menuFab.gab-unread #menuFabBadge { display: block; }
+    #menuFab.gab-sgp-pending #menuFabBadge { display: block; background: #e53e3e; }
+    /* SGP prioritaire : quand les deux coexistent, rouge l'emporte */
+    #menuFab.gab-sgp-pending.gab-unread #menuFabBadge { background: #e53e3e; }
     #sidebarOverlay {
       display: none; position: fixed; inset: 0; z-index: 9998;
       background: rgba(0,0,0,0.32); pointer-events: auto;
@@ -5409,10 +5412,17 @@ document.addEventListener('DOMContentLoaded',function(){
 
     function checkSGPBadge() {
       const info = getSGPPendingInfo();
-      const badge = document.getElementById('menuSGPBadge');
+      const badge  = document.getElementById('menuSGPBadge');
       const wBadge = document.querySelector('.menuWhatsNewBadge');
+      const fab    = document.getElementById('menuFab');
+
+      // Badge dans le menu sidebar sur le lien SGP
       if (badge) badge.style.display = info ? 'block' : 'none';
-      // SGP prioritaire : masque le badge Nouveautés quand SGP a des items en attente
+
+      // Badge rouge sur le bouton ☰ (prioritaire sur teal Nouveautés)
+      if (fab) fab.classList.toggle('gab-sgp-pending', !!info);
+
+      // Masquer le badge Nouveautés dans le menu sidebar quand SGP est prioritaire
       if (wBadge) {
         if (info) wBadge.style.setProperty('display', 'none', 'important');
         else      wBadge.style.removeProperty('display');
