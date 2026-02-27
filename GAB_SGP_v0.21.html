@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAB · Gestionnaire Retours SGP</title>
+<style>
+  :root {
+    --bg: #f5f6fa;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --border: rgba(17,24,39,0.10);
+    --border2: rgba(17,24,39,0.07);
+    --softStroke: rgba(17,24,39,0.10);
+    --accent: #11a9a6;
+    --tableHeader: #f0f4f8;
+    --tableBorder: rgba(17,24,39,0.08);
+    --shadowB: 0 4px 16px rgba(17,24,39,0.10);
+    --timelineRed: #90a4ae;
+    --timelineGreen: #43a047;
+    --markerBlue: #1976d2;
+    --bonusText: #2e7d32;
+    --bonusTextDark: #81c784;
+    --bonusTextStrokeDark: #1b5e20;
+  }
+  body.dark {
+    --bg: #13171f;
+    --card: #1e2530;
+    --text: #e8eaed;
+    --muted: rgba(255,255,255,0.45);
+    --border: rgba(255,255,255,0.13);
+    --border2: rgba(255,255,255,0.07);
+    --softStroke: rgba(255,255,255,0.13);
+    --tableHeader: #232b38;
+    --tableBorder: rgba(255,255,255,0.08);
+    --shadowB: 0 4px 16px rgba(0,0,0,0.40);
+    --timelineRed: #37474f;
+    --timelineGreen: #43a047;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }
+
+  /* ── SIDEBAR MENU (identique GAB) ── */
+  #menuFabWrap { position: fixed; top: 0; left: 0; height: 100vh; z-index: 9999; pointer-events: none; }
+  #menuFab {
+    pointer-events: auto; position: fixed; top: 12px; left: 12px;
+    width: 42px; height: 42px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18); cursor: pointer; padding: 0;
+    transition: background 0.18s, color 0.18s, border-color 0.18s; z-index: 10001;
+  }
+  #menuFab:hover, #menuFab.menuOpen { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #menuFabBadge {
+    position: absolute; top: -2px; right: -2px; width: 9px; height: 9px;
+    border-radius: 50%; background: #11a9a6; border: 2px solid var(--card); display: none;
+  }
+  #menuFab.gab-unread #menuFabBadge { display: block; }
+  #sidebarOverlay { display: none; position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.32); pointer-events: auto; }
+  #sidebarOverlay.open { display: block; }
+  #menuExpand {
+    pointer-events: auto; position: fixed; top: 0; left: 0; height: 100vh; width: 220px;
+    background: var(--card); border-right: 1px solid var(--border);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+    display: flex; flex-direction: column; padding: 66px 12px 24px 12px; gap: 4px;
+    transform: translateX(-100%); opacity: 0; pointer-events: none;
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.22s ease;
+    z-index: 10000; overflow-y: auto;
+  }
+  #menuExpand.open { transform: translateX(0); opacity: 1; pointer-events: auto; }
+  .menuSidebarTitle {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); padding: 0 4px 8px 4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 6px; flex-shrink: 0;
+  }
+  .menuExpandItem {
+    display: flex; align-items: center; gap: 11px; padding: 10px 14px;
+    border-radius: 10px; border: 1px solid transparent; background: transparent;
+    color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer;
+    white-space: nowrap; text-align: left; width: 100%; text-decoration: none;
+    transition: background 0.14s, color 0.14s, border-color 0.14s;
+    font-family: inherit;
+  }
+  .menuExpandItem:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .menuExpandItem:hover svg { stroke: #fff; }
+  .menuExpandItem--active { background: color-mix(in oklab, var(--accent) 14%, transparent); border-color: color-mix(in oklab, var(--accent) 40%, transparent); color: var(--accent); font-weight: 700; }
+  .menuExpandItem--tools { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .menuExpandItem--tools:hover { color: #fff; }
+  body.dark .menuExpandItem { background: #1e2530; border-color: #2b313a; color: #e8eaed; }
+  body.dark .menuExpandItem:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  body.dark .menuExpandItem--tools { background: #1e2530; border-color: var(--accent); color: var(--accent); }
+  body.dark .menuExpandItem--tools:hover { background: var(--accent); color: #fff; }
+  .menuDivider { height: 1px; background: var(--border); margin: 6px 0; flex-shrink: 0; }
+  #themeIcon svg { pointer-events: none; }
+
+  /* ── HEADER ── */
+  .pageHeader {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 0 20px; height: 68px;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .pageHeaderTitle {
+    font-size: 15px; font-weight: 700; margin-left: 52px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pageHeaderTitle span.badge-sgp {
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: color-mix(in oklab, var(--accent) 14%, transparent);
+    color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 35%, transparent);
+  }
+  #pendingBadge {
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: #e53e3e; color: #fff; display: none; margin-left: 4px;
+  }
+  #pendingBadge.show { display: inline-block; }
+
+  /* ── MAIN LAYOUT ── */
+  .pageBody { max-width: 1400px; margin: 0 auto; padding: 24px 28px 60px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--shadowB);
+  }
+  .cardTitle {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--accent); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── ZONE IMPORT ── */
+  .importZone {
+    border: 2px dashed var(--border); border-radius: 10px;
+    padding: 20px; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s; position: relative;
+    background: color-mix(in oklab, var(--card) 96%, transparent);
+  }
+  .importZone:hover, .importZone.drag-over {
+    border-color: var(--accent);
+    background: color-mix(in oklab, var(--accent) 6%, transparent);
+  }
+  .importZone p { font-size: 13px; color: var(--muted); line-height: 1.6; pointer-events: none; }
+  .importZone strong { color: var(--text); }
+  #pasteArea {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    width: 100%; height: 100%; z-index: 2;
+  }
+  .importBtn {
+    margin-top: 12px; padding: 8px 20px; border-radius: 999px;
+    background: var(--accent); color: #fff; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: filter 0.15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .importBtn:hover { filter: brightness(1.08); }
+  #importError { font-size: 12px; color: #e53e3e; margin-top: 8px; display: none; }
+  #importError.show { display: block; }
+  #importSuccess { font-size: 12px; color: #43a047; margin-top: 8px; display: none; }
+  #importSuccess.show { display: block; }
+
+  /* ── TABS HISTORIQUE ── */
+  .tabsRow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tabBtn {
+    padding: 5px 14px; border-radius: 999px; border: 1px solid var(--border2);
+    background: var(--bg); color: var(--muted); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    font-family: inherit;
+  }
+  .tabBtn:hover { border-color: var(--accent); color: var(--accent); }
+  .tabBtn.active {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .tabBtn .tabCount {
+    display: inline-block; background: rgba(255,255,255,0.28);
+    border-radius: 999px; padding: 0 5px; font-size: 10px; margin-left: 4px;
+  }
+  .tabBtn:not(.active) .tabCount { background: color-mix(in oklab, var(--accent) 14%, transparent); color: var(--accent); }
+
+  /* ── TABLE RETOURS ── */
+  .tableWrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--tableBorder); margin-top: 14px; }
+  table { width: 100%; min-width: 1242px; border-collapse: collapse; font-size: 13px; }
+  th {
+    background: var(--tableHeader); color: var(--muted); font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px;
+    border-bottom: 1px solid var(--tableBorder); text-align: left; white-space: nowrap;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--tableBorder); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr.done-row { opacity: 0.45; }
+  tr.done-row td { text-decoration: line-through; }
+  tr.done-row td.no-strike { text-decoration: none; }
+  tbody tr:hover { background: color-mix(in oklab, var(--accent) 4%, transparent); }
+
+  /* ── BADGES ACTION ── */
+  .actionBadge {
+    display: inline-block; padding: 2px 9px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .actionBadge.avenant    { background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; }
+  .actionBadge.valide     { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .actionBadge.valide-q   { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .actionBadge.parfait    { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+  .actionBadge.nullite    { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
+  .actionBadge.resil-ech  { background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; }
+  .actionBadge.aggrav-remp{ background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; }
+  .actionBadge.aggrav     { background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; }
+  .actionBadge.resil-remp { background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; }
+  body.dark .actionBadge.avenant    { background:rgba(29,78,216,.22);  color:#93c5fd; border-color:rgba(29,78,216,.45);  }
+  body.dark .actionBadge.valide     { background:rgba(22,101,52,.22);  color:#86efac; border-color:rgba(22,101,52,.45);  }
+  body.dark .actionBadge.valide-q   { background:rgba(22,101,52,.22);  color:#86efac; border-color:rgba(22,101,52,.45);  }
+  body.dark .actionBadge.parfait    { background:rgba(22,101,52,.22);  color:#86efac; border-color:rgba(22,101,52,.45);  }
+  body.dark .actionBadge.nullite    { background:rgba(153,27,27,.28);  color:#fca5a5; border-color:rgba(153,27,27,.5);   }
+  body.dark .actionBadge.resil-ech  { background:rgba(185,28,28,.28);  color:#fca5a5; border-color:rgba(185,28,28,.5);   }
+  body.dark .actionBadge.aggrav-remp{ background:rgba(220,38,38,.28);  color:#fca5a5; border-color:rgba(220,38,38,.5);   }
+  body.dark .actionBadge.aggrav     { background:rgba(220,38,38,.28);  color:#fca5a5; border-color:rgba(220,38,38,.5);   }
+  body.dark .actionBadge.resil-remp { background:rgba(239,68,68,.28);  color:#fca5a5; border-color:rgba(239,68,68,.5);   }
+
+  /* ── BOUTON DONE ── */
+  .btnDone {
+    width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--border);
+    background: var(--card); cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; transition: all 0.18s; flex-shrink: 0;
+    color: var(--muted); padding: 0;
+  }
+  .btnDone:hover { border-color: #43a047; color: #43a047; transform: scale(1.12); }
+  .btnDone.checked { border-color: #43a047; background: #43a047; color: #fff; }
+  .btnDone svg { pointer-events: none; }
+
+  /* ── CORRECTION TEXT ── */
+  .correctionText { font-size: 12px; color: var(--text); line-height: 1.5; max-width: 320px; }
+  .correctionText.parfait-txt { color: #43a047; font-weight: 600; }
+
+  /* ── IMPORT DATE TAG ── */
+  .importDateTag { font-size: 11px; color: var(--muted); font-style: italic; }
+
+  /* ── EMPTY STATE ── */
+  .emptyState { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .emptyState svg { opacity: 0.3; margin-bottom: 12px; }
+  .emptyState p { font-size: 13px; }
+
+  /* ── BARRE ACTIONS IMPORT ── */
+  .importMeta {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    gap: 8px; padding: 10px 14px; background: var(--bg); border-radius: 10px;
+    border: 1px solid var(--border2); margin-top: 10px; font-size: 12px;
+  }
+  .importMeta strong { color: var(--text); }
+  .btnDeleteImport {
+    padding: 4px 12px; border-radius: 999px; border: 1px solid #e53e3e;
+    background: transparent; color: #e53e3e; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .btnDeleteImport:hover { background: #e53e3e; color: #fff; }
+
+  /* ── STATS ROW ── */
+  .statsRow { display: flex; gap: 12px; flex-wrap: wrap; }
+  .statChip {
+    padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    border: 1px solid var(--border2); background: var(--bg);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .statChip .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-pending { background: #e53e3e; }
+  .dot-done    { background: #43a047; }
+  .dot-parfait { background: #11a9a6; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 22px; right: 20px;
+    background: rgba(26,26,28,.9); color: #e8e8ea;
+    padding: 9px 16px 9px 13px; border-radius: 10px; font-size: 12.5px;
+    font-weight: 500; opacity: 0; pointer-events: none;
+    transition: opacity .22s, transform .22s; z-index: 10000;
+    white-space: nowrap; box-shadow: 0 4px 18px rgba(0,0,0,.3);
+    transform: translateY(10px); display: flex; align-items: center; gap: 8px;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── CONFIRM POPUP ── */
+  #confirmPopup {
+    display: none; position: fixed; inset: 0; z-index: 20000;
+    align-items: center; justify-content: center; background: rgba(0,0,0,0.48);
+    backdrop-filter: blur(4px);
+  }
+  #confirmPopup.open { display: flex; }
+  #confirmBox {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 16px; padding: 22px 24px; max-width: 380px; width: calc(100% - 40px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  #confirmBox p { font-size: 14px; font-weight: 600; margin-bottom: 18px; line-height: 1.4; }
+  .btnRow { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .popupBtnDanger { background: #c0392b !important; color: #fff !important; border: none !important; padding: 9px 22px !important; border-radius: 999px !important; font-weight: 700 !important; cursor: pointer !important; font-family: inherit; font-size: 13px; }
+  .popupBtnCancel { background: #555 !important; color: #fff !important; border: none !important; padding: 9px 22px !important; border-radius: 999px !important; font-weight: 600 !important; cursor: pointer !important; font-family: inherit; font-size: 13px; }
+
+  /* ── THEME TOGGLE ── */
+  #themeBtn { background: none; border: none; cursor: pointer; color: var(--text); padding: 0; display: flex; align-items: center; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .pageBody { padding: 16px 12px 60px; }
+    .card { padding: 14px 14px; }
+    th, td { padding: 7px 8px; font-size: 12px; }
+  }
+
+  tr.row-alert td { background: rgba(229,57,53,.07) !important; }
+  tr.row-alert td:first-child { border-left: 3px solid #e53935; }
+  body.dark tr.row-alert td { background: rgba(229,57,53,.13) !important; }
+  td textarea { box-sizing: border-box; }
+
+  td textarea { box-sizing: border-box; }
+  #pasteOverlay kbd { display:inline-block; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     SIDEBAR MENU
+════════════════════════════════════════════ -->
+<div id="menuFabWrap">
+  <button id="menuFab" onclick="toggleMenu()" aria-label="Menu" title="Menu">
+    <div id="menuFabBadge"></div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+</div>
+<div id="sidebarOverlay" onclick="closeMenu()"></div>
+<nav id="menuExpand" role="dialog" aria-label="Menu principal">
+  <div class="menuSidebarTitle">Navigation</div>
+
+  <!-- Lien vers Gestionnaire SGP -->
+  <button id="menuBtnMain" class="menuExpandItem menuExpandItem--active" onclick="showMainView();">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+    </svg>
+    Retours SGP
+  </button>
+
+  <button id="menuBtnHistory" class="menuExpandItem" onclick="renderHistory(); closeMenu();">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    Historique SGP
+  </button>
+
+  <!-- Lien retour vers GAB principal -->
+  <a class="menuExpandItem" href="GAB._v1.1.8_Guide_antecedents_bonus-malus.html" id="linkGAB">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    ← Retour GAB
+  </a>
+
+  <div class="menuDivider"></div>
+  <div id="infoVersionLine" style="font-size:11px;color:var(--muted);padding:2px 14px 6px 14px;"></div>
+  <div class="menuSidebarTitle">Affichage</div>
+
+  <button class="menuExpandItem" onclick="toggleTheme(); closeMenu();" id="themeMenuBtn">
+    <span id="themeIcon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </span>
+    Thème sombre
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════ -->
+<header class="pageHeader">
+  <div class="pageHeaderTitle">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+    </svg>
+    Gestionnaire Retours SGP
+    <span class="badge-sgp">v0.21</span>
+    <span id="pendingBadge">0</span>
+  </div>
+  <button id="themeBtn" onclick="toggleTheme()" title="Changer le thème">
+    <span id="themeIconHeader">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </span>
+  </button>
+</header>
+
+<!-- ══════════════════════════════════════════
+     BODY
+════════════════════════════════════════════ -->
+<main class="pageBody">
+<div id="mainView">
+
+  <!-- CARTE IMPORT -->
+  <div class="card">
+    <div class="cardTitle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+      </svg>
+      Importer un retour SGP
+    </div>
+
+    <div class="importZone" id="importZone" onclick="pasteFromClipboard()">
+      <div id="pasteArea" tabindex="0" style="position:absolute;inset:0;opacity:0;z-index:2;" title="Cliquer ici puis Ctrl+V"></div>
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent);opacity:0.6;margin-bottom:8px">
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+      </svg>
+      <p><strong>Copiez le mail SGP</strong> (Ctrl+A dans le corps du mail, Ctrl+C)<br>
+      puis cliquez ici et faites <strong>Ctrl+V</strong></p>
+      <button class="importBtn" onclick="event.stopPropagation(); pasteFromClipboard();">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        Coller le tableau
+      </button>
+    </div>
+    <div id="importError" class="importError">❌ Aucun tableau valide détecté. Vérifiez que vous avez bien copié le tableau du mail SGP.</div>
+    <div id="importSuccess" class="importSuccess"></div>
+  </div>
+
+  <!-- CARTE SUIVI -->
+  <div class="card">
+    <div class="cardTitle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      Suivi des corrections
+    </div>
+
+    <!-- Stats -->
+    <div class="statsRow" id="statsRow" style="display:none">
+      <div class="statChip"><span class="dot dot-pending"></span> <span id="statPending">0</span> à traiter</div>
+      <div class="statChip"><span class="dot dot-done"></span> <span id="statDone">0</span> traités</div>
+      <div class="statChip"><span class="dot dot-parfait"></span> <span id="statParfait">0</span> dossiers parfaits</div>
+    </div>
+
+    <!-- Tabs imports -->
+    <div id="tabsRow" class="tabsRow" style="margin-top:14px; display:none"></div>
+
+    <!-- Tableau -->
+    <div id="tableContainer">
+      <div class="emptyState" id="emptyState">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <p>Aucun retour SGP importé.<br>Copiez puis collez le mail SGP depuis Outlook pour commencer.</p>
+      </div>
+      <div id="importMetaBar" style="display:none"></div>
+      <div id="archiveBtn" style="display:none;margin:10px 0 10px;">
+        <button onclick="exportAndArchive()" style="width:100%;padding:11px 18px;background:#2e7d32;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;letter-spacing:.2px;">
+          ✅ Toutes les actions sont faites — Copier le retour pour la conformité
+        </button>
+      </div>
+      <div class="tableWrap" id="tableWrap" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th style="width:150px">N° Contrat</th>
+              <th style="width:150px;text-align:center">Validation</th>
+              <th style="width:150px">Action requise</th>
+              <th style="width:380px">Correction à apporter</th>
+              <th style="width:380px">Commentaire</th>
+            </tr>
+          </thead>
+          <tbody id="sgpTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /mainView -->
+
+<div id="historyView" style="display:none;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <button onclick="showMainView()" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);">← Retour</button>
+    <h2 style="font-size:16px;font-weight:700;">Historique des retours archivés</h2>
+  </div>
+  <div id="historyList"></div>
+</div>
+</main>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- CONFIRM POPUP -->
+<div id="confirmPopup">
+  <div id="confirmBox">
+    <p id="confirmMsg">Supprimer cet import ?</p>
+    <div class="btnRow">
+      <button class="popupBtnDanger" id="confirmOk">Supprimer</button>
+      <button class="popupBtnCancel" onclick="closeConfirm()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+//  CONSTANTES & STORAGE
+// ════════════════════════════════════════════
+const LOCALVERSION = '0.21';
+const SGP_KEY    = 'gabSGP_imports';
+const THEME_KEY  = 'theme';
+const MAX_DAYS   = 30;
+
+function loadImports() {
+  try { return JSON.parse(localStorage.getItem(SGP_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveImports(data) {
+  localStorage.setItem(SGP_KEY, JSON.stringify(data));
+}
+function purgeOld(imports) {
+  const cutoff = Date.now() - MAX_DAYS * 86400000;
+  return imports.filter(imp => new Date(imp.importDate).getTime() > cutoff);
+}
+
+// ════════════════════════════════════════════
+//  THEME
+// ════════════════════════════════════════════
+const SVGMOON = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+const SVGSUN  = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+function applyTheme(isDark) {
+  document.body.classList.toggle('dark', !!isDark);
+  const ico = isDark ? SVGSUN : SVGMOON;
+  const h = document.getElementById('themeIconHeader');
+  const m = document.getElementById('themeIcon');
+  if (h) h.innerHTML = ico;
+  if (m) m.innerHTML = ico;
+  const btn = document.getElementById('themeMenuBtn');
+  if (btn) btn.childNodes[1] && (btn.childNodes[1].nodeValue !== undefined)
+    ? null : null;
+}
+function initTheme() {
+  const s = localStorage.getItem(THEME_KEY);
+  applyTheme(s === 'dark');
+}
+function toggleTheme() {
+  const d = !document.body.classList.contains('dark');
+  applyTheme(d);
+  localStorage.setItem(THEME_KEY, d ? 'dark' : 'light');
+}
+
+// ════════════════════════════════════════════
+//  MENU
+// ════════════════════════════════════════════
+function toggleMenu() {
+  const m = document.getElementById('menuExpand');
+  const o = document.getElementById('sidebarOverlay');
+  const f = document.getElementById('menuFab');
+  const isOpen = m.classList.contains('open');
+  m.classList.toggle('open', !isOpen);
+  o.classList.toggle('open', !isOpen);
+  f.classList.toggle('menuOpen', !isOpen);
+}
+function closeMenu() {
+  document.getElementById('menuExpand').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+  document.getElementById('menuFab').classList.remove('menuOpen');
+}
+
+// ════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, duration = 2800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ════════════════════════════════════════════
+//  CONFIRM POPUP
+// ════════════════════════════════════════════
+let confirmCallback = null;
+function openConfirm(msg, cb) {
+  document.getElementById('confirmMsg').textContent = msg;
+  confirmCallback = cb;
+  document.getElementById('confirmPopup').classList.add('open');
+  document.getElementById('confirmOk').onclick = () => { closeConfirm(); if (confirmCallback) confirmCallback(); };
+}
+function closeConfirm() {
+  document.getElementById('confirmPopup').classList.remove('open');
+  confirmCallback = null;
+}
+document.getElementById('confirmPopup').addEventListener('click', e => { if (e.target === document.getElementById('confirmPopup')) closeConfirm(); });
+
+// ════════════════════════════════════════════
+//  ACTION BADGE
+// ════════════════════════════════════════════
+const ACTION_MAP = {
+  'avenant':    { cls: 'avenant',    label: 'Avenant' },
+  'valide':     { cls: 'valide',     label: '✓ Valide' },
+  'valide ?':   { cls: 'valide-q',   label: 'Valide ?' },
+  'aggrav remp':{ cls: 'aggrav-remp',label: 'Aggravation Remplace' },
+  'resil ech':  { cls: 'resil-ech',  label: 'Résil Échéance' },
+  'resil remp': { cls: 'resil-remp', label: 'Résil Remplace' },
+  'nullite':    { cls: 'nullite',    label: 'Nullité' },
+  'nullité':    { cls: 'nullite',    label: 'Nullité' },
+};
+// Normalise : minuscules, sans accents, espaces simples
+function normalizeKey(s) {
+  return s.trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ');
+}
+// Table fuzzy : mots-clés normalisés → entrée
+var FUZZY_MAP = [
+  { words: ['avenant'],            entry: ACTION_MAP['avenant'] },
+  { words: ['valide', '?'],        entry: ACTION_MAP['valide ?'] },
+  { words: ['valide'],             entry: ACTION_MAP['valide'] },
+  { words: ['aggrav', 'remp'],     entry: ACTION_MAP['aggrav remp'] },
+  { words: ['resil', 'ech'],       entry: ACTION_MAP['resil ech'] },
+  { words: ['resil', 'remp'],      entry: ACTION_MAP['resil remp'] },
+  { words: ['resil', 'remplac'],   entry: ACTION_MAP['resil remp'] },
+  { words: ['resil', 'echeance'],  entry: ACTION_MAP['resil ech'] },
+  { words: ['aggrav', 'remplac'],  entry: ACTION_MAP['aggrav remp'] },
+  { words: ['nullit'],             entry: ACTION_MAP['nullite'] },
+];
+function getActionBadge(raw) {
+  if (!raw) return '<span class="actionBadge nullite">—</span>';
+  var key = normalizeKey(raw);
+  // 1. Correspondance exacte
+  var direct = ACTION_MAP[raw.trim().toLowerCase()] || ACTION_MAP[normalizeKey(raw)];
+  if (direct) return '<span class="actionBadge ' + direct.cls + '">' + direct.label + '</span>';
+  // 2. Fuzzy : toutes les words doivent être présentes dans key
+  for (var i = 0; i < FUZZY_MAP.length; i++) {
+    var f = FUZZY_MAP[i];
+    if (f.words.every(function(w) { return key.indexOf(w) >= 0; }))
+      return '<span class="actionBadge ' + f.entry.cls + '">' + f.entry.label + '</span>';
+  }
+  return '<span class="actionBadge nullite">' + raw + '</span>';
+}
+
+
+// ════════════════════════════════════════════
+//  PARSE TABLEAU HTML OUTLOOK
+// ════════════════════════════════════════════
+function parseOutlookTable(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const rows = Array.from(doc.querySelectorAll('table tr'));
+  if (!rows.length) return null;
+
+  const items = [];
+  // Ignorer ligne d'en-tête (si col1 ressemble à un header texte, pas un numéro de contrat)
+  let startRow = 0;
+  const firstCells = Array.from(rows[0].querySelectorAll('td, th'));
+  if (firstCells.length && /[a-z]/i.test(firstCells[0]?.textContent?.trim()) && !/\d{3}/.test(firstCells[0]?.textContent?.trim())) {
+    startRow = 1; // c'est un header
+  }
+
+  for (let i = startRow; i < rows.length; i++) {
+    const cells = Array.from(rows[i].querySelectorAll('td, th'));
+    if (cells.length < 2) continue;
+    const contrat  = cells[0]?.textContent?.trim() || '';
+    const validation = cells[1]?.textContent?.trim() || '';
+    const correction = cells.length >= 10 ? cells[9]?.textContent?.trim() : cells[cells.length - 2]?.textContent?.trim() || '';
+    const action     = cells.length >= 11 ? cells[10]?.textContent?.trim() : cells[cells.length - 1]?.textContent?.trim() || '';
+    if (!contrat) continue;
+    const isParfait = /dossier parfait/i.test(correction) && validation !== '?';
+    items.push({ contrat, validation, correction, action, comment: '', done: isParfait, isParfait });
+  }
+  if (!items.length) return null;
+
+  // ── Extraire deadline depuis le texte brut ──
+  var sgpDate  = null;
+  var deadline = null;
+  var fullText = doc.body ? (doc.body.innerText || doc.body.textContent || '') : '';
+
+  // Format : "A faire avant le 26/02/2026 17h" ou "17h30"
+  var mDl = fullText.match(/[Aa]\s*faire\s+avant\s+le\s+(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2})h(\d{0,2})/);
+  if (mDl) {
+    var dlMins = mDl[5] ? parseInt(mDl[5]) : 0;
+    var dlDate = new Date(parseInt(mDl[3]), parseInt(mDl[2])-1, parseInt(mDl[1]), parseInt(mDl[4]), dlMins, 0, 0);
+    if (!isNaN(dlDate)) {
+      deadline = dlDate.toISOString();
+      // Deadline = jeudi → vendredi précédent = deadline - 6 jours
+      var fri = new Date(dlDate);
+      fri.setDate(dlDate.getDate() - 6);
+      fri.setHours(0, 0, 0, 0);
+      sgpDate = fri.toISOString();
+    }
+  }
+
+  return { items: items, sgpDate: sgpDate, deadline: deadline };
+}
+
+// ════════════════════════════════════════════
+//  GESTION IMPORTS
+// ════════════════════════════════════════════
+let currentTabId = null;
+
+function getLastFriday() {
+  var d = new Date();
+  var day = d.getDay();
+  var diff = day === 5 ? 0 : (day === 6 ? 1 : day + 2);
+  d.setDate(d.getDate() - diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getDeadline() {
+  var fri = getLastFriday();
+  var thu = new Date(fri);
+  thu.setDate(fri.getDate() + 6);
+  thu.setHours(18, 30, 0, 0);
+  return thu;
+}
+
+function formatDateFR(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function addImport(items, sgpDate, deadline) {
+  let imports = loadImports();
+  imports = purgeOld(imports);
+  const id = Date.now().toString();
+  const today = new Date().toISOString();
+  var obj = { id: id, importDate: today, items: items };
+  if (sgpDate)  obj.sgpDate  = sgpDate;
+  if (deadline) obj.deadline = deadline;
+  imports.unshift(obj);
+  saveImports(imports);
+  return id;
+}
+
+function deleteImport(id) {
+  let imports = loadImports();
+  imports = imports.filter(imp => imp.id !== id);
+  saveImports(imports);
+}
+
+function toggleDone(importId, idx) {
+  var imports = loadImports();
+  var imp = imports.find(function(i) { return i.id === importId; });
+  if (!imp) return;
+  if (!imp.items[idx].isParfait) imp.items[idx].done = !imp.items[idx].done;
+  saveImports(imports);
+  renderAll();
+}
+
+function saveComment(importId, idx, val) {
+  var imports = loadImports();
+  var imp = imports.find(function(i) { return i.id === importId; });
+  if (!imp) return;
+  imp.items[idx].comment = val;
+  saveImports(imports);
+  // Mettre à jour le bouton archiver sans re-render complet
+  var allDone = imp.items.every(function(it) { return it.done || it.isParfait; });
+  var btn = document.getElementById('archiveBtn');
+  if (btn) btn.style.display = allDone ? 'block' : 'none';
+}
+
+function exportAndArchive() {
+  var imports = loadImports();
+  var imp = imports.find(function(i) { return i.id === currentTabId; });
+  if (!imp) return;
+  var _sgpDate = imp.sgpDate  ? new Date(imp.sgpDate)  : getLastFriday();
+  var _dlDate  = imp.deadline ? new Date(imp.deadline) : getDeadline();
+  var _sgpS = _sgpDate.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var _dlH  = _dlDate.getHours().toString().padStart(2,'0');
+  var _dlMn = _dlDate.getMinutes() > 0 ? _dlDate.getMinutes().toString().padStart(2,'0') : '';
+  var _dlS  = _dlDate.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})
+             + ' ' + _dlH + 'h' + _dlMn;
+  // Couleurs action dans le tableau copié
+  var aColors = { 'nullite':'#b71c1c','resil-ech':'#e65100','aggrav-remp':'#f57f17','resil-remp':'#827717','avenant':'#1565c0','valide':'#2e7d32','valide-q':'#b45309' };
+  var thS = 'background:#1565c0;color:#fff;padding:6px 10px;border:1px solid #0d47a1;font-weight:bold;text-align:left;font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+  var tdS = 'padding:5px 10px;border:1px solid #bdbdbd;vertical-align:top;font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+  var tdA = 'padding:5px 10px;border:1px solid #bdbdbd;vertical-align:top;background:#f5f5f5;font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+  var rows = imp.items.map(function(it, i) {
+    var td   = i % 2 === 0 ? tdS : tdA;
+    var isNV = it.validation === '?';
+    var vTxt = isNV ? '⚠ NON VALIDÉ' : (it.validation || 'OK');
+    var vCol = isNV ? '#c62828' : '#2e7d32';
+    var am   = ACTION_MAP[(it.action || '').trim().toLowerCase()];
+    var aLabel = am ? am.label : (it.action || '-');
+    var aColor = am ? (aColors[am.cls] || '#374151') : '#374151';
+    var cTxt = it.isParfait ? '✓ Dossier parfait' : (it.correction || '-');
+    var fait = (it.done || it.isParfait) ? '✅ Fait' : '⏳ En cours';
+    var faitCol = (it.done || it.isParfait) ? '#2e7d32' : '#b45309';
+    var note = (it.comment || '').trim() || '-';
+    return '<tr>'
+      + '<td style="' + td + 'font-family:monospace;font-size:10pt;font-weight:600">' + it.contrat + '</td>'
+      + '<td style="' + td + 'color:' + vCol + ';font-weight:bold">' + vTxt + '</td>'
+      + '<td style="' + td + 'color:' + aColor + '">' + aLabel + '</td>'
+      + '<td style="' + td + '">' + cTxt + '</td>'
+      + '<td style="' + td + 'color:' + faitCol + ';font-weight:bold;text-align:center">' + fait + '</td>'
+      + '<td style="' + td + '">' + note + '</td>'
+      + '</tr>';
+  }).join('');
+  var tableHTML = '<table style="border-collapse:collapse;width:100%">'
+    + '<thead><tr>'
+    + '<th style="' + thS + '">N° Contrat</th>'
+    + '<th style="' + thS + '">Validation</th>'
+    + '<th style="' + thS + '">Action requise</th>'
+    + '<th style="' + thS + '">Correction à apporter</th>'
+    + '<th style="' + thS + 'text-align:center">Fait</th>'
+    + '<th style="' + thS + '">Commentaire</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  var fullHTML = '<!DOCTYPE html><html><body>'
+    + '<p style="font-family:Calibri,Arial,sans-serif;font-size:11pt;margin-bottom:8px">'
+    + '<b>Retour SGP traité</b> — ' + _sgpS
+    + '&nbsp;&nbsp;<span style="color:#e65100"><b>Deadline :</b> ' + _dlS + ' 18h30</span>'
+    + '</p>' + tableHTML + '</body></html>';
+  // Texte brut fallback
+  var txt = ['Retour SGP traité — ' + _sgpS, 'Deadline : ' + _dlS + ' 18h30', ''];
+  imp.items.forEach(function(it) {
+    var am = ACTION_MAP[(it.action||'').trim().toLowerCase()];
+    txt.push(it.contrat
+      + ' | ' + (it.validation==='?'?'NON VALIDÉ':(it.validation||'OK'))
+      + ' | ' + (am?am.label:(it.action||'-'))
+      + ' | ' + (it.isParfait?'Dossier parfait':(it.correction||'-'))
+      + ' | ' + ((it.done||it.isParfait)?'Fait':'En cours')
+      + ' | ' + ((it.comment||'').trim()||'-'));
+  });
+  var text = txt.join('\n');
+  // Copier HTML+texte
+  function doArchive() {
+    var history = [];
+    try { history = JSON.parse(localStorage.getItem('gabSGP_history') || '[]'); } catch(e) {}
+    imp.archivedDate = new Date().toISOString();
+    if (!imp.sgpDate)  imp.sgpDate  = getLastFriday().toISOString();
+    if (!imp.deadline) imp.deadline = getDeadline().toISOString();
+    imp.exportText = text;
+    history.unshift(imp);
+    localStorage.setItem('gabSGP_history', JSON.stringify(history));
+    imports = imports.filter(function(i) { return i.id !== imp.id; });
+    saveImports(imports);
+    currentTabId = imports.length ? imports[0].id : null;
+    renderAll();
+    showToast('✅ Retour copié et archivé !');
+  }
+  if (window.ClipboardItem) {
+    try {
+      navigator.clipboard.write([new ClipboardItem({
+        'text/html' : new Blob([fullHTML], {type:'text/html'}),
+        'text/plain': new Blob([text],    {type:'text/plain'})
+      })]).then(function() { doArchive(); })
+        .catch(function() {
+          navigator.clipboard.writeText(text).then(function() { doArchive(); });
+        });
+      return;
+    } catch(e) {}
+  }
+  navigator.clipboard.writeText(text).then(function() { doArchive(); })
+    .catch(function() { showToast('Copie impossible.'); });
+}
+function buildHistoryRowsHTML(imp) {
+  return imp.items.map(function(it) {
+    var isNV = it.validation === '?';
+    var vBadge = isNV
+      ? '<span style="display:inline-block;background:#e53935;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;font-size:11px;">⚠ NON VALIDÉ</span>'
+      : (it.validation
+          ? '<span style="display:inline-block;background:#2e7d32;color:#fff;padding:2px 7px;border-radius:4px;font-weight:700;font-size:11px;">✓ ' + it.validation + '</span>'
+          : '<span style="color:var(--muted)">—</span>');
+    var corrTxt = isNV
+      ? (it.correction && !/dossier parfait/i.test(it.correction) ? it.correction : 'Dossier non validé — action requise')
+      : (it.isParfait ? '✓ Dossier parfait' : (it.correction || '—'));
+    var r = '<tr class="' + ((it.done||it.isParfait) ? 'done-row' : '') + (isNV ? ' row-alert' : '') + '">';
+    r += '<td style="font-weight:600;font-family:monospace;font-size:12px">' + it.contrat + '</td>';
+    r += '<td style="text-align:center">' + vBadge + '</td>';
+    r += '<td>' + getActionBadge(it.action) + '</td>';
+    r += '<td>' + corrTxt + '</td>';
+    r += '<td style="font-size:12px;color:var(--muted)">' + (it.comment || '—') + '</td>';
+    r += '</tr>';
+    return r;
+  }).join('');
+}
+
+function renderHistory() {
+  var history = [];
+  try { history = JSON.parse(localStorage.getItem('gabSGP_history') || '[]'); } catch(e) {}
+  document.getElementById('mainView').style.display = 'none';
+  updateMenuActiveState('history');
+  document.getElementById('historyView').style.display = 'block';
+  var container = document.getElementById('historyList');
+  if (!history.length) {
+    container.innerHTML = '<p style="color:var(--muted);padding:24px;">Aucun retour archivé.</p>';
+    return;
+  }
+  container.innerHTML = history.map(function(imp, i) {
+    var nv      = imp.items.filter(function(it) { return it.validation === '?'; }).length;
+    var toTreat = imp.items.filter(function(it) { return !it.isParfait; }).length;
+    var nvBadge = nv > 0 ? '<span style="background:#e53935;color:#fff;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;margin-left:6px;">' + nv + ' NON VALIDÉ(S)</span>' : '';
+    var treatBadge = '<span style="background:#546e7a;color:#fff;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;margin-left:6px;">' + toTreat + ' à traiter</span>';
+    var archivedStr = imp.archivedDate ? formatDateFR(imp.archivedDate) : '';
+    return '<div class="card" style="margin-bottom:16px;">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">'
+      + '<span style="font-weight:700;font-size:14px;">Retour SGP — ' + imp.items.length + ' contrat(s)' + treatBadge + nvBadge
+        + (archivedStr ? '<span style="font-weight:400;font-size:12px;color:var(--muted);margin-left:10px;">archivé le ' + archivedStr + '</span>' : '')
+        + '</span>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="restoreFromHistory(' + i + ')" style="padding:7px 14px;background:#1976d2;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">↩ Récupérer</button>'
+      + '<button onclick="deleteHistory(' + i + ')" style="padding:7px 14px;background:#c62828;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;">Supprimer</button>'
+      + '</div></div>'
+      + '<div style="overflow-x:auto;border-radius:8px;border:1px solid var(--tableBorder);">'
+      + '<table style="width:100%;min-width:700px;border-collapse:collapse;font-size:13px;">'
+      + '<thead><tr>'
+      + '<th style="background:var(--tableHeader);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;padding:8px 12px;text-align:left;">N° Contrat</th>'
+      + '<th style="background:var(--tableHeader);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;padding:8px 12px;text-align:center;width:100px;">Validation</th>'
+      + '<th style="background:var(--tableHeader);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;padding:8px 12px;">Action requise</th>'
+      + '<th style="background:var(--tableHeader);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;padding:8px 12px;">Correction</th>'
+      + '<th style="background:var(--tableHeader);color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;padding:8px 12px;">Commentaire</th>'
+      + '</tr></thead>'
+      + '<tbody>' + buildHistoryRowsHTML(imp) + '</tbody>'
+      + '</table></div>'
+      + '</div>';
+  }).join('');
+}
+
+function restoreFromHistory(i) {
+  var history = [];
+  try { history = JSON.parse(localStorage.getItem('gabSGP_history') || '[]'); } catch(e) {}
+  if (!history[i]) return;
+  if (!confirm('Récupérer ce retour SGP à l\'accueil ?')) return;
+  var imp = history[i];
+  history.splice(i, 1);
+  localStorage.setItem('gabSGP_history', JSON.stringify(history));
+  var imports = loadImports();
+  delete imp.archivedDate; delete imp.exportText;
+  imports.unshift(imp);
+  saveImports(imports);
+  currentTabId = imp.id;
+  showMainView();
+  renderAll();
+  showToast('↩ Import récupéré à l\'accueil !');
+}
+
+function updateMenuActiveState(view) {
+  var btnMain    = document.getElementById('menuBtnMain');
+  var btnHistory = document.getElementById('menuBtnHistory');
+  if (btnMain)    btnMain.classList.toggle('menuExpandItem--active', view === 'main');
+  if (btnHistory) btnHistory.classList.toggle('menuExpandItem--active', view === 'history');
+}
+function showMainView() {
+  document.getElementById('mainView').style.display = 'block';
+  document.getElementById('historyView').style.display = 'none';
+  updateMenuActiveState('main');
+  closeMenu();
+}
+
+
+function deleteHistory(i) {
+  if (!confirm('Supprimer cet enregistrement de l\'historique ?')) return;
+  var history = [];
+  try { history = JSON.parse(localStorage.getItem('gabSGP_history') || '[]'); } catch(e) {}
+  history.splice(i, 1);
+  localStorage.setItem('gabSGP_history', JSON.stringify(history));
+  renderHistory();
+}
+
+// ════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════
+function renderAll() {
+  let imports = loadImports();
+  imports = purgeOld(imports);
+
+  const tbody       = document.getElementById('sgpTableBody');
+  const tabsRow     = document.getElementById('tabsRow');
+  const tableWrap   = document.getElementById('tableWrap');
+  const emptyState  = document.getElementById('emptyState');
+  const statsRow    = document.getElementById('statsRow');
+  const metaBar     = document.getElementById('importMetaBar');
+  const pendingBadge = document.getElementById('pendingBadge');
+  const fabBadge    = document.getElementById('menuFabBadge');
+
+  // Compter tous les pending globaux
+  let totalPending = 0, totalDone = 0, totalParfait = 0;
+  imports.forEach(imp => {
+    imp.items.forEach(it => {
+      if (it.isParfait) totalParfait++;
+      else if (it.done) totalDone++;
+      else totalPending++;
+    });
+  });
+
+  // Badge header
+  if (totalPending > 0) {
+    pendingBadge.textContent = totalPending + ' en attente';
+    pendingBadge.classList.add('show');
+    fabBadge.style.display = 'block';
+  } else {
+    pendingBadge.classList.remove('show');
+    fabBadge.style.display = 'none';
+  }
+
+  if (!imports.length) {
+    emptyState.style.display = 'block';
+    tableWrap.style.display = 'none';
+  document.getElementById('archiveBtn').style.display = 'none';
+    tabsRow.style.display = 'none';
+    statsRow.style.display = 'none';
+    metaBar.style.display = 'none';
+    tbody.innerHTML = '';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  statsRow.style.display = 'flex';
+  document.getElementById('statPending').textContent = totalPending;
+  document.getElementById('statDone').textContent = totalDone;
+  document.getElementById('statParfait').textContent = totalParfait;
+
+  // S'assurer que l'onglet courant existe encore
+  if (!currentTabId || !imports.find(i => i.id === currentTabId)) {
+    currentTabId = imports[0].id;
+  }
+
+  // Tabs
+  tabsRow.style.display = 'flex';
+  tabsRow.innerHTML = imports.map(imp => {
+    const pending = imp.items.filter(it => !it.done && !it.isParfait).length;
+    const isActive = imp.id === currentTabId;
+    var tabLabel = imp.sgpDate ? formatDateFR(imp.sgpDate) : formatDateFR(imp.importDate);
+    return `<button class="tabBtn ${isActive ? 'active' : ''}" onclick="switchTab('${imp.id}')">
+      ${tabLabel}
+      <span class="tabCount">${imp.items.length}</span>
+      ${pending > 0 ? `<span class="tabCount" style="background:#e53e3e;color:#fff">${pending}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  // Afficher l'import actif
+  const activeImport = imports.find(i => i.id === currentTabId);
+  if (!activeImport) return;
+
+  // Barre méta
+  metaBar.style.display = 'flex';
+  const pendingCount = activeImport.items.filter(it => !it.done && !it.isParfait).length;
+  var _sgpD = (activeImport && activeImport.sgpDate)  ? new Date(activeImport.sgpDate)  : getLastFriday();
+  var _dl   = (activeImport && activeImport.deadline) ? new Date(activeImport.deadline) : getDeadline();
+  var _sgpS = _sgpD.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var _dlS  = _dl.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  var _dlH  = _dl.getHours().toString().padStart(2,'0');
+  var _dlMn = _dl.getMinutes() > 0 ? _dl.getMinutes().toString().padStart(2,'0') : '';
+  _dlS += ' ' + _dlH + 'h' + _dlMn;
+  var _now  = new Date();
+  var _late = _now > _dl;
+  var _dlColor = _late ? '#e53935' : (_dl - _now < 86400000 ? '#f57c00' : '#2e7d32');
+  metaBar.innerHTML = `
+    <div class="importMeta">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+        <span><strong>${activeImport.items.length} contrat(s)</strong> — Retour SGP du <strong>${_sgpS}</strong> · ${pendingCount} action(s) en attente</span>
+        <span style="background:${_dlColor};color:#fff;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:700;">${_late ? '⚠ Dépassé' : '⏰ Deadline'} : ${_dlS}</span>
+      </div>
+      <button class="btnDeleteImport" onclick="askDeleteImport('${activeImport.id}')">🗑 Supprimer cet import</button>
+    </div>`;
+
+  // Tableau
+  tableWrap.style.display = 'block';
+  document.getElementById('archiveBtn').style.display = 'none'; // géré par render
+  var allDone = activeImport.items.every(function(it) { return it.done || it.isParfait; });
+  var archiveBtn = document.getElementById('archiveBtn');
+  if (archiveBtn) archiveBtn.style.display = allDone ? 'block' : 'none';
+    var allDone = activeImport.items.every(function(it) { return it.done || it.isParfait; });
+  var _archBtn = document.getElementById('archiveBtn');
+  if (_archBtn) _archBtn.style.display = allDone ? 'block' : 'none';
+tbody.innerHTML = activeImport.items.map(function(it, idx) {
+    var isDone = it.done || it.isParfait;
+    var corrClass = it.isParfait ? 'parfait-txt' : '';
+    var isNV = it.validation === '?';
+    var vBadge = isNV
+      ? '<span style="display:inline-block;background:#e53935;color:#fff;padding:3px 8px;border-radius:4px;font-weight:700;font-size:11px;">⚠ NON VALIDÉ</span>'
+      : (it.validation
+          ? '<span style="display:inline-block;background:#2e7d32;color:#fff;padding:3px 8px;border-radius:4px;font-weight:700;font-size:11px;">✓ ' + it.validation + '</span>'
+          : '<span style="color:var(--muted);font-size:11px;">—</span>');
+    var corrTxt = isNV
+      ? (it.correction && !/dossier parfait/i.test(it.correction) ? it.correction : 'Dossier non validé — action requise')
+      : (it.isParfait ? '✓ Dossier parfait' : (it.correction || '—'));
+    var dA = it.isParfait ? 'disabled style="opacity:.4;cursor:default"' : '';
+    var commentVal = (it.comment || '').replace(/"/g, '&quot;');
+    var r = '<tr class="' + (isDone ? 'done-row' : '') + (isNV ? ' row-alert' : '') + '">';
+    r += '<td class="no-strike"><button class="btnDone ' + (isDone ? 'checked' : '') + '" onclick="toggleDone(\'' + activeImport.id + '\',' + idx + ')" ' + dA + '>';
+    r += '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    r += '</button></td>';
+    r += '<td style="font-weight:600;font-family:monospace;font-size:12px">' + it.contrat + '</td>';
+    r += '<td style="text-align:center">' + vBadge + '</td>';
+    r += '<td class="no-strike">' + getActionBadge(it.action) + '</td>';
+    r += '<td><span class="correctionText ' + corrClass + '">' + corrTxt + '</span></td>';
+    r += '<td><textarea rows="2" placeholder="Commentaire..." onchange="saveComment(\'' + activeImport.id + '\',' + idx + ',this.value)" style="width:100%;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text);font-family:inherit;font-size:12px;resize:vertical;">' + commentVal + '</textarea></td>';
+    r += '</tr>';
+    return r;
+  }).join('');
+}
+
+function switchTab(id) {
+  currentTabId = id;
+  renderAll();
+}
+
+function askDeleteImport(id) {
+  if (!confirm('Supprimer cet import et toutes ses lignes ?')) return;
+  deleteImport(id);
+  currentTabId = null;
+  renderAll();
+  showToast('✅ Import supprimé.');
+}
+
+// ════════════════════════════════════════════
+//  COLLER (PASTE)
+// ════════════════════════════════════════════
+function pasteFromClipboard() {
+  document.getElementById('pasteOverlay').style.display = 'flex';
+  requestAnimationFrame(function() {
+    document.getElementById('pasteArea').focus();
+  });
+}
+
+function processPastedHTML(h) {
+  var errEl = document.getElementById('importError');
+  var okEl  = document.getElementById('importSuccess');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+  if (!h) { errEl.classList.add('show'); return; }
+  var parsed = parseOutlookTable(h);
+  if (!parsed) { errEl.classList.add('show'); return; }
+  var items    = parsed.items;
+  var sgpDate  = parsed.sgpDate  || null;
+  var deadline = parsed.deadline || null;
+  var newId = addImport(items, sgpDate, deadline);
+  currentTabId = newId;
+  var count = items.length;
+  var parfait = items.filter(function(i) { return i.isParfait; }).length;
+  okEl.textContent = count + ' contrat(s) importé(s) — ' + (count - parfait) + ' correction(s), ' + parfait + ' parfait(s).';
+  okEl.classList.add('show');
+  renderAll();
+  showToast('Import SGP : ' + count + ' contrats chargés.');
+  setTimeout(function() { okEl.classList.remove('show'); }, 4000);
+}
+
+function setupPaste() {
+  const zone = document.getElementById('pasteArea');
+  const errEl = document.getElementById('importError');
+  const okEl  = document.getElementById('importSuccess');
+
+  zone.addEventListener('paste', function(e) {
+    e.preventDefault();
+    document.getElementById('pasteOverlay').style.display = 'none';
+    processPastedHTML(e.clipboardData.getData('text/html'));
+  });
+
+  // Permettre focus et réception du paste
+  document.getElementById('importZone').addEventListener('click', () => zone.focus());
+}
+
+// ════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════
+function renderMetaVersion() {
+  const el = document.getElementById('infoVersionLine');
+  if (el) el.textContent = 'Version v' + LOCALVERSION;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  setupPaste();
+  updateMenuActiveState('main');
+  renderMetaVersion();
+  // Purge auto au chargement
+  let imports = loadImports();
+  imports = purgeOld(imports);
+  saveImports(imports);
+  renderAll();
+});
+</script>
+<div id="pasteOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div style="background:var(--card);border-radius:16px;padding:36px 40px;text-align:center;max-width:360px;width:calc(100% - 40px);box-shadow:0 12px 40px rgba(0,0,0,.35);">
+    <div style="font-size:40px;margin-bottom:14px;">&#128203;</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:10px;color:var(--text);">Coller le tableau SGP</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.7;">La fenêtre est prête.<br>Appuyez sur
+      <kbd style="background:var(--bg);border:1px solid var(--border);padding:3px 10px;border-radius:5px;font-size:13px;font-weight:700;">Ctrl</kbd>
+      +
+      <kbd style="background:var(--bg);border:1px solid var(--border);padding:3px 10px;border-radius:5px;font-size:13px;font-weight:700;">V</kbd>
+    </div>
+    <button onclick="document.getElementById('pasteOverlay').style.display='none'" style="padding:9px 24px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);font-family:inherit;">Annuler</button>
+  </div>
+</div>
+</body>
+</html>
