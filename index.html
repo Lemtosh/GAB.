@@ -1435,6 +1435,35 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
     .menuExpandItem:hover svg { stroke: #fff; }
     .menuExpandItem--tools { border-color: var(--accent); color: var(--accent); font-weight: 600; }
     .menuExpandItem--tools:hover { color: #fff; }
+    .menuSGPBadge {
+      position: absolute; top: -3px; right: -5px; width: 8px; height: 8px;
+      border-radius: 50%; background: #e53e3e; border: 2px solid var(--card);
+      display: none; pointer-events: none;
+    }
+    #sgpBanner {
+      display: none;
+      background: color-mix(in oklab, #e53e3e 10%, var(--card));
+      color: var(--text);
+      padding: 9px 14px;
+      border: 1px solid color-mix(in oklab, #e53e3e 35%, var(--border));
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-bottom: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+    body.dark #sgpBanner {
+      background: color-mix(in oklab, #e53e3e 16%, var(--card));
+      border-color: color-mix(in oklab, #e53e3e 40%, var(--border));
+    }
+    #sgpBanner strong { color: #e53e3e; }
+    .sgpBannerClose {
+      position: absolute; top: 7px; right: 10px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 13px; line-height: 1; padding: 0;
+    }
+    .sgpBannerClose:hover { color: var(--text); }
     .menuWhatsNewBadge {
       position: absolute; top: -3px; right: -5px; width: 8px; height: 8px;
       border-radius: 50%; background: #11a9a6; border: 2px solid var(--card);
@@ -1775,7 +1804,217 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
     }
 
     /* ===== FIN TRAME DE VALIDATION ===== */
-</style>
+
+    /* ── Badge ALPHA sur le bouton Imprimer (hors impression) ── */
+    #menuItemPrint { position: relative; }
+
+    /* ═══════════════════════ @MEDIA PRINT ════════════════════════════════════
+       Masque : boutons, menus, contrôles d'UI
+       Conserve : frise (canvas), tableau des périodes, résumé de validation
+       Note : rendu en cours d'amélioration (alpha) — variable selon navigateur
+       ─────────────────────────────────────────────────────────────────────── */
+    @media print {
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background: #fff !important;
+        color: #111 !important;
+      }
+      .app {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding: 8px 12px !important;
+        gap: 0 !important;
+      }
+      .left, .right {
+        display: block !important;
+        flex: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border-left: none !important;
+        padding-left: 0 !important;
+      }
+
+      /* ── Masquer tout ce qui n'est pas utile ── */
+      .headerRow,
+      #menuFab, #menuExpand, #menuOverlay,
+      #updateBanner,
+      .notesBox,
+      #autoSaveToast,
+      #crmAlertPopup, #permitAlertPopup,
+      .toolPopup,
+      .pillGroup, .pillGroupWrap,
+      .settingsPill, #settingsPillWrap,
+      .settingsPillPanel,
+      .ccRow, #ccPanel,
+      #btnAddRow, #btnClear, #btnModeComplexe,
+      #btnRiCommentAuto, #btnRiCommentMoto,
+      #crmAlertTriangle, #permitAlertTriangle,
+      #settingsPopup, #infoPopup, #troussePopup,
+      .left > div.row { display: none !important; }
+      button { display: none !important; }
+
+      /* ── Conserver : canvas (frise) ── */
+      canvas {
+        display: block !important;
+        max-width: 100% !important;
+        height: 110px !important;
+        page-break-inside: avoid;
+        margin-top: 8px !important;
+      }
+      #legendAuto, #legendMoto {
+        display: block !important;
+        font-size: 11px !important;
+        color: #111 !important;
+        margin-bottom: 2px !important;
+      }
+      #totalMois, #interruptionTxt {
+        display: block !important;
+        font-size: 11px !important;
+        color: #111 !important;
+      }
+      .interruptions {
+        display: block !important;
+        max-height: none !important;
+        overflow: visible !important;
+        font-size: 11px !important;
+        color: #b00 !important;
+        background: none !important;
+        border: none !important;
+        padding: 2px 0 !important;
+      }
+
+      /* ── Conserver : tableau des périodes ── */
+      .tableScroll {
+        display: block !important;
+        overflow: visible !important;
+        border: 1px solid #ccc !important;
+        margin-top: 8px !important;
+        border-radius: 0 !important;
+      }
+      table {
+        width: 100% !important;
+        min-width: 0 !important;
+        table-layout: auto !important;
+        page-break-inside: avoid;
+      }
+      th, td {
+        font-size: 10px !important;
+        padding: 2px 4px !important;
+        border: 1px solid #bbb !important;
+        color: #111 !important;
+        background: #fff !important;
+        white-space: normal !important;
+      }
+      th { background: #f0f0f0 !important; font-weight: bold !important; }
+      .colEcheance, .colCrmEch, .colPermis { display: none !important; }
+      th:last-child, td:last-child { display: none !important; }
+
+      /* ── Conserver : résumé de validation ── */
+      .valSection {
+        display: block !important;
+        page-break-inside: avoid;
+        border: 1px solid #bbb !important;
+        border-radius: 4px !important;
+        padding: 8px 10px !important;
+        margin-top: 10px !important;
+        background: #fff !important;
+      }
+      .valSectionHd {
+        display: block !important;
+        font-weight: bold !important;
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+        color: #111 !important;
+        border-bottom: 1px solid #ddd !important;
+        padding-bottom: 4px !important;
+      }
+      .valRow {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 8px 16px !important;
+        margin-bottom: 4px !important;
+      }
+      .vField {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-size: 11px !important;
+        color: #111 !important;
+      }
+      .vLbl {
+        font-weight: 600 !important;
+        color: #333 !important;
+        font-size: 10px !important;
+      }
+      .vSep { color: #999 !important; }
+      .result {
+        font-size: 11px !important;
+        color: #111 !important;
+        display: inline !important;
+      }
+      input[type="text"] {
+        border: none !important;
+        border-bottom: 1px solid #bbb !important;
+        background: transparent !important;
+        color: #111 !important;
+        font-size: 11px !important;
+        padding: 0 2px !important;
+        width: auto !important;
+        min-width: 40px !important;
+      }
+      select, input[type="checkbox"] { display: none !important; }
+
+      @page { margin: 14mm 10mm; }
+    }
+
+/* === SLOTS v1.1.8 === */
+#saveCardWrap{gap:6px !important;align-items:center !important;flex-wrap:nowrap !important;padding:6px 12px !important;}
+.slotWrapLabel{display:none !important;}
+.slotBar{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
+#saveCardWrap.slotSingle .slotBar,#saveCardWrap.slotSingle .slotDivider{display:none !important;}
+#saveCardWrap.slotSingle #slotSingleInput{display:inline-block !important;}
+#slotSingleInput{display:none;width:130px;}
+.slotGroup{display:inline-flex;align-items:center;gap:4px;}
+.slotInput{
+  padding:2px 6px;border-radius:6px;
+  border:1px solid var(--softStroke,var(--border2));
+  background:color-mix(in oklab,var(--card) 78%,transparent);
+  font-size:12px !important;font-weight:600;color:color-mix(in oklab,var(--text) 60%,transparent);
+  outline:none;cursor:pointer;transition:border-color 130ms,background 130ms,color 130ms;
+  overflow:hidden;text-overflow:ellipsis;box-sizing:border-box;
+}
+.slotInput::placeholder{color:color-mix(in oklab,var(--text) 38%,transparent);font-style:italic;font-size:12px !important;}
+.slotInput.slotActive{
+  border-color:color-mix(in oklab,var(--accent,#11a9a6) 55%,transparent) !important;
+  background:color-mix(in oklab,var(--accent,#11a9a6) 10%,transparent) !important;
+  color:var(--text) !important;font-weight:700;cursor:text;
+}
+.slotInput:not(.slotActive):hover{
+  border-color:color-mix(in oklab,var(--accent,#11a9a6) 30%,transparent);
+  background:color-mix(in oklab,var(--accent,#11a9a6) 6%,transparent);
+}
+body.dark .slotInput{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.45);}
+body.dark .slotInput.slotActive{background:rgba(17,169,166,.15) !important;border-color:rgba(17,169,166,.52) !important;color:rgba(255,255,255,.92) !important;}
+.slotDot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#bdbdbd;transition:background 200ms,box-shadow 200ms;pointer-events:none;}
+.slotDot.dot-empty{background:#bdbdbd;}
+.slotDot.dot-pending{background:#e65100;}
+.slotDot.dot-dirty{background:#e65100;}
+.slotDot.dot-saved{background:#2e7d32;}
+.slotDot.dot-loaded{background:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.18);}
+body.dark .slotDot.dot-empty{background:#555;}
+body.dark .slotDot.dot-pending{background:#ffb74d;}
+body.dark .slotDot.dot-dirty{background:#ffb74d;}
+body.dark .slotDot.dot-saved{background:#81c784;}
+body.dark .slotDot.dot-loaded{background:#64b5f6;box-shadow:0 0 0 3px rgba(100,181,246,.18);}
+.slotSep{width:1px;height:16px;flex-shrink:0;background:var(--softStroke,var(--border2));align-self:center;margin:0 1px;}
+.slotDivider{width:1px;height:16px;flex-shrink:0;background:var(--softStroke,var(--border2));align-self:center;margin:0 2px;}
+#slotSwitchPopup{display:none;position:fixed;inset:0;z-index:10012;align-items:center;justify-content:center;background:rgba(0,0,0,.40);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+#slotSwitchBox{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:22px 26px;max-width:400px;width:calc(100% - 40px);box-shadow:0 12px 40px rgba(0,0,0,.25);}
+#slotSwitchBox p{margin:0 0 18px;font-size:14px;line-height:1.4;font-weight:500;}
+
+  </style>
 </head>
 <body>
 <div class="app">
@@ -1795,6 +2034,10 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
   &nbsp;
   <button id="btnUpdateNow" type="button" title="Recharge la page pour charger la dernière version">Mettre à jour</button>
 </div>
+</div>
+<div id="sgpBanner" onclick="window.location.href='https://lemtosh.github.io/GAB./GAB_SGP.html'" title="Ouvrir le Gestionnaire SGP">
+  <button class="sgpBannerClose" onclick="event.stopPropagation();closeSGPBanner()" title="Fermer">✕</button>
+  <span id="sgpBannerText"></span>
 </div>
 <div class="toolPopup" id="crmTableWrap" onclick="if(event.target===this)closeToolPopup('crmTableWrap');" role="dialog" aria-modal="true">
   <div class="toolPopupBox">
@@ -1882,13 +2125,26 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 <div class="motoBtnWrap"> <input class="motoHidden" id="moto" type="checkbox"/> <button aria-pressed="false" class="pillBtn motoToolBtn" id="btnMoto" title="Fenêtre moto : 24 mois" type="button">Moto</button></div>
 <button id="btnClear" type="button">Effacer</button></span>
 <span class="dateEffetBubble saveCardBubble" id="saveCardWrap">
-  <label for="saveContrat">N° contrat :</label>
-  <input id="saveContrat" maxlength="30" placeholder="ex : 810MIA012345" type="text" autocomplete="off"/>
-  <button id="btnSave" type="button" title="Enregistrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
-  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-  <polyline points="17 21 17 13 7 13 7 21"/>
-  <polyline points="7 3 7 8 15 8"/>
-</svg></button></span><div id="modeComplexeSwitch" class="typeSwitchToggle" role="switch" aria-label="Mode Simple/Complexe" aria-checked="false" tabindex="0"><span class="typeText typeTextAuto">Simple</span><span class="typeText typeTextMoto">Complexe</span><span class="typePill" aria-hidden="true"></span></div>
+  <span class="slotBar">
+    <span class="slotGroup"><span class="slotDot" id="slotDot0"></span><input class="slotInput slotActive" id="slotInput0" type="text" maxlength="30" placeholder="Espace&#160;1" autocomplete="off" spellcheck="false" style="font-size:12px !important;width:130px;"/></span>
+    <span class="slotSep"></span>
+    <span class="slotGroup"><span class="slotDot" id="slotDot1"></span><input class="slotInput" id="slotInput1" type="text" maxlength="30" placeholder="Espace&#160;2" autocomplete="off" spellcheck="false" readonly style="font-size:12px !important;width:130px;"/></span>
+    <span class="slotSep"></span>
+    <span class="slotGroup"><span class="slotDot" id="slotDot2"></span><input class="slotInput" id="slotInput2" type="text" maxlength="30" placeholder="Espace&#160;3" autocomplete="off" spellcheck="false" readonly style="font-size:12px !important;width:130px;"/></span>
+  </span>
+  <span class="slotDivider"></span>
+  <input id="slotSingleInput" maxlength="30" placeholder="ex&#160;: 810MIA012345" type="text" autocomplete="off"/>
+  <button id="btnSave" type="button" title="Enregistrer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></button>
+  <input id="saveContrat" maxlength="30" type="text" autocomplete="off" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;"/>
+  <div id="slotSwitchPopup"><div id="slotSwitchBox">
+    <p id="slotSwitchMsg"></p>
+    <div class="btnRow">
+      <button type="button" class="popupBtnSave"   id="btnSlotSave">Enregistrer &amp; changer</button>
+      <button type="button" class="popupBtnDanger" id="btnSlotForce">Changer sans enregistrer</button>
+      <button type="button" class="popupBtnCancel" id="btnSlotCancel">Annuler</button>
+    </div>
+  </div></div>
+</span><div id="modeComplexeSwitch" class="typeSwitchToggle" role="switch" aria-label="Mode Simple/Complexe" aria-checked="false" tabindex="0"><span class="typeText typeTextAuto">Simple</span><span class="typeText typeTextMoto">Complexe</span><span class="typePill" aria-hidden="true"></span></div>
 </div>
 
 
@@ -2279,7 +2535,7 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.1.6";
+    const LOCAL_VERSION = "1.2";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
     const CHANGELOG_SEEN_KEY = "gabChangelogSeen";
@@ -3416,7 +3672,7 @@ ${formatDateFR(deb)} → ${formatDateFR(fin)}`;
     let _crmAlert = null;
     for (const _gap of _gapsAuto) {
       const _gapR = monthsAndRemainderDays(_gap.start, _gap.end);
-      if (_gapR.months >= 24) { _crmAlert = { start: _gap.start, end: _gap.end }; break; }
+      if (_gapR.months >= 24 && _gap.end.getTime() >= win.end.getTime()) { _crmAlert = { start: _gap.start, end: _gap.end }; break; }
     }
     if (_crmAlert) {
       const _fmt = d => d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -4905,6 +5161,295 @@ function _clEsc(s) {
      FIN TRAME DE VALIDATION
      ========================================================= */
 
+
+/* === GAB SLOTS v1.1.8 === */
+var _SL_N=3, _SL_DEFAULT=['Espace 1','Espace 2','Espace 3'], _SL_KEY='gab_slots_enabled';
+window._slActive=0; window._slEnabled=true;
+var _slSt=[
+  {num:null,hash:null,pending:false},
+  {num:null,hash:null,pending:false},
+  {num:null,hash:null,pending:false}
+];
+var _slPending=null;
+
+function _slLoadSetting(){var v=localStorage.getItem(_SL_KEY);window._slEnabled=(v===null)?true:(v==='1');}
+function _slSaveSetting(){localStorage.setItem(_SL_KEY,window._slEnabled?'1':'0');}
+function toggleSlotsSetting(){
+  window._slEnabled=!window._slEnabled; _slSaveSetting();
+  var p=document.getElementById('pillSettingSlots');
+  if(p) p.setAttribute('aria-checked',window._slEnabled?'true':'false');
+  _slApplyMode();
+}
+function _slSyncHidden(num){var sc=document.getElementById('saveContrat');if(sc)sc.value=num||'';}
+function _slApplyMode(){
+  var w=document.getElementById('saveCardWrap'); if(!w) return;
+  if(window._slEnabled){
+    w.classList.remove('slotSingle');
+    _slSyncHidden(_slSt[window._slActive].num);
+  } else {
+    w.classList.add('slotSingle');
+    var si=document.getElementById('slotSingleInput'),sc=document.getElementById('saveContrat');
+    if(si&&sc) si.value=sc.value;
+  }
+}
+function _slDotClass(i){
+  if(i===window._slActive){
+    if(_slSt[i].pending) return 'dot-pending';
+    if(!_sessionNum) return 'dot-empty';
+    try{return(_dataHash(getFormData())===_sessionHash)?'dot-saved':'dot-dirty';}
+    catch(e){return 'dot-saved';}
+  }
+  var st=_slSt[i];
+  if(st.pending) return 'dot-pending';
+  if(!st.num) return 'dot-empty';
+  return localStorage.getItem(SAVE_PREFIX+st.num)?'dot-saved':'dot-empty';
+}
+function _slRender(){
+  if(!window._slEnabled) return;
+  for(var i=0;i<_SL_N;i++){
+    var inp=document.getElementById('slotInput'+i);
+    var dot=document.getElementById('slotDot'+i);
+    if(!inp) continue;
+    var isActive=(i===window._slActive);
+    inp.classList.toggle('slotActive',isActive);
+    inp.readOnly=!isActive;
+    if(dot) dot.className='slotDot '+_slDotClass(i);
+  }
+}
+function _slFlashDot(i,cls){var dot=document.getElementById('slotDot'+i);if(!dot)return;dot.className='slotDot '+cls;}
+function _slIsDirty(){if(!_sessionNum)return false;try{return _dataHash(getFormData())!==_sessionHash;}catch(e){return false;}}
+
+function _slDoSwitch(to){
+  var fromInp=document.getElementById('slotInput'+window._slActive);
+  var fromVal=fromInp?(fromInp.value||'').trim():'';
+  _slSt[window._slActive]={num:fromVal||_slSt[window._slActive].num,hash:_sessionHash,pending:_slSt[window._slActive].pending};
+  window._slActive=to;
+  var st=_slSt[to];
+  _sessionNum=st.num||null; _sessionHash=st.hash||null;
+  var toInp=document.getElementById('slotInput'+to);
+  if(toInp) toInp.value=st.num||'';
+  _slSyncHidden(st.num); setSaveStatus('','');
+  if(st.num&&_loadContrat(st.num)){
+    _slSt[to].pending=false;
+    setSaveStatus('Chargé','saveStatus-loaded');
+    if(typeof showToast==='function') showToast('Contrat chargé','loaded');
+    _slRender();
+    setTimeout(function(){_slFlashDot(to,'dot-loaded');},0);
+  } else if(!st.pending){
+    _sessionNum=null; _sessionHash=null; _slSyncHidden('');
+    effacerTout(); if(typeof resetValidationPanel==='function') resetValidationPanel();
+    _slRender();
+  } else {
+    _sessionNum=null; _sessionHash=null; _slRender();
+  }
+  setTimeout(function(){var inp=document.getElementById('slotInput'+to);if(inp){inp.focus();inp.select();}},50);
+}
+
+function _slHidePopup(){var p=document.getElementById('slotSwitchPopup');if(p)p.style.display='none';}
+function _slShowPopup(){var p=document.getElementById('slotSwitchPopup');if(p)p.style.display='flex';}
+function _slRequestSwitch(i){
+  if(i===window._slActive) return;
+  if(_slIsDirty()){
+    _slPending=i;
+    var m=document.getElementById('slotSwitchMsg');
+    if(m) m.textContent='Espace '+(window._slActive+1)+' : modifications non enregistrees sur "'+(_sessionNum||'...')+'". Que faire ?';
+    _slShowPopup();
+  } else { _slDoSwitch(i); }
+}
+
+function _slPatchSaveContrat(){
+  var orig=window._saveContrat;
+  window._saveContrat=function(num){
+    var v=orig(num);
+    var ai=window._slActive;
+    _slSt[ai]={num:num,hash:_sessionHash,pending:false};
+    var inp=document.getElementById('slotInput'+ai);
+    if(inp) inp.value=num;
+    _slSyncHidden(num);
+    _slFlashDot(ai,'dot-saved');
+    setTimeout(function(){_slRender();},50);
+    return v;
+  };
+}
+function _slPatchDoClear(){
+  var orig=window._doClear;
+  window._doClear=function(){
+    _slSt[window._slActive]={num:null,hash:null,pending:false};
+    var inp=document.getElementById('slotInput'+window._slActive);
+    if(inp) inp.value='';
+    if(typeof orig==='function') orig();
+    _slRender();
+  };
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  _slLoadSetting();
+  var pill=document.getElementById('pillSettingSlots');
+  if(pill) pill.setAttribute('aria-checked',window._slEnabled?'true':'false');
+  _slApplyMode(); _slPatchSaveContrat(); _slPatchDoClear();
+
+  setTimeout(function(){
+    if(_sessionNum){
+      _slSt[0]={num:_sessionNum,hash:_sessionHash,pending:false};
+      var inp=document.getElementById('slotInput0');
+      if(inp) inp.value=_sessionNum;
+      _slRender();
+    }
+  },100);
+
+  for(var i=0;i<_SL_N;i++){(function(idx){
+    var inp=document.getElementById('slotInput'+idx); if(!inp) return;
+    inp.addEventListener('mousedown',function(e){
+      if(idx!==window._slActive){e.preventDefault();_slRequestSwitch(idx);}
+    });
+    inp.addEventListener('input',function(){
+      if(idx!==window._slActive) return;
+      var val=(inp.value||'').trim();
+      _slSyncHidden(val);
+      if(val&&val!==_sessionNum){_slSt[idx].pending=true;_slSt[idx].num=val;setTimeout(_slRender,50);}
+      else if(!val){_slSt[idx]={num:null,hash:null,pending:false};_sessionNum=null;_sessionHash=null;setTimeout(_slRender,50);}
+    });
+    function _validate(){
+      if(idx!==window._slActive) return;
+      var val=(inp.value||'').trim();
+      if(!val){
+        _slSt[idx]={num:null,hash:null,pending:false};
+        _sessionNum=null;_sessionHash=null;_slSyncHidden('');
+        effacerTout();if(typeof resetValidationPanel==='function')resetValidationPanel();
+        setSaveStatus('','');_slRender();return;
+      }
+      if(_loadContrat(val)){
+        _slSt[idx]={num:val,hash:_sessionHash,pending:false};_slSyncHidden(val);
+        setSaveStatus('Chargé','saveStatus-loaded');
+        if(typeof showToast==='function') showToast('Contrat chargé','loaded');
+        _slRender();setTimeout(function(){_slFlashDot(idx,'dot-loaded');},0);
+      } else {
+        _slSt[idx]={num:val,hash:null,pending:true};
+        _slSyncHidden(val);_sessionNum=null;_sessionHash=null;_slRender();
+      }
+    }
+    inp.addEventListener('blur',_validate);
+    inp.addEventListener('keydown',function(e){
+      if(e.key==='Enter'){e.preventDefault();inp.blur();}
+      if(e.key==='Escape'){inp.value=_slSt[idx].num||'';inp.blur();}
+    });
+  })(i);}
+
+  var si=document.getElementById('slotSingleInput'),sc=document.getElementById('saveContrat');
+  if(si&&sc){si.addEventListener('input',function(){sc.value=si.value;});si.addEventListener('change',function(){sc.value=si.value;});}
+
+  var bss=document.getElementById('btnSlotSave');
+  if(bss) bss.addEventListener('click',function(){
+    var num=(sc?sc.value:'').trim();
+    if(num){try{_saveContrat(num);setSaveStatus('Enregistre','saveStatus-ok');}catch(e){}}
+    if(_slPending!==null){_slDoSwitch(_slPending);_slPending=null;}
+    _slHidePopup();
+  });
+  var bsf=document.getElementById('btnSlotForce');
+  if(bsf) bsf.addEventListener('click',function(){if(_slPending!==null){_slDoSwitch(_slPending);_slPending=null;}_slHidePopup();});
+  var bsc2=document.getElementById('btnSlotCancel');
+  if(bsc2) bsc2.addEventListener('click',function(){_slPending=null;_slHidePopup();});
+  var pop=document.getElementById('slotSwitchPopup');
+  if(pop) pop.addEventListener('click',function(e){if(e.target===pop){_slPending=null;_slHidePopup();}});
+
+  document.addEventListener('input',function(e){
+    var t=e.target;
+    if(t&&t.id!=='slotSingleInput'&&t.id!=='slotInput0'&&t.id!=='slotInput1'&&t.id!=='slotInput2'
+       &&(t.tagName==='INPUT'||t.tagName==='SELECT'||t.tagName==='TEXTAREA'))
+      setTimeout(_slRender,50);
+  });
+  document.addEventListener('change',function(e){
+    var t=e.target;
+    if(t&&t.id!=='slotInput0'&&t.id!=='slotInput1'&&t.id!=='slotInput2')
+      setTimeout(_slRender,50);
+  });
+
+  var origRestore=window.restoreAllFields;
+  if(origRestore){window.restoreAllFields=function(){origRestore();setTimeout(function(){if(_sessionNum){_slSt[0]={num:_sessionNum,hash:_sessionHash,pending:false};var i0=document.getElementById('slotInput0');if(i0)i0.value=_sessionNum;_slRender();}},100);};}
+  _slRender();
+});
+/* === FIN GAB SLOTS === */
+    /* ===== GAB — Intégration Gestionnaire SGP ===== */
+    const SGP_STORAGE_KEY  = 'gabSGP_imports';
+    const SGP_BANNER_SEEN  = 'gabSGPbannerSeen';
+
+    function loadSGPData() {
+      try { return JSON.parse(localStorage.getItem(SGP_STORAGE_KEY) || '[]'); } catch(e) { return []; }
+    }
+
+    function getSGPPendingInfo() {
+      const imports = loadSGPData();
+      if (!imports.length) return null;
+      let totalPending = 0;
+      let nearestDeadline = null;
+      imports.forEach(function(imp) {
+        (imp.items || []).forEach(function(it) {
+          if (!it.done && !it.isParfait) totalPending++;
+        });
+        if (imp.deadline) {
+          const d = new Date(imp.deadline);
+          if (!isNaN(d) && (!nearestDeadline || d < nearestDeadline)) nearestDeadline = d;
+        }
+      });
+      if (totalPending === 0) return null;
+      return { pending: totalPending, deadline: nearestDeadline };
+    }
+
+    function formatDeadlineFR(d) {
+      if (!d) return '';
+      const now = new Date();
+      const days = Math.ceil((d - now) / 86400000);
+      const hStr = String(d.getHours()).padStart(2,'0') + 'h' + (d.getMinutes() ? String(d.getMinutes()).padStart(2,'0') : '');
+      const dateStr = d.toLocaleDateString('fr-FR', { weekday:'long', day:'2-digit', month:'long' });
+      if (days < 0)  return ' — <strong style="color:#e53e3e;">⚠ Délai dépassé !</strong> Deadline était le ' + dateStr + ' à ' + hStr;
+      if (days === 0) return ' — <strong style="color:#e53e3e;">⚠ Deadline aujourd\'hui</strong> à ' + hStr;
+      if (days === 1) return ' — <strong>Deadline demain</strong> à ' + hStr;
+      return ' — <strong>Deadline</strong> ' + dateStr + ' à ' + hStr + ' (' + days + 'j)';
+    }
+
+    function checkSGPBadge() {
+      const info = getSGPPendingInfo();
+      const badge = document.getElementById('menuSGPBadge');
+      const wBadge = document.querySelector('.menuWhatsNewBadge');
+      if (badge) badge.style.display = info ? 'block' : 'none';
+      // SGP prioritaire : masque le badge Nouveautés quand SGP a des items en attente
+      if (wBadge) {
+        if (info) wBadge.style.setProperty('display', 'none', 'important');
+        else      wBadge.style.removeProperty('display');
+      }
+    }
+
+    function checkSGPBanner() {
+      const info = getSGPPendingInfo();
+      const banner = document.getElementById('sgpBanner');
+      const textEl = document.getElementById('sgpBannerText');
+      if (!banner || !textEl) return;
+      if (!info) { banner.style.display = 'none'; return; }
+      const todayKey = new Date().toISOString().slice(0,10);
+      if (localStorage.getItem(SGP_BANNER_SEEN) === todayKey) { banner.style.display = 'none'; return; }
+      const nb = info.pending;
+      textEl.innerHTML = '📋 <strong>' + nb + ' retour' + (nb > 1 ? 's' : '') + ' SGP en attente</strong>'
+        + formatDeadlineFR(info.deadline)
+        + ' &nbsp;<a href="https://lemtosh.github.io/GAB./GAB_SGP.html" onclick="event.stopPropagation()" style="color:var(--link,#0b3d91);font-weight:700;">Ouvrir →</a>';
+      banner.style.display = 'block';
+    }
+
+    function closeSGPBanner() {
+      const banner = document.getElementById('sgpBanner');
+      if (banner) banner.style.display = 'none';
+      localStorage.setItem(SGP_BANNER_SEEN, new Date().toISOString().slice(0,10));
+    }
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === SGP_STORAGE_KEY) { checkSGPBadge(); checkSGPBanner(); }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      checkSGPBadge();
+      checkSGPBanner();
+    });
+    /* ===== FIN Intégration SGP ===== */
+
   </script>
 
 <div id="riPopupOverlay" class="riPopupOverlay" onclick="if(event.target===this)closeRiPopup();" aria-live="polite">
@@ -4944,7 +5489,14 @@ function _clEsc(s) {
       </div>
     </div>
 
-    <div class="ccFooter">
+          <div class="settingsSubSection">
+        <div class="settingsSubTitle">Espace de travail</div>
+        <div class="ccRow">
+          <span class="ccLabel">Activer les <strong>espaces de travail multiples</strong> (3 slots)</span>
+          <div class="ccPill" id="pillSettingSlots" onclick="toggleSlotsSetting()" role="switch" aria-checked="true" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleSlotsSetting()"><span class="ccPillOff">Desactive</span><span class="ccPillOn">Active</span><span class="ccPillThumb"></span></div>
+        </div>
+      </div>
+<div class="ccFooter">
       <button type="button" class="ccPrimary" onclick="document.getElementById('settingsPopup').style.display='none';">Fermer</button>
     </div>
 
@@ -5031,6 +5583,25 @@ function _clEsc(s) {
     <button class="menuExpandItem menuExpandItem--tools" type="button" onclick="closeMenu();openTrousse()">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
       <span>Outils</span>
+    </button>
+    <!-- Gestionnaire SGP -->
+    <a class="menuExpandItem menuExpandItem--tools" href="https://lemtosh.github.io/GAB./GAB_SGP.html" id="linkSGP" style="text-decoration:none;position:relative;">
+      <span style="position:relative;display:inline-flex;align-items:center;flex-shrink:0;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span class="menuSGPBadge" id="menuSGPBadge"></span>
+      </span>
+      <span>Gestionnaire SGP</span>
+    </a>
+    <!-- Imprimer / PDF -->
+    <button class="menuExpandItem" id="menuItemPrint" type="button" onclick="closeMenu();window.print()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      <span>Imprimer / PDF</span>
+      <span style="margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:99px;background:#f97316;color:#fff;vertical-align:middle;line-height:1.6;flex-shrink:0;" title="Mise en page en cours d'amélioration — résultat variable selon le navigateur">ALPHA</span>
     </button>
     <!-- 2. Mode sombre -->
     <button class="menuExpandItem" id="menuItemDarkMode" type="button" onclick="toggleTheme()">
