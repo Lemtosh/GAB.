@@ -2779,7 +2779,7 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.02";
+    const LOCAL_VERSION = "1.3.03";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
@@ -4382,6 +4382,11 @@ function toggleExclusive(btnId, cardId, otherBtnId, otherCardId){
   setPanelOpen(cardId, btnId, willOpen);
 }
 
+
+function reloadWithBust(v) {
+  var base = window.location.pathname;
+  window.location.replace(base + '?v=' + encodeURIComponent(v) + '&t=' + Date.now());
+}
 
 function wireUpdateNow(remoteVersion){
   const btn = document.getElementById('btnUpdateNow');
