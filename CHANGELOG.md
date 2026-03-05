@@ -1,5 +1,23 @@
 # Changelog — GAB. Guide Antécédents Bonus-Malus
 
+## v1.3 — Succès & badges
+*5 mars 2026*
+
+### 🏅 Système de succès (34 badges)
+Un système de badges est désormais intégré au GAB — accessible depuis la barre de navigation via le bouton *Succès*.
+
+- **34 badges déblocables** répartis en 9 catégories : Moto, Contrat, Validation, Espaces de travail, Tableau, CRM, Contrôle vitesse, Fidélité et SGP
+- **Toast animé** à l'écran à chaque nouveau badge débloqué
+- **Vue d'ensemble** : grille de tous les badges — débloqués en couleur, verrouillés en grisé avec barre de progression
+- **Badges liés à l'activité** : se débloquent automatiquement selon votre utilisation (dossiers enregistrés, validations effectuées, connexions quotidiennes, performance sur les retours SGP…)
+- Les badges SGP (taux de validation 50 % / 70 % / 100 %, séries hebdomadaires) sont alimentés automatiquement par le Gestionnaire SGP
+
+### Correctifs & améliorations
+- Bouton **⋯ Options** dans la barre de navigation : regroupe Paramètres, Informations, Nouveautés, Imprimer et Thème en un seul menu déroulant
+- Transmission des résultats SGP vers le GAB plus robuste (gestion multi-entrées, déclenchement à la reprise de focus)
+
+---
+
 ## v1.2 — Gestionnaire SGP & alertes intégrées
 *27 février 2026*
 

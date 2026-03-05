@@ -13,13 +13,13 @@
 <title>GAB.</title>
 <style>
     :root{
-      --bg: #ffffff;
+      --bg: #f0f2f5;
       --text: #111;
-      --muted: #666;
+      --muted: #555;
       --card: #ffffff;
-      --border: #ddd;
-      --border2: #eee;
-      --tableBorder: #ccc;
+      --border: #c2c8d4;
+      --border2: #d6dae4;
+      --tableBorder: #b8beca;
       --btnDanger: #ff4444;
       --btnDangerHover: #cc0000;
       --canvasBorder: #eee;
@@ -298,13 +298,13 @@
 :root{
   --accent: #11a9a6;
   --accent2: #0f8f8c;
-  --pageBg1: #f4f5f7;
-  --pageBg2: #ffffff;
-  --cardBg: rgba(255,255,255,0.92);
-  --cardStroke: rgba(17, 24, 39, 0.10);
-  --softStroke: rgba(17, 24, 39, 0.08);
-  --shadowA: 0 10px 30px rgba(17,24,39,0.10);
-  --shadowB: 0 6px 18px rgba(17,24,39,0.08);
+  --pageBg1: #e6e9ee;
+  --pageBg2: #f0f2f5;
+  --cardBg: rgba(255,255,255,0.97);
+  --cardStroke: rgba(17, 24, 39, 0.16);
+  --softStroke: rgba(17, 24, 39, 0.14);
+  --shadowA: 0 10px 30px rgba(17,24,39,0.15);
+  --shadowB: 0 6px 18px rgba(17,24,39,0.12);
   --radiusXL: 22px;
   --radiusL: 18px;
   --radiusM: 14px;
@@ -791,7 +791,7 @@ body.dark{
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 0;
+      margin: 22px 0 0 0;
     }
     .siteLogo{
       height: clamp(64px, 7.5vw, 104px);
@@ -1652,9 +1652,9 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
     }
     /* vLbl en accent quand du texte est saisi */
     .vField:has(input:not(:placeholder-shown)) .vLbl {
-      color:var(--accent);
-      background:color-mix(in oklab,var(--accent) 10%,transparent);
-      border-right-color:color-mix(in oklab,var(--accent) 28%,transparent);
+      color:#fff;
+      background:var(--accent);
+      border-right-color:color-mix(in oklab,#000 20%,var(--accent));
     }
     /* Input interne : annule border-radius:16px et box-shadow globaux */
     .vField input {
@@ -1703,11 +1703,11 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
     .vLblSwitch.isFinaux:hover      .vAntecOptFinaux { opacity:1; }
     /* Surbrillance bleue UNIQUEMENT si texte saisi dans déclaré */
     .vField:has(#val_antec_decl:not(:placeholder-shown)) .vLblSwitch {
-      background:color-mix(in oklab,var(--accent) 10%,transparent);
-      border-right-color:color-mix(in oklab,var(--accent) 28%,transparent);
+      background:var(--accent);
+      border-right-color:color-mix(in oklab,#000 20%,var(--accent));
     }
     .vField:has(#val_antec_decl:not(:placeholder-shown)) .vAntecOpt {
-      color:var(--accent);
+      color:#fff;
     }
 
     /* ---- Toggle Supp./Finaux (clone Auto/Moto) ---- */
@@ -2017,7 +2017,248 @@ body.dark .slotDot.dot-loaded{background:#64b5f6;box-shadow:0 0 0 3px rgba(100,1
 #slotSwitchBox{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:14px;padding:22px 26px;max-width:400px;width:calc(100% - 40px);box-shadow:0 12px 40px rgba(0,0,0,.25);}
 #slotSwitchBox p{margin:0 0 18px;font-size:14px;line-height:1.4;font-weight:500;}
 
-  </style>
+  
+/* ══════════════════════════════════════
+   TOP NAV BAR  v1.2.01
+══════════════════════════════════════ */
+#topNavBar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 46px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 14px rgba(0,0,0,0.10);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 2px;
+  z-index: 9999;
+}
+@media print { #topNavBar { display:none !important; } }
+
+body > .app, .app { padding-top: 46px !important; }
+
+.topNavSep {
+  width: 1px; height: 20px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── Bouton uniforme (tous identiques, y compris le lien SGP) ── */
+.topNavBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--softStroke);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none !important;
+  transition: background 0.14s, color 0.14s, border-color 0.14s, box-shadow 0.14s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.topNavBtn:hover {
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--card));
+  color: var(--accent, #11a9a6);
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent);
+  box-shadow: 0 1px 5px rgba(17,169,166,0.10);
+}
+/* Force <a> identique aux <button> en clair ET en sombre */
+a.topNavBtn,
+a.topNavBtn:link,
+a.topNavBtn:visited,
+a.topNavBtn:any-link {
+  color: var(--text) !important;
+  background: rgba(255,255,255,0.06) !important;
+  border-color: var(--softStroke) !important;
+}
+a.topNavBtn:hover,
+a.topNavBtn:focus {
+  color: var(--accent, #11a9a6) !important;
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--card)) !important;
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent) !important;
+}
+.topNavBtn svg { flex-shrink: 0; }
+
+/* ── Dropdown Outils ── */
+.topNavDropdownWrap { position: relative; flex-shrink: 0; }
+
+.topNavChevron { transition: transform 0.18s ease; opacity: 0.55; }
+#topNavBtnOutils[aria-expanded="true"] .topNavChevron { transform: rotate(180deg); opacity: 1; }
+#topNavBtnOutils[aria-expanded="true"] {
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--bg, #fff));
+  color: var(--accent, #11a9a6);
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent);
+}
+
+#topNavOutilsMenu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  min-width: 205px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+  flex-direction: column;
+  padding: 7px;
+  gap: 2px;
+  z-index: 10002;
+  animation: topNavDropIn 0.16s cubic-bezier(.34,1.56,.64,1);
+}
+#topNavOutilsMenu.open { display: flex; }
+#topNavOptionsMenu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  min-width: 210px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+  flex-direction: column;
+  padding: 7px;
+  gap: 2px;
+  z-index: 10002;
+  animation: topNavDropIn 0.16s cubic-bezier(.34,1.56,.64,1);
+}
+#topNavOptionsMenu.open { display: flex; }
+
+@keyframes topNavDropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Items du dropdown — identiques aux .topNavBtn */
+.topNavDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--softStroke);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.14s, color 0.14s, border-color 0.14s, box-shadow 0.14s;
+  line-height: 1;
+}
+.topNavDropdownItem:hover {
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--card));
+  color: var(--accent, #11a9a6);
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent);
+  box-shadow: 0 1px 5px rgba(17,169,166,0.10);
+}
+
+/* ── Badges ── */
+/* SGP — conserve le comportement de checkSGPBadge() */
+#linkSGP {
+  position: relative;
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text) !important;
+  border-color: var(--softStroke) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+#linkSGP:hover, #linkSGP:focus {
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--card)) !important;
+  color: var(--accent, #11a9a6) !important;
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent) !important;
+  box-shadow: 0 1px 5px rgba(17,169,166,0.10) !important;
+}
+
+/* Badge Nouveautés */
+#menuItemWhatsNew { position: relative; }
+#topNavWhatsNewBadge {
+  display: none;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #11a9a6;
+  border: 1.5px solid var(--card);
+  position: absolute;
+  top: 3px; right: 3px;
+  pointer-events: none;
+}
+#menuItemWhatsNew.gab-unread #topNavWhatsNewBadge { display: block; }
+
+/* Cache l'ancien FAB / sidebar */
+#menuFabWrap, #menuFab, #sidebarOverlay, #menuExpand { display: none !important; }
+#topNavLogo { display: none; }
+#btnWhatsNew { left: 12px !important; }
+/* ══ fin TOP NAV BAR ══ */
+
+
+  /* ==================== POPUP SUCCÈS v1.0 ==================== */
+  #succesPopup{display:none;position:fixed;inset:0;z-index:20000;align-items:center;justify-content:center;background:transparent;height:100vh;overflow:hidden}
+  #succesPopup::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.48);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:-1;pointer-events:none}
+  #succesBox{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:22px 24px 18px;width:min(720px,calc(100vw - 32px));max-height:82vh;display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 48px rgba(0,0,0,0.30);position:relative;z-index:1;animation:ccIn 0.28s cubic-bezier(.34,1.56,.64,1)}
+  #succesBox h3{margin:0;font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .succesCounter{font-size:12px;color:var(--muted);margin-left:auto;font-weight:500;white-space:nowrap}
+  .succesScroll{overflow-y:auto;flex:1;padding-right:4px}
+  .succesGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:20px;padding:4px 2px}
+  .succesBadge{display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 10px 16px;border-radius:14px;border:1px solid var(--border2);background:var(--bg);transition:transform 0.18s,border-color 0.18s;cursor:pointer}
+  .succesBadge.unlocked{border-color:color-mix(in oklab,#11a9a6 35%,var(--border2))}
+  .succesBadge img{width:120px;height:120px;object-fit:contain;transition:filter 0.2s,transform 0.2s}
+  .succesBadge.locked img{filter:grayscale(1) brightness(0.09) contrast(1.5)}
+  .succesBadge.unlocked:hover{transform:translateY(-3px)}
+  .succesBadge.unlocked:hover img{transform:scale(1.08)}
+  .succesBadge.locked:hover{opacity:0.85}
+  .succesBadgeDate{font-size:11px;color:#11a9a6;font-weight:600;margin-top:2px}
+  .succesBadge.locked .succesBadgeDate{color:var(--muted);opacity:0.45}
+  .succesBadgeProgress{width:100%;margin-top:4px;text-align:center;font-size:10px;color:var(--muted);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+  .succesBadgeProgress span{letter-spacing:0.03em}
+  .succesBadgeBar{width:80%;height:4px;background:var(--border2);border-radius:99px;overflow:hidden}
+  .succesBadgeBarFill{height:100%;background:#11a9a6;border-radius:99px;transition:width 0.3s}
+
+  #btnSuccesClose{position:absolute;top:14px;right:16px;background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);line-height:1;padding:0}
+  #btnSuccesClose:hover{color:var(--text)}
+  /* MODALE DÉTAIL BADGE */
+  #succesBadgeDetail{display:none;position:fixed;inset:0;z-index:21000;align-items:center;justify-content:center;background:transparent;height:100vh;overflow:hidden}
+  #succesBadgeDetail::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:-1;pointer-events:none}
+  #succesBadgeDetailBox{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:36px 28px 28px;width:min(340px,calc(100vw - 32px));display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 16px 56px rgba(0,0,0,0.35);position:relative;z-index:1;animation:ccIn 0.28s cubic-bezier(.34,1.56,.64,1)}
+  #succesBadgeDetailBox img{width:140px;height:140px;object-fit:contain}
+  #succesBadgeDetail.detail-locked #succesBadgeDetailBox img{filter:grayscale(1) brightness(0.09) contrast(1.5)}
+  #succesBadgeDetailName{font-size:16px;font-weight:700;text-align:center;line-height:1.3}
+  #succesBadgeDetailDesc{font-size:13px;color:var(--muted);text-align:center;line-height:1.55;padding:0 4px}
+  #succesBadgeDetailDate{font-size:12px;color:#11a9a6;font-weight:600;margin-top:2px}
+  #succesBadgeDetailLocked{font-size:12px;color:var(--muted);opacity:0.6;font-style:italic}
+  #btnSuccesBadgeDetailClose{position:absolute;top:14px;right:16px;background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted);line-height:1;padding:0}
+  #btnSuccesBadgeDetailClose:hover{color:var(--text)}
+  /* TOAST BADGE */
+  .badgeToast{position:fixed;bottom:72px;right:20px;background:var(--card);color:var(--text);border:1px solid #11a9a6;border-radius:12px;padding:10px 16px 10px 12px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 22px rgba(0,0,0,0.28);z-index:30000;animation:badgeToastIn 0.35s cubic-bezier(.34,1.56,.64,1);max-width:290px;pointer-events:none}
+  .badgeToastImg{width:54px;height:54px;object-fit:contain;flex-shrink:0}
+  .badgeToastTxt{font-size:12px;line-height:1.4}
+  .badgeToastTxt strong{display:block;font-size:13px;margin-bottom:2px;color:#11a9a6}
+  @keyframes badgeToastIn{from{opacity:0;transform:translateX(44px) scale(0.88)}to{opacity:1;transform:translateX(0) scale(1)}}
+  @keyframes badgeToastOut{to{opacity:0;transform:translateX(44px) scale(0.88)}}
+  @media print{#succesPopup,#succesBadgeDetail,.badgeToast{display:none!important}}
+
+/* Options dropdown button active state */
+#topNavBtnOptions[aria-expanded="true"] .topNavChevron {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+#topNavBtnOptions[aria-expanded="true"] {
+  background: color-mix(in oklab, var(--accent, #11a9a6) 12%, var(--bg, #fff));
+  color: var(--accent, #11a9a6);
+  border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent);
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -2038,7 +2279,7 @@ body.dark .slotDot.dot-loaded{background:#64b5f6;box-shadow:0 0 0 3px rgba(100,1
   <button id="btnUpdateNow" type="button" title="Recharge la page pour charger la dernière version">Mettre à jour</button>
 </div>
 </div>
-<div id="sgpBanner" onclick="window.location.href='https://lemtosh.github.io/GAB./GAB_SGP.html'" title="Ouvrir le Gestionnaire SGP">
+<div id="sgpBanner" onclick="window.location.href='https://lemtosh.github.io/GAB/GAB_SGP.html'" title="Ouvrir le Gestionnaire SGP">
   <button class="sgpBannerClose" onclick="event.stopPropagation();closeSGPBanner()" title="Fermer">✕</button>
   <span id="sgpBannerText"></span>
 </div>
@@ -2538,9 +2779,9 @@ body.dark .slotDot.dot-loaded{background:#64b5f6;box-shadow:0 0 0 3px rgba(100,1
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.2";
+    const LOCAL_VERSION = "1.3";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
-    const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
+    const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB/refs/heads/main/CHANGELOG.md";
     const CHANGELOG_SEEN_KEY = "gabChangelogSeen";
 
     function cmpVersion(a, b) {
@@ -2732,7 +2973,12 @@ body.dark .slotDot.dot-loaded{background:#64b5f6;box-shadow:0 0 0 3px rgba(100,1
       const wrap = document.getElementById('crmTableWrap');
       const isOpen = wrap.style.display === 'flex';
       const willOpen = !isOpen;
-      if (willOpen) closeAllTools('crmTable');
+      if (willOpen) {
+        closeAllTools('crmTable');
+        var _cnt = parseInt(localStorage.getItem('badge_crm_open_count') || '0', 10) + 1;
+        localStorage.setItem('badge_crm_open_count', String(_cnt));
+        setTimeout(checkBadges, 200);
+      }
       setWrapOpen('crmTableWrap','btnCrmTable',willOpen,'Tableau CRM','Tableau CRM', renderCrmTable);
     }
 
@@ -3821,6 +4067,18 @@ ${formatDateFR(deb)} → ${formatDateFR(fin)}`;
       totalEl.textContent = `Antécédents : Auto = ${autoAgg.total} mois${_autoDetailOnly}.`;
         interrupEl.textContent = `Interruption : ${interAuto} mois.`;
       }
+      /* ── Badge frise tracking ── */
+      (function(){
+        try{
+          var _f=0;
+          for(var i=1;i<=20;i++){var d=document.getElementById('deb'+i);if(d&&d.value.trim())_f++;}
+          var _fp=parseInt(localStorage.getItem('badge_frise_count')||'0',10);
+          if(_f>_fp){
+            localStorage.setItem('badge_frise_count',String(_f));
+            if(typeof checkBadges==='function') setTimeout(checkBadges,200);
+          }
+        }catch(e){}
+      })();
     }
 
     function initCanvases(){
@@ -4249,7 +4507,35 @@ function setSaveStatus(msg,cls){
   }
 }
 function _fifoClean(){var keys=Object.keys(localStorage).filter(function(k){return k.indexOf(SAVE_PREFIX)===0;});if(keys.length<SAVE_MAX)return;var oldest=null,oldestTs=Infinity;keys.forEach(function(k){try{var d=JSON.parse(localStorage.getItem(k));if(d&&d._ts&&d._ts<oldestTs){oldestTs=d._ts;oldest=k;}}catch(e){}});if(oldest)localStorage.removeItem(oldest);}
-function _saveContrat(num){var data=getFormData(),existing=null;try{existing=JSON.parse(localStorage.getItem(SAVE_PREFIX+num));}catch(e){}var version=existing?((existing._version||0)+1):1;_fifoClean();var payload=JSON.parse(JSON.stringify(data));payload._version=version;payload._ts=Date.now();localStorage.setItem(SAVE_PREFIX+num,JSON.stringify(payload));_sessionHash=_dataHash(payload);_sessionNum=num;try{localStorage.removeItem('gab_cleared_flag');}catch(e){}return version;}
+function _saveContrat(num){var data=getFormData(),existing=null;try{existing=JSON.parse(localStorage.getItem(SAVE_PREFIX+num));}catch(e){}var version=existing?((existing._version||0)+1):1;_fifoClean();var payload=JSON.parse(JSON.stringify(data));payload._version=version;payload._ts=Date.now();localStorage.setItem(SAVE_PREFIX+num,JSON.stringify(payload));_sessionHash=_dataHash(payload);_sessionNum=num;try{localStorage.removeItem('gab_cleared_flag');}catch(e){}
+  /* ── Badge tracking on save ── */
+  (function(refNum){
+    try{
+      var _UP=['MOTALL'];
+      var _UC=['810MIA','813MIA','AURAMA','AURMA','VSPEQMA','AURSMA','AUAZMA'];
+      var r=refNum.toUpperCase();
+      /* Déduplication : chaque référence unique ne compte qu'une fois */
+      var _seenRefs=[];try{_seenRefs=JSON.parse(localStorage.getItem('badge_seen_refs')||'[]');}catch(e2){}
+      var _isNew=(_seenRefs.indexOf(r)<0);
+      if(_isNew){
+        _seenRefs.push(r);
+        if(_seenRefs.length>3000) _seenRefs=_seenRefs.slice(-3000);
+        try{localStorage.setItem('badge_seen_refs',JSON.stringify(_seenRefs));}catch(e2){}
+      }
+      if(_isNew && _UP.some(function(p){return r.indexOf(p)===0;}))
+        localStorage.setItem('badge_moto_count',String(parseInt(localStorage.getItem('badge_moto_count')||'0',10)+1));
+      if(_isNew && _UC.some(function(p){return r.indexOf(p)===0;}))
+        localStorage.setItem('badge_contrat_count',String(parseInt(localStorage.getItem('badge_contrat_count')||'0',10)+1));
+      var _filled=0;
+      ['slotInput0','slotInput1','slotInput2'].forEach(function(sid){
+        var el=document.getElementById(sid);if(el&&el.value.trim())_filled++;
+      });
+      var _slotPrev=parseInt(localStorage.getItem('badge_slot_max')||'0',10);
+      if(_filled>_slotPrev) localStorage.setItem('badge_slot_max',String(_filled));
+      if(typeof checkBadges==='function') setTimeout(checkBadges,200);
+    }catch(e){}
+  })(num);
+  return version;}
 function _loadContrat(num){var raw=localStorage.getItem(SAVE_PREFIX+num);if(!raw)return false;try{var d=JSON.parse(raw);setFormData(d);_sessionHash=_dataHash(d);_sessionNum=num;if(d.commentPrefs&&typeof loadCommentPrefs==='function'){try{localStorage.setItem('commentCustomPrefs',JSON.stringify(d.commentPrefs));loadCommentPrefs();}catch(ex){}}return true;}catch(e){return false;}}
 function _clearWarningReason(){var num=((document.getElementById('saveContrat')||{}).value||'').trim();if(!num)return null;if(!localStorage.getItem(SAVE_PREFIX+num))return "Le contrat "+num+" n'a pas encore été enregistré. Voulez-vous vraiment effacer ?";if(_sessionNum===num&&_dataHash(getFormData())!==_sessionHash)return "Vous n'avez pas enregistré les dernières modifications du contrat "+num+". Voulez-vous vraiment effacer ?";return null;}
 function _doClear(){_sessionHash=null;_sessionNum=null;document.getElementById('saveContrat').value='';setSaveStatus('','');effacerTout();if(typeof resetValidationPanel==='function')resetValidationPanel();try{localStorage.setItem('gab_cleared_flag','1');}catch(e){}
@@ -4369,6 +4655,22 @@ initModeComplexeSwitch();
 });
 
   restoreAllFields(); installAutosave(); startPeriodicUpdateCheck(); scheduleDailyRefreshAt0800();
+  /* ── Badge fidélité + initialisation ── */
+  (function(){
+    try{
+      var _today=new Date().toDateString();
+      var _lastDay=localStorage.getItem('badge_fidelite_last_day');
+      var _streak=parseInt(localStorage.getItem('badge_fidelite_streak')||'0',10);
+      if(_lastDay!==_today){
+        var _yest=new Date(Date.now()-86400000).toDateString();
+        if(_lastDay===_yest){ _streak++; }
+        else { _streak=_lastDay?1:1; }
+        localStorage.setItem('badge_fidelite_streak',String(_streak));
+        localStorage.setItem('badge_fidelite_last_day',_today);
+      }
+    }catch(e){}
+    if(typeof checkBadges==='function') setTimeout(checkBadges,800);
+  })();
   initRiPopupBehaviors();
   initWhatsNewBtn();
 
@@ -4885,6 +5187,7 @@ function _clEsc(s) {
     btn.classList.toggle('toolBtnActive',!on); btn.setAttribute('aria-pressed',!on?'true':'false');
     card.style.display=!on?'block':'none';
     if(!on) _valRefreshAuto();
+    if(!on) try{localStorage.setItem('badge_val_start_ts',String(Date.now()));}catch(e){}
     if(typeof _valUpdateClientComments==='function') _valUpdateClientComments();
   }
 
@@ -5122,6 +5425,20 @@ function _clEsc(s) {
   }
 
     function buildValidationComment() {
+    /* ── Badge tracking validation ── */
+    (function(){
+      try{
+        localStorage.setItem('badge_validation_count',
+          String(parseInt(localStorage.getItem('badge_validation_count')||'0',10)+1));
+        var _t0=parseInt(localStorage.getItem('badge_val_start_ts')||'0',10);
+        if(_t0>0){
+          var _el=(Date.now()-_t0)/1000;
+          if(_el<=900) localStorage.setItem('badge_controle_vitesse_900','1');
+          if(_el<=300) localStorage.setItem('badge_controle_vitesse_300','1');
+        }
+        if(typeof checkBadges==='function') setTimeout(checkBadges,200);
+      }catch(e){}
+    })();
     var dmd=[],modif=[],nomDiffDone=false;
     function on(id){var e=document.getElementById(id);return !!(e&&e.classList.contains('vBtnOn'));}
     function gv(id){var e=document.getElementById(id);return e?e.value.trim():'';}
@@ -5440,7 +5757,7 @@ document.addEventListener('DOMContentLoaded',function(){
       const nb = info.pending;
       textEl.innerHTML = '📋 <strong>' + nb + ' retour' + (nb > 1 ? 's' : '') + ' SGP en attente</strong>'
         + formatDeadlineFR(info.deadline)
-        + ' &nbsp;<a href="https://lemtosh.github.io/GAB./GAB_SGP.html" onclick="event.stopPropagation()" style="color:var(--link,#0b3d91);font-weight:700;">Ouvrir →</a>';
+        + ' &nbsp;<a href="https://lemtosh.github.io/GAB/GAB_SGP.html" onclick="event.stopPropagation()" style="color:var(--link,#0b3d91);font-weight:700;">Ouvrir →</a>';
       banner.style.display = 'block';
     }
 
@@ -5450,13 +5767,49 @@ document.addEventListener('DOMContentLoaded',function(){
       localStorage.setItem(SGP_BANNER_SEEN, new Date().toISOString().slice(0,10));
     }
 
+    // Consomme gabSGPgraded depuis localStorage (robuste : fonctionne
+    // même si les deux pages ne sont pas sur la même origine)
+    function _gabSGPCheckPending() {
+      try {
+        // Lire la queue complète (plusieurs archivages SGP en attente)
+        var _rawQ = localStorage.getItem('gabSGPgraded_queue');
+        var _queue = [];
+        try { _queue = _rawQ ? JSON.parse(_rawQ) : []; } catch(_eq) {}
+        if (!Array.isArray(_queue)) _queue = [];
+        // Backward compat : entrée unitaire legacy
+        var _rawSingle = localStorage.getItem('gabSGPgraded');
+        if (_rawSingle) {
+          try { var _ds = JSON.parse(_rawSingle); if(_ds) _queue.unshift(_ds); } catch(_es) {}
+          localStorage.removeItem('gabSGPgraded');
+        }
+        if (!_queue.length) return;
+        localStorage.removeItem('gabSGPgraded_queue'); // consommer avant dispatch
+        var _now = Date.now();
+        _queue.forEach(function(_d) {
+          if (!_d || (_d.ts && _now - _d.ts > 86400000)) return; // ignorer > 24h
+          window.dispatchEvent(new CustomEvent('sgpgraded', { detail: _d }));
+        });
+      } catch(_e) {}
+    }
+    // Déclenche au retour sur l'onglet (visibilité ou focus)
+    window.addEventListener('focus', _gabSGPCheckPending);
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden) _gabSGPCheckPending();
+    });
+
     window.addEventListener('storage', function(e) {
       if (e.key === SGP_STORAGE_KEY) { checkSGPBadge(); checkSGPBanner(); }
+      // Réception score SGP depuis l'onglet GAB_SGP (cross-tab, même origine)
+      if ((e.key === 'gabSGPgraded' || e.key === 'gabSGPgraded_queue') && e.newValue) {
+        _gabSGPCheckPending(); // traite toute la queue d'un coup
+      }
     });
 
     document.addEventListener('DOMContentLoaded', function() {
       checkSGPBadge();
       checkSGPBanner();
+      // Cas où GAB est ouvert APRÈS l'archivage SGP (pas de storage event reçu)
+      setTimeout(_gabSGPCheckPending, 300);
     });
     /* ===== FIN Intégration SGP ===== */
 
@@ -5581,63 +5934,86 @@ document.addEventListener('DOMContentLoaded',function(){
 </div>
 <div id="autoSaveToast"></div>
 
-<div id="menuFabWrap">
-  <div id="sidebarOverlay" onclick="closeMenu()"></div>
-  <button id="menuFab" type="button" aria-label="Menu" title="Menu" onclick="toggleMenu()" style="position:fixed;top:12px;left:12px;">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    <span id="menuFabBadge"></span>
-  </button>
-  <nav id="menuExpand" aria-hidden="true" aria-label="Menu principal">
-    <div id="menuSidebarTitle">Menu</div>
-    <!-- 1. Outils -->
-    <button class="menuExpandItem menuExpandItem--tools" type="button" onclick="closeMenu();openTrousse()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+<nav id="topNavBar" role="navigation" aria-label="Menu principal">
+
+  <!-- ══ Outils (dropdown) ══ -->
+  <div id="topNavOutils" class="topNavDropdownWrap">
+    <button class="topNavBtn topNavBtn--active-dropdown" id="topNavBtnOutils" type="button" onclick="toggleTopNavOutils()" aria-haspopup="true" aria-expanded="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
       <span>Outils</span>
+      <svg class="topNavChevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
-    <!-- Gestionnaire SGP -->
-    <a class="menuExpandItem menuExpandItem--tools" href="https://lemtosh.github.io/GAB./GAB_SGP.html" id="linkSGP" style="text-decoration:none;position:relative;">
-      <span style="position:relative;display:inline-flex;align-items:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/>
-          <line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-        <span class="menuSGPBadge" id="menuSGPBadge"></span>
-      </span>
-      <span>Gestionnaire SGP</span>
-    </a>
-    <!-- Imprimer / PDF -->
-    <button class="menuExpandItem" id="menuItemPrint" type="button" onclick="closeMenu();window.print()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-      <span>Imprimer / PDF</span>
-      <span style="margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.04em;padding:1px 5px;border-radius:99px;background:#f97316;color:#fff;vertical-align:middle;line-height:1.6;flex-shrink:0;" title="Mise en page en cours d'amélioration — résultat variable selon le navigateur">ALPHA</span>
+    <div id="topNavOutilsMenu" class="topNavDropdownMenu" role="menu">
+      <button class="topNavDropdownItem" type="button" role="menuitem" onclick="closeTopNavOutils();toggleCrmTable()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        Tableau CRM
+      </button>
+      <button class="topNavDropdownItem" type="button" role="menuitem" onclick="closeTopNavOutils();toggleCrmTool()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Impact CRM
+      </button>
+      <button class="topNavDropdownItem" type="button" role="menuitem" onclick="closeTopNavOutils();toggleCrmPermit()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2.2"/><line x1="13" y1="9.5" x2="19" y2="9.5"/><line x1="13" y1="12.5" x2="17" y2="12.5"/><line x1="5" y1="16.5" x2="19" y2="16.5"/></svg>
+        CRM max permis
+      </button>
+      <button class="topNavDropdownItem" type="button" role="menuitem" onclick="closeTopNavOutils();toggleIndepTool()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Période précise
+      </button>
+      <button class="topNavDropdownItem topNavDropdownItem--full" type="button" role="menuitem" onclick="closeTopNavOutils();toggleHamonTool()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+        Hamon
+      </button>
+    </div>
+  </div>
+
+  <!-- Gestionnaire SGP -->
+  <a class="topNavBtn" href="https://lemtosh.github.io/GAB/GAB_SGP.html" id="linkSGP">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    <span>SGP</span>
+    <span class="menuSGPBadge" id="menuSGPBadge"></span>
+  </a>
+
+  <!-- Succès -->
+  <button class="topNavBtn" id="menuItemSucces" type="button" onclick="openSucces()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        <span>Succ&#232;s</span>
+      </button>
+
+  <!-- ══ Options (dropdown) ══ -->
+  <div id="topNavOptions" class="topNavDropdownWrap">
+    <button class="topNavBtn" id="topNavBtnOptions" type="button" onclick="toggleTopNavOptions()" aria-haspopup="true" aria-expanded="false">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <span>Options</span>
+      <svg class="topNavChevron" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
-    <!-- 2. Mode sombre -->
-    <button class="menuExpandItem" id="menuItemDarkMode" type="button" onclick="toggleTheme()">
-      <span id="menuDarkIcon" style="display:inline-flex;align-items:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-      <span id="menuDarkLabel">Mode sombre</span>
-    </button>
-    <!-- 3. Paramètres -->
-    <button class="menuExpandItem" type="button" onclick="closeMenu();document.getElementById('settingsPopup').style.display='flex'">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      <span>Paramètres</span>
-    </button>
-    <!-- 4. Informations -->
-    <button class="menuExpandItem" type="button" onclick="closeMenu();document.getElementById('infoPopup').style.display='flex'">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      <span>Informations</span>
-    </button>
-    <!-- 5. Nouveautés -->
-    <button class="menuExpandItem" id="menuItemWhatsNew" type="button" onclick="closeMenu();openWhatsNew()">
-      <span style="position:relative;display:inline-flex;align-items:center;flex-shrink:0;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-        <span class="menuWhatsNewBadge"></span>
-      </span>
-      <span>Nouveautés</span>
-    </button>
-  </nav>
-</div>
+    <div id="topNavOptionsMenu" class="topNavDropdownMenu" role="menu">
+      <button class="topNavDropdownItem" id="menuItemDarkMode" role="menuitem" type="button" onclick="closeTopNavOptions();toggleTheme()">
+    <span id="menuDarkIcon" style="display:inline-flex;align-items:center;flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    <span id="menuDarkLabel">Mode sombre</span>
+  </button>
+      <button class="topNavDropdownItem" id="menuItemPrint" role="menuitem" type="button" onclick="closeTopNavOptions();window.print()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    <span>Imprimer</span>
+    <span style="font-size:8px;font-weight:700;padding:1px 4px;border-radius:99px;background:#f97316;color:#fff;line-height:1.5;flex-shrink:0;">α</span>
+  </button>
+      <button class="topNavDropdownItem" role="menuitem" type="button" onclick="closeTopNavOptions();document.getElementById('settingsPopup').style.display='flex'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>Paramètres</span>
+  </button>
+      <button class="topNavDropdownItem" role="menuitem" type="button" onclick="closeTopNavOptions();document.getElementById('infoPopup').style.display='flex'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Infos</span>
+  </button>
+      <button class="topNavDropdownItem" id="menuItemWhatsNew" role="menuitem" type="button" onclick="closeTopNavOptions();openWhatsNew()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+    <span>Nouveautés</span>
+    <span class="menuWhatsNewBadge" id="topNavWhatsNewBadge"></span>
+  </button>
+    </div>
+  </div>
+
+</nav>
 
 <div id="troussePopup" role="dialog" aria-modal="true"
      onclick="if(event.target===this){this.style.display='none';document.body.classList.remove('gab-popup-open');}">
@@ -5665,5 +6041,479 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
 </div>
 
+
+<script>
+
+/* ══ TOP NAV — dropdown Outils ══ */
+function toggleTopNavOutils() {
+  var menu = document.getElementById('topNavOutilsMenu');
+  var btn  = document.getElementById('topNavBtnOutils');
+  if (!menu) return;
+  closeTopNavOptions();
+  var isOpen = menu.classList.toggle('open');
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+function closeTopNavOutils() {
+  var menu = document.getElementById('topNavOutilsMenu');
+  var btn  = document.getElementById('topNavBtnOutils');
+  if (menu) menu.classList.remove('open');
+  if (btn)  btn.setAttribute('aria-expanded', 'false');
+}
+/* ══ TOP NAV — dropdown Options ══ */
+function toggleTopNavOptions() {
+  var menu = document.getElementById('topNavOptionsMenu');
+  var btn  = document.getElementById('topNavBtnOptions');
+  if (!menu) return;
+  closeTopNavOutils();
+  var isOpen = menu.classList.toggle('open');
+  if (btn) btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+function closeTopNavOptions() {
+  var menu = document.getElementById('topNavOptionsMenu');
+  var btn  = document.getElementById('topNavBtnOptions');
+  if (menu) menu.classList.remove('open');
+  if (btn)  btn.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', function(e) {
+  var wrap = document.getElementById('topNavOutils');
+  if (wrap && !wrap.contains(e.target)) closeTopNavOutils();
+  var wrapOpts = document.getElementById('topNavOptions');
+  if (wrapOpts && !wrapOpts.contains(e.target)) closeTopNavOptions();
+});
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') { closeTopNavOutils(); closeTopNavOptions(); }
+});
+
+/* Neutralise les anciennes fonctions sidebar (sécurité) */
+window.toggleMenu = function() {};
+window.closeMenu  = function() {};
+
+/* Sync badge Nouveautés sur le topnav */
+(function syncTopNavBadge() {
+  function applyBadge() {
+    var mi = document.getElementById('menuItemWhatsNew');
+    var key = (typeof CHANGELOGSEENKEY !== 'undefined') ? CHANGELOGSEENKEY : 'gabChangelogSeen';
+    if (mi) mi.classList.toggle('gab-unread', !localStorage.getItem(key));
+  }
+  if (document.readyState !== 'loading') applyBadge();
+  else document.addEventListener('DOMContentLoaded', applyBadge);
+  // Re-sync quand openWhatsNew est appelé
+  var _orig = window.openWhatsNew;
+  window.openWhatsNew = function() {
+    if (typeof _orig === 'function') _orig();
+    var mi = document.getElementById('menuItemWhatsNew');
+    if (mi) mi.classList.remove('gab-unread');
+  };
+})();
+/* ══ fin TOP NAV ══ */
+
+</script>
+
+  <!-- ==================== POPUP SUCCÈS ==================== -->
+  <div id="succesPopup" role="dialog" aria-modal="true" onclick="if(event.target===this)closeSucces()">
+    <div id="succesBox">
+      <button id="btnSuccesClose" type="button" aria-label="Fermer" onclick="closeSucces()">&times;</button>
+      <h3>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        Mes Succ&#232;s
+        <span class="succesCounter" id="succesCounter">0 / 1 d&#233;bloqu&#233;</span>
+      </h3>
+      <div class="succesScroll">
+        <div class="succesGrid" id="succesGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DÉTAIL BADGE -->
+  <div id="succesBadgeDetail" role="dialog" aria-modal="true" onclick="if(event.target===this)_closeBadgeDetail()">
+    <div id="succesBadgeDetailBox">
+      <button id="btnSuccesBadgeDetailClose" type="button" aria-label="Fermer" onclick="_closeBadgeDetail()">&times;</button>
+      <img src="" alt="">
+      <div id="succesBadgeDetailName"></div>
+      <div id="succesBadgeDetailDesc"></div>
+      <div id="succesBadgeDetailDate"></div>
+      <div id="succesBadgeDetailLocked"></div>
+    </div>
+  </div>
+
+  <script>
+  /* ==================== SYSTÈME SUCCÈS / BADGES GAB v1.0 ==================== */
+  var BADGE_DEFINITIONS = [
+    /* ── Moto ── */
+    { id:'moto_1',           label:'1ère Moto',             desc:'1er dossier moto enregistré',                       img:'badges/1ereMoto.png' },
+    { id:'moto_10',          label:'10ème Moto',            desc:'10ème moto enregistrée',                           img:'badges/10emeMoto.png' },
+    { id:'moto_50',          label:'50ème Moto',            desc:'50ème moto enregistrée',                           img:'badges/50emeMoto.png' },
+    { id:'moto_100',         label:'100ème Moto',           desc:'100ème moto enregistrée',                          img:'badges/100emeMoto.png' },
+    /* ── Contrat ── */
+    { id:'contrat_1',        label:'1er Contrat',           desc:'1er contrat enregistré',                            img:'badges/1ercontrat.png' },
+    { id:'contrat_10',       label:'10ème Contrat',         desc:'10ème contrat enregistré',                         img:'badges/10emecontrat.png' },
+    { id:'contrat_50',       label:'50ème Contrat',         desc:'50ème contrat enregistré',                         img:'badges/50emecontrat.png' },
+    { id:'contrat_100',      label:'100ème Contrat',        desc:'100ème contrat enregistré',                        img:'badges/100emecontrat.png' },
+    /* ── Validation ── */
+    { id:'validation_1',     label:'1ère Validation',       desc:'1ère validation guidée',                           img:'badges/1ereValidation.png' },
+    { id:'validation_10',    label:'10ème Validation',      desc:'10ème validation guidée',                          img:'badges/10emeValidation.png' },
+    { id:'validation_50',    label:'50ème Validation',      desc:'50ème validation guidée',                          img:'badges/50emeValidation.png' },
+    { id:'validation_100',   label:'100ème Validation',     desc:'100ème validation guidée',                         img:'badges/100emeValidation.png' },
+    /* ── Slot ── */
+    { id:'slot_double',      label:'Double Slot',           desc:'Multitâche : 2 slots actifs simultanément',       img:'badges/DoubleSlot.png' },
+    { id:'slot_triple',      label:'Triple Slot',           desc:'Multitâche : 3 slots actifs simultanément',       img:'badges/TripleSlot.png' },
+    /* ── Frise ── */
+    { id:'frise_5',          label:'Tableau ×5',             desc:'5 lignes saisies dans le tableau',                   img:'badges/Frisex5.png' },
+    { id:'frise_10',         label:'Tableau ×10',            desc:'10 lignes saisies dans le tableau',                  img:'badges/Frisex10.png' },
+    { id:'frise_15',         label:'Tableau ×15',            desc:'15 lignes saisies dans le tableau',                  img:'badges/Frisex15.png' },
+    /* ── CRM ── */
+    { id:'crm_20',           label:'Mémoire CRM',           desc:'Tableau CRM ouvert 20 fois',                         img:'badges/MemoireCRM.png' },
+    /* ── Contrôle vitesse ── */
+    { id:'controle_15min',   label:'Contrôle Éclair',        desc:'Validation express (< 15 min)',                      img:'badges/ControleEclair.png' },
+    { id:'controle_5min',    label:'Contrôle Foudre',       desc:'Validation en moins de 5 min',                      img:'badges/ControleFoudre.png' },
+    /* ── Fidélité ── */
+    { id:'fidelite_5j',      label:'Fidèle 5 jours',        desc:'Ouverture 5 jours consécutifs',                      img:'badges/Fidelite5J.png' },
+    /* ── SGP Retour % (piloté par GAB_SGP via localStorage) ── */
+    { id:'sgp_50',           label:'SGP 50%',               desc:'SGP — 50 % de retours validés pour la 1ère fois',  img:'badges/SGP50pct.png' },
+    { id:'sgp_70_1',         label:'SGP 70% ×1',            desc:'SGP — 70 % de retours validés (1ère fois)',      img:'badges/SGP70pctx1.png' },
+    { id:'sgp_70_2',         label:'SGP 70% ×2',            desc:'SGP — 70 % de retours validés (2ème fois)',      img:'badges/SGP70pctx2.png' },
+    { id:'sgp_70_3',         label:'SGP 70% ×3',            desc:'SGP — 70 % de retours validés (3ème fois)',      img:'badges/SGP70pctx3.png' },
+    { id:'sgp_100_1',        label:'SGP 100% ×1',           desc:'SGP — 100 % de retours validés (1ère fois)!',    img:'badges/SGP100pctx1.png' },
+    { id:'sgp_100_2',        label:'SGP 100% ×2',           desc:'SGP — 100 % de retours validés (2ème fois)!',    img:'badges/SGP100pctx2.png' },
+    { id:'sgp_100_3',        label:'SGP 100% ×3',           desc:'SGP — 100 % de retours validés (3ème fois)!',    img:'badges/SGP100pctx3.png' },
+    /* ── SGP Séries 70% ── */
+    { id:'sgp_serie_2',      label:'SGP Série ×2',         desc:'SGP — 70 % ou + pendant 2 semaines consécutives', img:'badges/SGPx2.png' },
+    { id:'sgp_serie_3',      label:'SGP Série ×3',         desc:'SGP — 70 % ou + pendant 3 semaines consécutives', img:'badges/SGPx3.png' },
+    { id:'sgp_serie_4',      label:'SGP Série ×4',         desc:'SGP — 70 % ou + pendant 4 semaines consécutives', img:'badges/SGPx4.png' },
+    /* ── SGP Séries 100% ── */
+    { id:'sgp_100_serie_2',  label:'SGP 100% Série ×2',    desc:'SGP — 100 % pendant 2 semaines consécutives!',   img:'badges/serie1002semFINAL.png' },
+    { id:'sgp_100_serie_3',  label:'SGP 100% Série ×3',    desc:'SGP — 100 % pendant 3 semaines consécutives!',   img:'badges/serie1003semFINAL.png' },
+    { id:'sgp_100_serie_4',  label:'SGP 100% Série ×4',    desc:'SGP — 100 % pendant 4 semaines consécutives!',   img:'badges/serie1004semFINAL.png' }
+  ];
+
+
+  /* ── Progression par badge (pour affichage compteur) ── */
+  var BADGE_PROGRESS = {
+    'moto_1':          {ls:'badge_moto_count',        max:1},
+    'moto_10':         {ls:'badge_moto_count',        max:10},
+    'moto_50':         {ls:'badge_moto_count',        max:50},
+    'moto_100':        {ls:'badge_moto_count',        max:100},
+    'contrat_1':       {ls:'badge_contrat_count',     max:1},
+    'contrat_10':      {ls:'badge_contrat_count',     max:10},
+    'contrat_50':      {ls:'badge_contrat_count',     max:50},
+    'contrat_100':     {ls:'badge_contrat_count',     max:100},
+    'validation_1':    {ls:'badge_validation_count',  max:1},
+    'validation_10':   {ls:'badge_validation_count',  max:10},
+    'validation_50':   {ls:'badge_validation_count',  max:50},
+    'validation_100':  {ls:'badge_validation_count',  max:100},
+    'slot_double':     {ls:'badge_slot_max',          max:2},
+    'slot_triple':     {ls:'badge_slot_max',          max:3},
+    'frise_5':         {ls:'badge_frise_count',       max:5},
+    'frise_10':        {ls:'badge_frise_count',       max:10},
+    'frise_15':        {ls:'badge_frise_count',       max:15},
+    'crm_20':          {ls:'badge_crm_open_count',    max:20},
+    'fidelite_5j':     {ls:'badge_fidelite_streak',   max:5},
+    'sgp_70_1':        {ls:'badge_sgp70_count',       max:1},
+    'sgp_70_2':        {ls:'badge_sgp70_count',       max:2},
+    'sgp_70_3':        {ls:'badge_sgp70_count',       max:3},
+    'sgp_100_1':       {ls:'badge_sgp100_count',      max:1},
+    'sgp_100_2':       {ls:'badge_sgp100_count',      max:2},
+    'sgp_100_3':       {ls:'badge_sgp100_count',      max:3},
+    'sgp_serie_2':     {ls:'badge_sgp70_streak_st',   max:2, isStreak:true},
+    'sgp_serie_3':     {ls:'badge_sgp70_streak_st',   max:3, isStreak:true},
+    'sgp_serie_4':     {ls:'badge_sgp70_streak_st',   max:4, isStreak:true},
+    'sgp_100_serie_2': {ls:'badge_sgp100_streak_st',  max:2, isStreak:true},
+    'sgp_100_serie_3': {ls:'badge_sgp100_streak_st',  max:3, isStreak:true},
+    'sgp_100_serie_4': {ls:'badge_sgp100_streak_st',  max:4, isStreak:true}
+  };
+  function _getBadgeProgress(id){
+    var cfg=BADGE_PROGRESS[id]; if(!cfg) return null;
+    var cur=0;
+    if(cfg.isStreak){
+      try{var st=JSON.parse(localStorage.getItem(cfg.ls)||'null');cur=st?st.streak:0;}catch(e){}
+    } else {
+      cur=parseInt(localStorage.getItem(cfg.ls)||'0',10);
+    }
+    cur=Math.min(cur,cfg.max);
+    return {cur:cur, max:cfg.max};
+  }
+
+  function _getBadgeStore(){try{return JSON.parse(localStorage.getItem('gab_badges')||'{}');}catch(e){return {};}}
+  function _saveBadgeStore(b){try{localStorage.setItem('gab_badges',JSON.stringify(b));}catch(e){}}
+
+  function _countUniqueSaved(){
+    var n=0;
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.startsWith('gab_contrat_'))n++;
+    }
+    return n;
+  }
+
+  function checkBadges(){
+    var store=_getBadgeStore(), fresh=[];
+    BADGE_DEFINITIONS.forEach(function(def){
+      if(store[def.id]&&store[def.id].unlocked)return;
+      var unlock=false;
+      var _ls=function(k){return parseInt(localStorage.getItem(k)||'0',10);};
+      /* Moto */
+      if(def.id==='moto_1')             unlock=_ls('badge_moto_count')>=1;
+      if(def.id==='moto_10')            unlock=_ls('badge_moto_count')>=10;
+      if(def.id==='moto_50')            unlock=_ls('badge_moto_count')>=50;
+      if(def.id==='moto_100')           unlock=_ls('badge_moto_count')>=100;
+      /* Contrat */
+      if(def.id==='contrat_1')          unlock=_ls('badge_contrat_count')>=1;
+      if(def.id==='contrat_10')         unlock=_ls('badge_contrat_count')>=10;
+      if(def.id==='contrat_50')         unlock=_ls('badge_contrat_count')>=50;
+      if(def.id==='contrat_100')        unlock=_ls('badge_contrat_count')>=100;
+      /* Validation */
+      if(def.id==='validation_1')       unlock=_ls('badge_validation_count')>=1;
+      if(def.id==='validation_10')      unlock=_ls('badge_validation_count')>=10;
+      if(def.id==='validation_50')      unlock=_ls('badge_validation_count')>=50;
+      if(def.id==='validation_100')     unlock=_ls('badge_validation_count')>=100;
+      /* Slot */
+      if(def.id==='slot_double')        unlock=_ls('badge_slot_max')>=2;
+      if(def.id==='slot_triple')        unlock=_ls('badge_slot_max')>=3;
+      /* Frise */
+      if(def.id==='frise_5')            unlock=_ls('badge_frise_count')>=5;
+      if(def.id==='frise_10')           unlock=_ls('badge_frise_count')>=10;
+      if(def.id==='frise_15')           unlock=_ls('badge_frise_count')>=15;
+      /* CRM */
+      if(def.id==='crm_20')             unlock=_ls('badge_crm_open_count')>=20;
+      /* Contrôle vitesse */
+      if(def.id==='controle_15min')     unlock=_ls('badge_controle_vitesse_900')>=1;
+      if(def.id==='controle_5min')      unlock=_ls('badge_controle_vitesse_300')>=1;
+      /* Fidélité */
+      if(def.id==='fidelite_5j')        unlock=_ls('badge_fidelite_streak')>=5;
+      /* SGP (piloté par GAB_SGP.html via localStorage partagé) */
+      if(def.id==='sgp_50')             unlock=parseFloat(localStorage.getItem('badge_sgp_pct_history')||'0')>=50;
+      if(def.id==='sgp_70_1')           unlock=_ls('badge_sgp70_count')>=1;
+      if(def.id==='sgp_70_2')           unlock=_ls('badge_sgp70_count')>=2;
+      if(def.id==='sgp_70_3')           unlock=_ls('badge_sgp70_count')>=3;
+      if(def.id==='sgp_100_1')          unlock=_ls('badge_sgp100_count')>=1;
+      if(def.id==='sgp_100_2')          unlock=_ls('badge_sgp100_count')>=2;
+      if(def.id==='sgp_100_3')          unlock=_ls('badge_sgp100_count')>=3;
+      if(def.id==='sgp_serie_2')        unlock=_ls('badge_sgp70_streak')>=2;
+      if(def.id==='sgp_serie_3')        unlock=_ls('badge_sgp70_streak')>=3;
+      if(def.id==='sgp_serie_4')        unlock=_ls('badge_sgp70_streak')>=4;
+      if(def.id==='sgp_100_serie_2')    unlock=_ls('badge_sgp100_streak')>=2;
+      if(def.id==='sgp_100_serie_3')    unlock=_ls('badge_sgp100_streak')>=3;
+      if(def.id==='sgp_100_serie_4')    unlock=_ls('badge_sgp100_streak')>=4;
+      if(unlock){
+        store[def.id]={unlocked:true,unlockedAt:new Date().toISOString()};
+        fresh.push(def);
+      }
+    });
+    _saveBadgeStore(store);
+    if(fresh.length) _showBadgeToast(fresh);
+  }
+
+  function _showBadgeToast(defs){
+    defs.forEach(function(def,i){
+      setTimeout(function(){
+        var el=document.createElement('div');
+        el.className='badgeToast';
+        el.innerHTML='<img class="badgeToastImg" src="'+def.img+'" alt="'+def.label+'">'
+          +'<div class="badgeToastTxt"><strong>&#127942; Badge d\u00e9bloqu\u00e9 !</strong>'+def.label+'<br><small>'+def.desc+'</small></div>';
+        document.body.appendChild(el);
+        setTimeout(function(){
+          el.style.animation='badgeToastOut 0.32s forwards';
+          setTimeout(function(){el.remove();},340);
+        },4200);
+      },i*700);
+    });
+  }
+
+  function _openBadgeDetail(def,b){
+    var pop=document.getElementById('succesBadgeDetail');
+    if(!pop)return;
+    var ok=!!(b&&b.unlocked);
+    pop.className=ok?'':'detail-locked';
+    pop.querySelector('img').src=def.img;
+    pop.querySelector('img').alt=def.label;
+    document.getElementById('succesBadgeDetailName').textContent=def.label;
+    document.getElementById('succesBadgeDetailDesc').textContent=def.desc;
+    var dateEl=document.getElementById('succesBadgeDetailDate');
+    var lockEl=document.getElementById('succesBadgeDetailLocked');
+    if(ok&&b.unlockedAt){
+      dateEl.textContent='🏆 Obtenu le '+new Date(b.unlockedAt).toLocaleDateString('fr-FR');
+      dateEl.style.display='';
+      lockEl.style.display='none';
+    } else {
+      dateEl.style.display='none';
+      var _dp=_getBadgeProgress(def.id);
+      lockEl.innerHTML=_dp && _dp.max>1
+        ? '🔒 Pas encore débloqué &nbsp;<strong>'+_dp.cur+' / '+_dp.max+'</strong>'
+        : '🔒 Pas encore débloqué';
+      lockEl.style.display='';
+    }
+    pop.style.display='flex';
+    document.body.classList.add('gab-popup-open');
+  }
+  function _closeBadgeDetail(){
+    var pop=document.getElementById('succesBadgeDetail');
+    if(pop){pop.style.display='none';pop.className='';}
+    document.body.classList.remove('gab-popup-open');
+  }
+    function openSucces(){
+    _renderSuccesGrid();
+    var p=document.getElementById('succesPopup');
+    if(p){p.style.display='flex';document.body.classList.add('gab-popup-open');}
+  }
+  function closeSucces(){
+    var p=document.getElementById('succesPopup');
+    if(p)p.style.display='none';
+    document.body.classList.remove('gab-popup-open');
+  }
+
+  function _renderSuccesGrid(){
+    var grid=document.getElementById('succesGrid');
+    var ctr=document.getElementById('succesCounter');
+    if(!grid)return;
+    var store=_getBadgeStore(), unlocked=0;
+    grid.innerHTML='';
+    BADGE_DEFINITIONS.forEach(function(def){
+      var b=store[def.id], ok=!!(b&&b.unlocked);
+      if(ok)unlocked++;
+      var card=document.createElement('div');
+      card.className='succesBadge '+(ok?'unlocked':'locked');
+      var dateHtml='';
+      if(ok&&b.unlockedAt){
+        dateHtml='<div class="succesBadgeDate">'+new Date(b.unlockedAt).toLocaleDateString('fr-FR')+'</div>';
+      } else {
+        var _prog=_getBadgeProgress(def.id);
+        var _progHtml='';
+        if(_prog && _prog.max>1){
+          var _pct2=Math.round(_prog.cur/_prog.max*100);
+          _progHtml='<div class="succesBadgeProgress">'
+            +'<span>'+_prog.cur+' / '+_prog.max+'</span>'
+            +'<div class="succesBadgeBar"><div class="succesBadgeBarFill" style="width:'+_pct2+'%"></div></div>'
+            +'</div>';
+        }
+        dateHtml='<div class="succesBadgeDate">&#128274; Verrouillé</div>'+_progHtml;
+      }
+      card.innerHTML='<img src="'+def.img+'" alt="'+def.label+'">'+dateHtml;
+      card.addEventListener('click',function(){ _openBadgeDetail(def,b); });
+      grid.appendChild(card);
+    });
+    if(ctr)ctr.textContent=unlocked+' / '+BADGE_DEFINITIONS.length
+      +' débloqué'+(BADGE_DEFINITIONS.length>1?'s':'');
+  }
+
+  /* Hook sur saveContrat pour d\u00e9clencher la v\u00e9rification */
+  document.addEventListener('DOMContentLoaded',function(){
+    var orig=window.saveContrat;
+    if(typeof orig==='function'){
+      window.saveContrat=function(){
+        var countBefore=_countUniqueSaved();
+        var r=orig.apply(this,arguments);
+        var countAfter=_countUniqueSaved();
+        /* Déclenche uniquement si une nouvelle référence unique vient d'être ajoutée */
+        if(countAfter>countBefore){
+          setTimeout(checkBadges,200);
+        }
+        return r;
+      };
+    }
+    setTimeout(checkBadges,600); // vérif initiale au chargement (refs déjà existantes)
+  });
+
+  /* ==================== BADGES SGP (sgpgraded) ==================== */
+  (function(){
+    function _sgpWeekKey(iso){
+      return iso ? iso.slice(0,10) : new Date().toISOString().slice(0,10);
+    }
+    function _sgpDaysDiff(k1,k2){
+      return Math.round((new Date(k2)-new Date(k1))/86400000);
+    }
+    function _sgpUpdateStreak(lsKey, weekKey, qualifies){
+      var raw=localStorage.getItem(lsKey+'_st');
+      var st={lastWeek:null,streak:0};
+      try{st=JSON.parse(raw)||st;}catch(e){}
+      if(st.lastWeek===weekKey){
+        /* Re-archive de la même semaine */
+        if(!qualifies) st.streak=0;
+        /* si qualifies, on garde le streak tel quel (pas de ré-incrément) */
+      } else {
+        var diff=st.lastWeek?_sgpDaysDiff(st.lastWeek,weekKey):0;
+        st.streak = qualifies ? ((diff>=5&&diff<=10)?(st.streak+1):1) : 0;
+        st.lastWeek=weekKey;
+      }
+      try{localStorage.setItem(lsKey+'_st',JSON.stringify(st));}catch(e){}
+      return st.streak;
+    }
+    function _sgpIncrLS(key, importId){
+      /* N'incrémente qu'une seule fois par import (pas par re-archive) */
+      var lastKey=key+'_lastId';
+      if(importId && localStorage.getItem(lastKey)===importId) return parseInt(localStorage.getItem(key)||'0',10);
+      var n=parseInt(localStorage.getItem(key)||'0',10)+1;
+      try{localStorage.setItem(key,String(n)); if(importId) localStorage.setItem(lastKey,importId);}catch(e){}
+      return n;
+    }
+    function _sgpUnlock(id, store, fresh){
+      if(store[id]&&store[id].unlocked) return false;
+      store[id]={unlocked:true,unlockedAt:new Date().toISOString()};
+      _saveBadgeStore(store);
+      var def=BADGE_DEFINITIONS.find(function(d){return d.id===id;});
+      if(def) fresh.push(def);
+      return true;
+    }
+    function _sgpCelebrate(id, store, fresh){
+      /* Pour badges non-uniques (streaks) : toast à chaque occurrence */
+      var def=BADGE_DEFINITIONS.find(function(d){return d.id===id;});
+      if(!def) return;
+      if(!store[id]||!store[id].unlocked){
+        store[id]={unlocked:true,unlockedAt:new Date().toISOString()};
+        _saveBadgeStore(store);
+      }
+      fresh.push(def);
+    }
+
+    window.addEventListener('sgpgraded', function(e){
+      var d=e.detail||{};
+      var pct=typeof d.pct==='number'?d.pct:(typeof d.score==='number'?d.score:0);
+      var importId=d.importId||null;
+      var weekKey=_sgpWeekKey(d.sgpDate||null);
+      var store=_getBadgeStore();
+      var fresh=[];
+
+      /* 1. percentage : sgp_50 (unique) */
+      if(pct>=50) _sgpUnlock('sgp_50', store, fresh);
+
+      /* 2. percentagecount 70 : sgp_70_1/2/3 (unique) */
+      if(pct>=70){
+        var c70=_sgpIncrLS('badge_sgp70_count', importId);
+        if(c70>=1) _sgpUnlock('sgp_70_1', store, fresh);
+        if(c70>=2) _sgpUnlock('sgp_70_2', store, fresh);
+        if(c70>=3) _sgpUnlock('sgp_70_3', store, fresh);
+      }
+
+      /* 3. percentagecount 100 : sgp_100_1/2/3 (unique) */
+      if(pct>=100){
+        var c100=_sgpIncrLS('badge_sgp100_count', importId);
+        if(c100>=1) _sgpUnlock('sgp_100_1', store, fresh);
+        if(c100>=2) _sgpUnlock('sgp_100_2', store, fresh);
+        if(c100>=3) _sgpUnlock('sgp_100_3', store, fresh);
+      }
+
+      /* 4. streakweeks (pct>=70) : sgp_serie_2/3/4 (non-unique → celebrate) */
+      var s70=_sgpUpdateStreak('badge_sgp70_streak', weekKey, pct>=70);
+      if(s70>=4) _sgpCelebrate('sgp_serie_4', store, fresh);
+      else if(s70>=3) _sgpCelebrate('sgp_serie_3', store, fresh);
+      else if(s70>=2) _sgpCelebrate('sgp_serie_2', store, fresh);
+
+      /* 5. streakweeks100 (pct>=100) : sgp_100_serie_2/3/4 (non-unique → celebrate) */
+      var s100=_sgpUpdateStreak('badge_sgp100_streak', weekKey, pct>=100);
+      if(s100>=4) _sgpCelebrate('sgp_100_serie_4', store, fresh);
+      else if(s100>=3) _sgpCelebrate('sgp_100_serie_3', store, fresh);
+      else if(s100>=2) _sgpCelebrate('sgp_100_serie_2', store, fresh);
+
+      if(fresh.length){
+        _showBadgeToast(fresh);
+        /* Rafraîchit la grille si la popup Succès est ouverte */
+        var pop=document.getElementById('succesPopup');
+        if(pop&&pop.style.display==='flex') _renderSuccesGrid();
+      }
+    });
+  })();
+  /* ==================== FIN BADGES SGP ==================== */
+
+  /* ==================== FIN SYSTÈME SUCCÈS ==================== */
+  </script>
 </body>
 </html>
