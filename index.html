@@ -2519,6 +2519,16 @@ a.topNavBtn:focus {
     </div>
   </div>
 
+  <!-- ══ PHOTOS ══ -->
+  <div class="valSection">
+    <div class="valSectionHd">Photos</div>
+    <div class="valRow">
+      <button type="button" class="vBtn" id="val_photos_nc"
+        onclick="toggleVBtn(this)" aria-pressed="false"
+        title="→ refaire photos véhicule">Photos non conforme</button>
+    </div>
+  </div>
+
   <!-- ══ RIB ══ -->
   <div class="valSection">
     <div class="valSectionHd">RIB</div>
@@ -2701,6 +2711,9 @@ a.topNavBtn:focus {
     <button type="button" class="clientCmtBtn" id="ccbRiSupp" style="display:none"
       onclick="_valCopyClientCmt('riSupp',this)"
       title="Commentaire automatique interruptions (même logique que le bouton RI auto)."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> RI supplémentaire</button>
+    <button type="button" class="clientCmtBtn" id="ccbPhotos" style="display:none"
+      onclick="_valCopyClientCmt('photosNc',this)"
+      title="Veuillez refaire les photos de chaque face du véhicule, de jour, les vitres fermées, par temps sec et sans reflet sur les vitres."><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Photos non conforme</button>
   </div>
 </div>
 <div class="card cardSmall notesBox">
@@ -2779,10 +2792,31 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.03";
+    const LOCAL_VERSION = "1.3.05";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
+
+## v1.3.05 — Validation guidée : section Photos
+*10 mars 2026*
+
+### ✨ Nouvelle section « Photos » dans la validation guidée
+- Ajout d'une section **Photos** entre *Relevé d'informations* et *RIB* dans le panneau de validation guidée.
+- Bouton **Photos non conforme** : lorsqu'il est activé, il ajoute *refaire photos véhicule* au commentaire de validation et affiche un bouton presse-papier avec le message client complet.
+- Message client : *Veuillez refaire les photos de chaque face du véhicule, de jour, les vitres fermées, par temps sec et sans reflet sur les vitres.*
+- L'état du bouton est sauvegardé et restauré avec le reste de la trame de validation.
+
+---
+
+## v1.3.04 — Correctif CRM suggéré + alerte permis (mode complexe)
+*10 mars 2026*
+
+### 🐛 Correctifs mode complexe (sinistres × plafond permis)
+- **Canvas CRM suggéré** : simulation anniversaire depuis la date du permis avec sinistres inclus ; anniversaire dérivé de la dernière échéance calculée (plus robuste).
+- **Alerte permis** : le CRM théorique minimum intègre désormais le prorata de 9 mois.
+- *Exemple* : permis 01/01/2016, CRM 0,50, sin. 100 % le 01/10/2024, échéance 01/01, fin 10/10/2025 → **≈ 0,76** (canvas et alerte).
+
+---
 
 ## v1.3 — Succès & badges
 *5 mars 2026*
@@ -4002,14 +4036,31 @@ ${formatDateFR(deb)} → ${formatDateFR(fin)}`;
               if(_v<0.50)_v=0.50;
               _changed=true;
             }
-            // Plafond CRM max permis : si date de permis saisie, le suggéré ne peut pas être meilleur (plus bas) que ce qu'autorise l'ancienneté du permis
+            // Plafond CRM max permis : simulation anniversaire (sinistres inclus, anniversaire dérivé de _sl.lastEch)
             var _pCapEl=document.getElementById('permis'+_sl.line);
             if(_pCapEl&&_pCapEl.value.trim()){
               var _pCapDate=parsePermitDate(_pCapEl.value.trim());
               if(_pCapDate){
-                var _pCapInfo=computePermitYearsRounded(_pCapDate,_sl.end);
-                var _crmCap=getCrmForYears(_pCapInfo.roundedYears);
-                if(_v<_crmCap){_v=_crmCap;_changed=true;}
+                var _annDay=_sl.lastEch.getDate(),_annMonth=_sl.lastEch.getMonth();
+                var _sins2Cap=_sl.sins;
+                var _simCap=1.00;
+                var _prevECap=new Date(_pCapDate.getFullYear(),_pCapDate.getMonth(),_pCapDate.getDate());
+                var _curECap=new Date(_pCapDate.getFullYear(),_annMonth,_annDay);
+                if(_curECap.getTime()<=_prevECap.getTime())_curECap=new Date(_curECap.getFullYear()+1,_annMonth,_annDay);
+                while(_curECap.getTime()<=_sl.lastEch.getTime()){
+                  var _pet2=_prevECap.getTime(),_cet2=_curECap.getTime();
+                  var _sb2=_sins2Cap.filter(function(_s){var _t=_s.at.getTime();return _t>_pet2&&_t<=_cet2;});
+                  if(_sb2.length){
+                    _sb2.sort(function(a,b){return a.at.getTime()-b.at.getTime();});
+                    for(var _skc=0;_skc<_sb2.length;_skc++){_simCap=_trunc2CRM(_simCap*_sb2[_skc].factor);if(_simCap>3.5)_simCap=3.5;}
+                  }else{
+                    _simCap=_trunc2CRM(_simCap*0.95);if(_simCap<0.50)_simCap=0.50;
+                  }
+                  _prevECap=new Date(_curECap.getFullYear(),_curECap.getMonth(),_curECap.getDate());
+                  _curECap=new Date(_curECap.getFullYear()+1,_annMonth,_annDay);
+                }
+                if(_m2end>=9&&!_rel.length){_simCap=_trunc2CRM(_simCap*0.95);if(_simCap<0.50)_simCap=0.50;}
+                if(_v<_simCap){_v=_simCap;_changed=true;}
               }
             }
             // Toujours afficher (≈ si valeur a changé)
@@ -4139,6 +4190,8 @@ ${formatDateFR(deb)} → ${formatDateFR(fin)}`;
             if(_m2endp>=9 && !_relp.length){
               _vSug=_trunc2CRM(_vSug*0.95);
               if(_vSug<0.50)_vSug=0.50;
+              _simCrm=_trunc2CRM(_simCrm*0.95);
+              if(_simCrm<0.50)_simCrm=0.50;
             }
             var _pCapInfo=computePermitYearsRounded(_pDate,_endP);
             var _crmCap=getCrmForYears(_pCapInfo.roundedYears);
@@ -5394,7 +5447,7 @@ function _clEsc(s) {
     ].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
     ['val_nom_diff_cg','val_titulaire','val_cotitulaire','val_leasing',
      'val_nom_diff_permis','val_suspension','val_sinistralite',
-     'val_rib_nom','val_rib_titulaire','val_rib_diff'
+     'val_rib_nom','val_photos_nc','val_rib_titulaire','val_rib_diff'
     ].forEach(function(id){
       var e=document.getElementById(id);
       if(e){e.classList.remove('vBtnOn');e.setAttribute('aria-pressed','false');}
@@ -5420,6 +5473,7 @@ function _clEsc(s) {
       ddn:gv('val_ddn'), permisObtenu:gv('val_permis_obtenu'),
       antecDecl:gv('val_antec_decl'), crmJust:gv('val_crm_just'), crmDecl:gv('val_crm_decl'),
       sinistralite:ga('val_sinistralite'), resil:gv('val_resil'),
+      photosNc:ga('val_photos_nc'),
       ribNom:ga('val_rib_nom'), ribTitulaire:ga('val_rib_titulaire'), ribDiff:ga('val_rib_diff'),
       open:!!(document.getElementById('btnValidationMode')&&
               document.getElementById('btnValidationMode').classList.contains('toolBtnActive'))
@@ -5440,6 +5494,7 @@ function _clEsc(s) {
     sv('val_ddn',d.ddn); sv('val_permis_obtenu',d.permisObtenu);
     sv('val_antec_decl',d.antecDecl); sv('val_crm_just',d.crmJust); sv('val_crm_decl',d.crmDecl);
     sa('val_sinistralite',d.sinistralite); sv('val_resil',d.resil);
+    sa('val_photos_nc',d.photosNc);
     sa('val_rib_nom',d.ribNom); sa('val_rib_titulaire',d.ribTitulaire); sa('val_rib_diff',d.ribDiff);
     if(d.open){var btn=document.getElementById('btnValidationMode'),card=document.getElementById('validationCard');
       if(btn){btn.classList.add('toolBtnActive');btn.setAttribute('aria-pressed','true');}
@@ -5499,6 +5554,7 @@ function _clEsc(s) {
   // ─── Messages clients — presse-papier (Validation guidée) ────────────────
 
   var _VAL_CLIENT_CMTS = {
+    photosNc:     'Veuillez refaire les photos de chaque face du véhicule, de jour, les vitres fermées, par temps sec et sans reflet sur les vitres.',
     titulaire:    'Veuillez fournir ce document concernant le titulaire de la carte grise.',
     cotitulaire:  'Veuillez fournir ce document concernant le cotitulaire de la carte grise.',
     nomDiff:      'Livret de famille ou certificat de mariage ou carte nationale d\u2019identit\u00e9 (justifiant le nom marital).',
@@ -5549,7 +5605,8 @@ function _clEsc(s) {
     var riS  = (_valAntecMode === 'supp') &&
                !!(document.getElementById('val_antec_decl') &&
                   document.getElementById('val_antec_decl').value.trim());
-    var any  = tit || cot || nom || ribT || ribD || riS;
+    var photos = on('val_photos_nc');
+    var any  = tit || cot || nom || ribT || ribD || riS || photos;
     box.style.display = any ? 'block' : 'none';
     function show(id,v){ var e=document.getElementById(id); if(e) e.style.display=v?'':'none'; }
     show('ccbTitulaire',   tit);
@@ -5558,6 +5615,7 @@ function _clEsc(s) {
     show('ccbRibTitulaire',ribT);
     show('ccbRibDiff',     ribD);
     show('ccbRiSupp',      riS);
+    show('ccbPhotos',      photos);
   }
 
     function buildValidationComment() {
@@ -5601,6 +5659,8 @@ function _clEsc(s) {
     if(cJ||cD) modif.push('CRM '+(cJ||'?')+'/'+(cD||'?'));
     if(on('val_sinistralite')){var sl=_getValSinistresList(); modif.push(sl?sl:'mettre à jour la sinistralité');}
     var res=gv('val_resil'); if(res) modif.push('Resil '+res);
+
+    if(on('val_photos_nc'))    dmd.push('refaire photos véhicule');
 
     if(on('val_rib_nom'))       addND();
     if(on('val_rib_titulaire')) dmd.push('dmd docs autorisation prlvmnt + cni');
