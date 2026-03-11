@@ -504,7 +504,8 @@ body.dark .motoBtn{ background: rgba(255,255,255,0.06); border-color: rgba(255,2
 .typeSelectHidden{ position: absolute !important; opacity: 0 !important; pointer-events: none !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
 
 .tableStyled th:nth-child(2),
-.tableStyled td:nth-child(2){ width: 150px !important; }
+.tableStyled td:nth-child(2){ width: 62px !important; }
+.colType{ width:62px !important; max-width:62px !important; min-width:62px !important; overflow:hidden; }
 
 .typeSwitchToggle{
   position: relative;
@@ -1110,7 +1111,7 @@ canvas.complexCanvas { height:220px !important; }
 /* ── Onglet Validation guidée (valTab) ── */
 #tableCol { position: relative; overflow: visible; }
 .valTab {
-  position: absolute; left: -26px; top: 12px;
+  position: absolute; right: 100%; left: auto; top: 12px;
   width: 22px; padding: 12px 2px;
   writing-mode: vertical-rl; transform: rotate(180deg);
   border-radius: 6px 0 0 6px;
@@ -1129,14 +1130,14 @@ canvas.complexCanvas { height:220px !important; }
 
 /* ── Colonnes — positions DOM réelles ── */
 #periodsTable { width:100%; table-layout:fixed; }
-/* ── Mode SIMPLE : #=26px, Type=72px, 4 colonnes visibles auto-uniformes ── */
-#periodsTable td:nth-child(1),#periodsTable th:nth-child(1) { width:26px; }
-#periodsTable td:nth-child(2),#periodsTable th:nth-child(2) { width:72px; }
+/* ── Mode SIMPLE : colonne # masquée, Type=pill ── */
+#periodsTable td:nth-child(1),#periodsTable th:nth-child(1) { display:none !important; }
+#periodsTable td:nth-child(2),#periodsTable th:nth-child(2) { width:62px !important; }
 #periodsTable.complexMode { width:100%; table-layout:fixed; }
 /* ── Mode COMPLEXE : Type seul différent, tous autres = 9% ── */
-#periodsTable.complexMode td,#periodsTable.complexMode th { width:9%; }
-#periodsTable.complexMode td:nth-child(1),#periodsTable.complexMode th:nth-child(1) { width:26px; }
-#periodsTable.complexMode td:nth-child(2),#periodsTable.complexMode th:nth-child(2) { width:8%; }
+#periodsTable.complexMode td:not(.colType),#periodsTable.complexMode th:not(.colType) { width:9%; }
+#periodsTable.complexMode td:nth-child(1),#periodsTable.complexMode th:nth-child(1) { display:none !important; }
+#periodsTable.complexMode td:nth-child(2),#periodsTable.complexMode th:nth-child(2) { width:62px !important; }
 .tableFriseRow.complexLayout .periodsScroll { max-height:180px; }
 
 /* ════════════════════════════════════════════ saveCardWrap compact (200px) ════════════════════════════════════════════ */
@@ -1324,9 +1325,38 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
   }
   .tableFriseRow.complexLayout .tableCol { flex: 1 1 100% !important; }
 
-  /* Masquer la colonne n° en mode 3 col */
-  .tableFriseRow.val3col:not(.complexLayout) #periodsTable td:nth-child(1),
-  .tableFriseRow.val3col:not(.complexLayout) #periodsTable th:nth-child(1) { display: none !important; }
+  /* ─── Fix 1 : val3col OFF → layout 2 parties (table + frise côte à côte) ─── */
+  .tableFriseRow:not(.val3col):not(.complexLayout) {
+    flex-wrap: nowrap !important; align-items: flex-start !important;
+  }
+  .tableFriseRow:not(.val3col):not(.complexLayout) .valCol {
+    flex: 0 0 0 !important; min-width: 0 !important; overflow: hidden !important;
+  }
+  .tableFriseRow:not(.val3col):not(.complexLayout) .tableCol,
+  .tableFriseRow:not(.val3col):not(.complexLayout) .friseCol {
+    flex: 1 1 0 !important; min-width: 0 !important;
+  }
+  .tableFriseRow:not(.val3col):not(.complexLayout) .tableCol {
+    margin-left: -18px; /* annule le gap du valCol effondré */
+  }
+
+  /* ─── Fix 2 : mode complexe + val3col ON → valCol | tableCol côte à côte ─── */
+  .tableFriseRow.complexLayout.val3col {
+    flex-wrap: nowrap !important; align-items: flex-start !important;
+  }
+  .tableFriseRow.complexLayout.val3col .valCol {
+    flex: 0 0 460px !important; min-width: 0 !important;
+    position: sticky !important; top: 60px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto !important; scrollbar-width: thin;
+    padding-right: 4px !important;
+  }
+  .tableFriseRow.complexLayout.val3col .tableCol {
+    flex: 1 1 0 !important; min-width: 0 !important;
+  }
+  .tableFriseRow.complexLayout.val3col #validationCard { display: block !important; }
+
+  /* Colonne # masquée globalement (voir règle CSS globale) */
 }
 
 @media print {
@@ -1341,8 +1371,11 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
 #valSinPopupOverlay{position:fixed;inset:0;z-index:1101;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;}
 .valSinTypeBtn{font-size:12px;padding:4px 9px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-weight:600;white-space:nowrap;}
 .valSinTypeBtn:hover,.valSinTypeBtn.selected{background:var(--accent);color:#fff;}
-.sinAddBtn{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-weight:600;white-space:nowrap;}
+.sinAddBtn{font-size:13px;font-weight:700;padding:1px 6px;border-radius:5px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;line-height:1.4;}
 .sinAddBtn:hover{background:var(--accent);color:#fff;}
+.typeToggleBtn{font-size:11px;font-weight:700;padding:3px 6px;border-radius:999px;border:1.5px solid var(--softStroke,var(--border2,#d1d5db));background:transparent;color:var(--muted,#6b7280);cursor:pointer;width:100%;box-sizing:border-box;text-align:center;line-height:1.4;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s,color 0.15s,border-color 0.15s;}
+.typeToggleBtn.typeToggleMoto{background:var(--accent);color:#fff;border-color:var(--accent);}
+.typeToggleBtn:hover:not(.typeToggleMoto){border-color:var(--accent);color:var(--accent);}
 .sinCount{font-size:10px;color:var(--muted);margin-left:3px;font-weight:600;}
 .sinListItem{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);font-size:12px;}
 .sinListItem .sinDel{border:none;background:none;cursor:pointer;color:var(--muted);font-size:14px;padding:0 2px;line-height:1;flex-shrink:0;}
@@ -2635,7 +2668,7 @@ a.topNavBtn:focus {
 <div class="tableScroll periodsScroll">
 <table class="tableStyled" id="periodsTable">
 <thead><tr>
-<th>#</th><th>Type</th>
+<th>#</th><th class="colType">Type</th>
 <th class="colImmat">Immatriculation</th>
 <th>Début</th><th>Fin</th>
 <th class="colPermis">Date<br>permis</th>
@@ -2645,125 +2678,65 @@ a.topNavBtn:focus {
 <th><span class="thInfoWrap">Indicatif frise <button aria-label="Info Indicatif frise" class="infoBtn" id="crmInfoBtn" title="Info" type="button">i</button></span></th>
 </tr></thead>
 <tbody>
-<tr><td>1</td><td><select class="typeSelectHidden" id="type1"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type1" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat1" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb1" maxlength="10" type="text"/></td><td><input id="fin1" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis1" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_1" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(1)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_1"></span></div></td>
+<tr><td>1</td><td class="colType"><select class="typeSelectHidden" id="type1"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type1" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat1" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb1" maxlength="10" type="text"/></td><td><input id="fin1" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis1" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_1" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(1)" type="button">+</button><span class="sinCount" id="sinCount_1"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch1" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois1"></td><td><input class="crmInput" id="crm1" maxlength="8" type="text"/></td></tr>
-<tr><td>2</td><td><select class="typeSelectHidden" id="type2"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type2" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat2" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb2" maxlength="10" type="text"/></td><td><input id="fin2" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis2" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_2" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(2)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_2"></span></div></td>
+<tr><td>2</td><td class="colType"><select class="typeSelectHidden" id="type2"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type2" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat2" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb2" maxlength="10" type="text"/></td><td><input id="fin2" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis2" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_2" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(2)" type="button">+</button><span class="sinCount" id="sinCount_2"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch2" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois2"></td><td><input class="crmInput" id="crm2" maxlength="8" type="text"/></td></tr>
-<tr><td>3</td><td><select class="typeSelectHidden" id="type3"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type3" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat3" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb3" maxlength="10" type="text"/></td><td><input id="fin3" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis3" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_3" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(3)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_3"></span></div></td>
+<tr><td>3</td><td class="colType"><select class="typeSelectHidden" id="type3"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type3" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat3" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb3" maxlength="10" type="text"/></td><td><input id="fin3" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis3" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_3" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(3)" type="button">+</button><span class="sinCount" id="sinCount_3"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch3" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois3"></td><td><input class="crmInput" id="crm3" maxlength="8" type="text"/></td></tr>
-<tr><td>4</td><td><select class="typeSelectHidden" id="type4"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type4" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat4" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb4" maxlength="10" type="text"/></td><td><input id="fin4" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis4" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_4" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(4)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_4"></span></div></td>
+<tr><td>4</td><td class="colType"><select class="typeSelectHidden" id="type4"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type4" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat4" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb4" maxlength="10" type="text"/></td><td><input id="fin4" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis4" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_4" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(4)" type="button">+</button><span class="sinCount" id="sinCount_4"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch4" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois4"></td><td><input class="crmInput" id="crm4" maxlength="8" type="text"/></td></tr>
-<tr><td>5</td><td><select class="typeSelectHidden" id="type5"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type5" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat5" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb5" maxlength="10" type="text"/></td><td><input id="fin5" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis5" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_5" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(5)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_5"></span></div></td>
+<tr><td>5</td><td class="colType"><select class="typeSelectHidden" id="type5"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type5" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat5" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb5" maxlength="10" type="text"/></td><td><input id="fin5" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis5" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_5" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(5)" type="button">+</button><span class="sinCount" id="sinCount_5"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch5" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois5"></td><td><input class="crmInput" id="crm5" maxlength="8" type="text"/></td></tr>
-<tr><td>6</td><td><select class="typeSelectHidden" id="type6"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type6" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat6" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb6" maxlength="10" type="text"/></td><td><input id="fin6" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis6" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_6" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(6)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_6"></span></div></td>
+<tr><td>6</td><td class="colType"><select class="typeSelectHidden" id="type6"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type6" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat6" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb6" maxlength="10" type="text"/></td><td><input id="fin6" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis6" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_6" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(6)" type="button">+</button><span class="sinCount" id="sinCount_6"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch6" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois6"></td><td><input class="crmInput" id="crm6" maxlength="8" type="text"/></td></tr>
-<tr><td>7</td><td><select class="typeSelectHidden" id="type7"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type7" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat7" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb7" maxlength="10" type="text"/></td><td><input id="fin7" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis7" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_7" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(7)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_7"></span></div></td>
+<tr><td>7</td><td class="colType"><select class="typeSelectHidden" id="type7"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type7" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat7" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb7" maxlength="10" type="text"/></td><td><input id="fin7" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis7" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_7" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(7)" type="button">+</button><span class="sinCount" id="sinCount_7"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch7" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois7"></td><td><input class="crmInput" id="crm7" maxlength="8" type="text"/></td></tr>
-<tr><td>8</td><td><select class="typeSelectHidden" id="type8"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type8" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat8" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb8" maxlength="10" type="text"/></td><td><input id="fin8" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis8" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_8" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(8)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_8"></span></div></td>
+<tr><td>8</td><td class="colType"><select class="typeSelectHidden" id="type8"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type8" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat8" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb8" maxlength="10" type="text"/></td><td><input id="fin8" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis8" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_8" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(8)" type="button">+</button><span class="sinCount" id="sinCount_8"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch8" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois8"></td><td><input class="crmInput" id="crm8" maxlength="8" type="text"/></td></tr>
-<tr><td>9</td><td><select class="typeSelectHidden" id="type9"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type9" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat9" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb9" maxlength="10" type="text"/></td><td><input id="fin9" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis9" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_9" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(9)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_9"></span></div></td>
+<tr><td>9</td><td class="colType"><select class="typeSelectHidden" id="type9"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type9" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat9" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb9" maxlength="10" type="text"/></td><td><input id="fin9" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis9" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_9" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(9)" type="button">+</button><span class="sinCount" id="sinCount_9"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch9" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois9"></td><td><input class="crmInput" id="crm9" maxlength="8" type="text"/></td></tr>
-<tr><td>10</td><td><select class="typeSelectHidden" id="type10"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type10" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat10" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb10" maxlength="10" type="text"/></td><td><input id="fin10" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis10" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_10" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(10)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_10"></span></div></td>
+<tr><td>10</td><td class="colType"><select class="typeSelectHidden" id="type10"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type10" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat10" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb10" maxlength="10" type="text"/></td><td><input id="fin10" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis10" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_10" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(10)" type="button">+</button><span class="sinCount" id="sinCount_10"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch10" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois10"></td><td><input class="crmInput" id="crm10" maxlength="8" type="text"/></td></tr>
-<tr><td>11</td><td><select class="typeSelectHidden" id="type11"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type11" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat11" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb11" maxlength="10" type="text"/></td><td><input id="fin11" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis11" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_11" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(11)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_11"></span></div></td>
+<tr><td>11</td><td class="colType"><select class="typeSelectHidden" id="type11"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type11" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat11" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb11" maxlength="10" type="text"/></td><td><input id="fin11" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis11" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_11" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(11)" type="button">+</button><span class="sinCount" id="sinCount_11"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch11" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois11"></td><td><input class="crmInput" id="crm11" maxlength="8" type="text"/></td></tr>
-<tr><td>12</td><td><select class="typeSelectHidden" id="type12"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type12" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat12" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb12" maxlength="10" type="text"/></td><td><input id="fin12" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis12" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_12" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(12)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_12"></span></div></td>
+<tr><td>12</td><td class="colType"><select class="typeSelectHidden" id="type12"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type12" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat12" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb12" maxlength="10" type="text"/></td><td><input id="fin12" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis12" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_12" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(12)" type="button">+</button><span class="sinCount" id="sinCount_12"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch12" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois12"></td><td><input class="crmInput" id="crm12" maxlength="8" type="text"/></td></tr>
-<tr><td>13</td><td><select class="typeSelectHidden" id="type13"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type13" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat13" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb13" maxlength="10" type="text"/></td><td><input id="fin13" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis13" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_13" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(13)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_13"></span></div></td>
+<tr><td>13</td><td class="colType"><select class="typeSelectHidden" id="type13"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type13" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat13" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb13" maxlength="10" type="text"/></td><td><input id="fin13" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis13" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_13" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(13)" type="button">+</button><span class="sinCount" id="sinCount_13"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch13" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois13"></td><td><input class="crmInput" id="crm13" maxlength="8" type="text"/></td></tr>
-<tr><td>14</td><td><select class="typeSelectHidden" id="type14"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type14" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat14" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb14" maxlength="10" type="text"/></td><td><input id="fin14" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis14" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_14" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(14)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_14"></span></div></td>
+<tr><td>14</td><td class="colType"><select class="typeSelectHidden" id="type14"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type14" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat14" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb14" maxlength="10" type="text"/></td><td><input id="fin14" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis14" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_14" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(14)" type="button">+</button><span class="sinCount" id="sinCount_14"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch14" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois14"></td><td><input class="crmInput" id="crm14" maxlength="8" type="text"/></td></tr>
-<tr><td>15</td><td><select class="typeSelectHidden" id="type15"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type15" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat15" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb15" maxlength="10" type="text"/></td><td><input id="fin15" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis15" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_15" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(15)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_15"></span></div></td>
+<tr><td>15</td><td class="colType"><select class="typeSelectHidden" id="type15"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type15" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat15" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb15" maxlength="10" type="text"/></td><td><input id="fin15" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis15" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_15" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(15)" type="button">+</button><span class="sinCount" id="sinCount_15"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch15" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois15"></td><td><input class="crmInput" id="crm15" maxlength="8" type="text"/></td></tr>
-<tr><td>16</td><td><select class="typeSelectHidden" id="type16"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type16" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat16" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb16" maxlength="10" type="text"/></td><td><input id="fin16" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis16" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_16" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(16)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_16"></span></div></td>
+<tr><td>16</td><td class="colType"><select class="typeSelectHidden" id="type16"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type16" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat16" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb16" maxlength="10" type="text"/></td><td><input id="fin16" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis16" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_16" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(16)" type="button">+</button><span class="sinCount" id="sinCount_16"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch16" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois16"></td><td><input class="crmInput" id="crm16" maxlength="8" type="text"/></td></tr>
-<tr><td>17</td><td><select class="typeSelectHidden" id="type17"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type17" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat17" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb17" maxlength="10" type="text"/></td><td><input id="fin17" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis17" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_17" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(17)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_17"></span></div></td>
+<tr><td>17</td><td class="colType"><select class="typeSelectHidden" id="type17"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type17" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat17" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb17" maxlength="10" type="text"/></td><td><input id="fin17" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis17" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_17" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(17)" type="button">+</button><span class="sinCount" id="sinCount_17"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch17" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois17"></td><td><input class="crmInput" id="crm17" maxlength="8" type="text"/></td></tr>
-<tr><td>18</td><td><select class="typeSelectHidden" id="type18"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type18" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat18" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb18" maxlength="10" type="text"/></td><td><input id="fin18" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis18" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_18" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(18)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_18"></span></div></td>
+<tr><td>18</td><td class="colType"><select class="typeSelectHidden" id="type18"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type18" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat18" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb18" maxlength="10" type="text"/></td><td><input id="fin18" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis18" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_18" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(18)" type="button">+</button><span class="sinCount" id="sinCount_18"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch18" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois18"></td><td><input class="crmInput" id="crm18" maxlength="8" type="text"/></td></tr>
-<tr><td>19</td><td><select class="typeSelectHidden" id="type19"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type19" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat19" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb19" maxlength="10" type="text"/></td><td><input id="fin19" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis19" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_19" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(19)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_19"></span></div></td>
+<tr><td>19</td><td class="colType"><select class="typeSelectHidden" id="type19"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type19" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat19" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb19" maxlength="10" type="text"/></td><td><input id="fin19" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis19" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_19" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(19)" type="button">+</button><span class="sinCount" id="sinCount_19"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch19" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois19"></td><td><input class="crmInput" id="crm19" maxlength="8" type="text"/></td></tr>
-<tr><td>20</td><td><select class="typeSelectHidden" id="type20"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
-<div aria-checked="false" aria-label="Type 1 (Auto/Moto)" class="typeSwitchToggle" data-target="type20" role="switch" tabindex="0">
-<span class="typeText typeTextAuto">Auto</span>
-<span class="typeText typeTextMoto">Moto</span>
-<span aria-hidden="true" class="typePill"></div></td><td class="colImmat"><input id="immat20" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb20" maxlength="10" type="text"/></td><td><input id="fin20" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis20" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_20" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(20)" type="button">Rajouter +</button><span class="sinCount" id="sinCount_20"></span></div></td>
+<tr><td>20</td><td class="colType"><select class="typeSelectHidden" id="type20"><option selected="" value="AUTO">Auto</option><option value="MOTO">Moto</option></select>
+<button type="button" class="typeToggleBtn" id="typeBtn1" data-target="type20" onclick="clickTypeToggle(this)" title="Auto / Moto">Auto</button></td><td class="colImmat"><input id="immat20" maxlength="15" placeholder="AA-000-AA" type="text" style="width:100%;box-sizing:border-box;" oninput="formatImmat(this)"/></td><td><input id="deb20" maxlength="10" type="text"/></td><td><input id="fin20" maxlength="10" type="text"/></td><td class="colPermis"><input class="datePermisInput" id="permis20" maxlength="10" placeholder="MMYY" type="text" style="width:100%;box-sizing:border-box;"/></td><td class="colEcheance"><input id="ech_20" maxlength="10" type="text" placeholder="JJ/MM" oninput="calculer();" style="width:100%;box-sizing:border-box;"/></td><td class="colSinistres"><div class="sinCell"><button class="sinAddBtn" onclick="openSinPopup(20)" type="button">+</button><span class="sinCount" id="sinCount_20"></span></div></td>
 <td class="colCrmEch"><input class="crmInput crmEchInput" id="crmEch20" maxlength="8" placeholder="ex: 0,63" type="text" oninput="calculer()"/></td><td id="mois20"></td><td><input class="crmInput" id="crm20" maxlength="8" type="text"/></td></tr>
 </tbody>
 </table>
@@ -2873,10 +2846,89 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.11";
+    const LOCAL_VERSION = "1.3.21";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
+
+## v1.3.21
+*11 mars 2026*
+
+- Colonne Type complexe : :not(.colType) exclut la colonne du width:9% global.
+- Colgroup supprime (cassait le mode simple).
+- Validation guidee complexe : 460px.
+
+---
+
+## v1.3.20
+*11 mars 2026*
+
+- Col Type : <colgroup> col width:62px (priorite absolue en table-layout:fixed).
+- Validation guidee mode complexe : 420px.
+
+---
+
+## v1.3.19
+*11 mars 2026*
+
+- Tab collé au bord : margin-left:-18px sur tableCol (annule le gap du valCol effondré).
+
+---
+
+## v1.3.18
+*11 mars 2026*
+
+- Correctif : gap restaure entre tableau et frise en mode simple.
+
+---
+
+## v1.3.17
+*11 mars 2026*
+
+- Colonne Type : classe .colType + width 62px fiable (fixe/min/max) en simple et complexe.
+- Validation guidée en mode complexe : 380px (au lieu de 310px).
+
+---
+
+## v1.3.16
+*11 mars 2026*
+
+- Colonne Type : 62px, bouton pill width:100% (jamais de debordement).
+
+---
+
+## v1.3.15
+*11 mars 2026*
+
+- Colonne Type : 50px fixe (suppression du 150px !important qui ecrasait la valeur).
+
+---
+
+## v1.3.14
+*11 mars 2026*
+
+- Tab Validation guidee : position right:100% (flush garanti), gap supprime en mode 2-parties.
+- Col Type reduite a 50px.
+
+---
+
+## v1.3.13
+*11 mars 2026*
+
+- Bouton sinistres : remplace par "+" par defaut.
+- Toggle Auto/Moto : style pill, largeur fixe 46px.
+- Colonne # masquee par defaut (simple et complexe).
+
+---
+
+## v1.3.12 — Correctifs layout 2/3 parties
+*11 mars 2026*
+
+### Correctifs
+- Layout 2 parties sur grand ecran (val3col OFF) : table et frise cote a cote.
+- Mode complexe + onglet actif : validation guidee a gauche, tableau complexe a droite.
+
+---
 
 ## v1.3.11 — Onglet Validation guidée
 *11 mars 2026*
@@ -4485,46 +4537,24 @@ ${formatDateFR(deb)} → ${formatDateFR(fin)}`;
 
 // --- UI enhancement: toggle switch Auto<->Moto for each type select (keeps calculations unchanged) ---
 function syncTypeToggles(){
-  document.querySelectorAll('.typeSwitchToggle').forEach(sw => {
-    const targetId = sw.getAttribute('data-target');
-    const sel = document.getElementById(targetId);
-    if(!sel) return;
-    const isMoto = (sel.value === 'MOTO');
-    sw.classList.toggle('isMoto', isMoto);
-    sw.setAttribute('aria-checked', isMoto ? 'true' : 'false');
+  document.querySelectorAll('.typeToggleBtn').forEach(function(btn){
+    var sel=document.getElementById(btn.getAttribute('data-target')); if(!sel) return;
+    var isMoto=(sel.value==='MOTO');
+    btn.textContent=isMoto?'Moto':'Auto';
+    btn.classList.toggle('typeToggleMoto',isMoto);
+    btn.setAttribute('aria-pressed',isMoto?'true':'false');
   });
 }
 
 function toggleTypeSwitch(sw){
-  const targetId = sw.getAttribute('data-target');
-  const sel = document.getElementById(targetId);
-  if(!sel) return;
-  const next = (sel.value === 'MOTO') ? 'AUTO' : 'MOTO';
-  sel.value = next;
-  sel.dispatchEvent(new Event('change', { bubbles: true }));
+  var sel=document.getElementById(sw.getAttribute('data-target')); if(!sel) return;
+  sel.value=(sel.value==='MOTO')?'AUTO':'MOTO';
+  sel.dispatchEvent(new Event('change',{bubbles:true}));
   syncTypeToggles();
 }
+function clickTypeToggle(btn){ toggleTypeSwitch(btn); }
 
-function initTypeToggles(){
-  document.querySelectorAll('.typeSwitchToggle').forEach(sw => {
-    sw.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleTypeSwitch(sw);
-    });
-    sw.addEventListener('keydown', (e) => {
-      if(e.key === ' ' || e.key === 'Enter'){
-        e.preventDefault();
-        toggleTypeSwitch(sw);
-      }
-    });
-  });
-
-  // Keep toggles in sync after reset
-  const clearBtn = document.getElementById('btnClear');
-  if(clearBtn){
-    clearBtn.addEventListener('click', () => setTimeout(syncTypeToggles, 0));
-  }
-}
+function initTypeToggles(){ /* remplacé par onclick inline */ }
 
 
 // --- UI enhancement: Moto tool button (keeps #moto checkbox for logic) ---
