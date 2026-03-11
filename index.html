@@ -2846,10 +2846,28 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.28";
+    const LOCAL_VERSION = "1.3.30";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
+
+## v1.3.30
+*11 mars 2026*
+
+- N° contrat : nouveau comportement au changement de numéro :
+  - Même numéro → rien
+  - Numéro existant → charge (avec popup si non sauvegardé)
+  - Numéro inexistant → dossier vierge (avec popup si non sauvegardé, ancien contrat intact en localStorage)
+
+---
+
+## v1.3.29
+*11 mars 2026*
+
+- N° contrat : renommage automatique si contrat déjà chargé + nouveau numéro saisi.
+- Bookmarklet ADN backoffice : scaffold prêt (en attente structure DOM).
+
+---
 
 ## v1.3.28
 *11 mars 2026*
@@ -4955,7 +4973,70 @@ function _clearWarningReason(){var num=((document.getElementById('saveContrat')|
 function _doClear(){_sessionHash=null;_sessionNum=null;document.getElementById('saveContrat').value='';setSaveStatus('','');effacerTout();if(typeof resetValidationPanel==='function')resetValidationPanel();try{localStorage.setItem('gab_cleared_flag','1');}catch(e){}
   // Rechargement forcé en attente ? C'est le bon moment (données déjà effacées).
   if(localStorage.getItem('gab_pendingForceReload')==='1'){localStorage.removeItem('gab_pendingForceReload');location.reload(true);return;}}
-function _tryAutoLoad(){var num=((document.getElementById('saveContrat')||{}).value||'').trim();if(!num)return;if(_loadContrat(num)){setSaveStatus('Chargé','saveStatus-loaded');showToast('Contrat chargé','loaded');}}
+function _tryAutoLoad(){
+  var num=((document.getElementById('saveContrat')||{}).value||'').trim();
+  if(!num)return;
+  // Même numéro déjà chargé → rien
+  if(_sessionNum&&_sessionNum===num)return;
+  // Un contrat est chargé et on change de numéro
+  if(_sessionNum&&_sessionNum!==num){
+    var isUnsaved=_sessionHash&&_dataHash(getFormData())!==_sessionHash;
+    var doSwitch=function(){
+      var exists=!!localStorage.getItem(SAVE_PREFIX+num);
+      var sc=document.getElementById('saveContrat');
+      if(exists){
+        if(_loadContrat(num)){setSaveStatus('Chargé','saveStatus-loaded');showToast('Contrat chargé','loaded');}
+      } else {
+        // Dossier vierge : doClear puis restaurer le numéro saisi
+        _doClear();
+        if(sc)sc.value=num;
+      }
+    };
+    if(isUnsaved){
+      // Popup "non sauvegardé" réutilisée
+      var msg=document.getElementById('clearConfirmMsg');
+      var pop=document.getElementById('clearConfirmPopup');
+      if(msg)msg.textContent="Le contrat "+_sessionNum+" n'a pas été enregistré. Que souhaitez-vous faire ?";
+      // Brancher les boutons existants pour ce cas
+      var btnSave=document.getElementById('popupBtnSwitchSave');
+      var btnForce=document.getElementById('popupBtnSwitchForce');
+      var btnCancel=document.getElementById('popupBtnSwitchCancel');
+      // Fallback : réutiliser les boutons clearConfirm s'ils existent
+      if(!btnSave){
+        // Utiliser clearConfirmPopup avec override temporaire
+        var origSave=null,origDanger=null,origCancel=null;
+        var bS=document.querySelector('#clearConfirmPopup .popupBtnSave');
+        var bD=document.querySelector('#clearConfirmPopup .popupBtnDanger');
+        var bC=document.querySelector('#clearConfirmPopup .popupBtnCancel');
+        if(bS){origSave=bS.onclick;bS.textContent='Enregistrer & continuer';bS.onclick=function(){
+          var n=(document.getElementById('saveContrat')||{}).value||'';
+          _saveContrat(_sessionNum);
+          bS.onclick=origSave;if(bS)bS.textContent='Enregistrer & changer';
+          if(bD)bD.onclick=origDanger;if(bC)bC.onclick=origCancel;
+          if(pop)pop.style.display='none';
+          doSwitch();
+        };}
+        if(bD){origDanger=bD.onclick;bD.textContent='Continuer sans enregistrer';bD.onclick=function(){
+          bD.onclick=origDanger;if(bS)bS.onclick=origSave;if(bS)bS.textContent='Enregistrer & changer';if(bC)bC.onclick=origCancel;
+          if(pop)pop.style.display='none';
+          doSwitch();
+        };}
+        if(bC){origCancel=bC.onclick;bC.onclick=function(){
+          bC.onclick=origCancel;if(bS)bS.onclick=origSave;if(bS)bS.textContent='Enregistrer & changer';if(bD)bD.onclick=origDanger;
+          if(pop)pop.style.display='none';
+          // Remettre l'ancien numéro dans le champ
+          var sc=document.getElementById('saveContrat');if(sc)sc.value=_sessionNum;
+        };}
+        if(pop)pop.style.display='flex';
+      }
+    } else {
+      doSwitch();
+    }
+    return;
+  }
+  // Aucun contrat chargé → chargement standard si existe
+  if(_loadContrat(num)){setSaveStatus('Chargé','saveStatus-loaded');showToast('Contrat chargé','loaded');}
+}
 function _applySaveSetting(enabled){var card=document.getElementById('saveCardWrap'),cb=document.getElementById('settingSaveEnabled'),pill=document.getElementById('pillSettingSave');if(cb)cb.checked=enabled;if(pill)pill.setAttribute('aria-checked',enabled?'true':'false');if(card)card.style.display=enabled?'':'none';var rowAS=document.getElementById('rowAutoSave'),pillAS=document.getElementById('pillAutoSave');if(!enabled){if(pillAS)pillAS.setAttribute('aria-checked','false');try{localStorage.setItem(AUTOSAVE_KEY,'0');}catch(e){}}if(rowAS){rowAS.style.opacity=enabled?'':'0.4';rowAS.style.pointerEvents=enabled?'':'none';}}
 function _toggleSaveSetting(){var pill=document.getElementById('pillSettingSave'),cb=document.getElementById('settingSaveEnabled');var isOn=pill?pill.getAttribute('aria-checked')==='true':(cb?cb.checked:true);_applySaveSetting(!isOn);try{localStorage.setItem(SAVE_SETTING_KEY,!isOn?'1':'0');  // sync ccPill UI
   try{ var pill=document.getElementById('pillSettingSave'); if(pill) pill.setAttribute('aria-checked', enabled ? 'true':'false'); }catch(e){}
