@@ -97,7 +97,7 @@
     h2 { font-size: 14px; margin: 0; }
     .titleAccent{ color:#e41c7a; }
 
-    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
     label { font-size: 12px; }
 
     input[type="text"] { width: 98px; text-align: center; padding: 3px 4px; background: var(--card); color: var(--text); border: 1px solid var(--tableBorder); border-radius: 6px; }
@@ -612,9 +612,10 @@ body.dark .motoToolBtn.toolBtnActive{
 /* === Layout reorg (table + frises) with spacing === */
 .headerRow h1{ width:100%; text-align:center; }
 
-.tableFriseRow{ display:flex; gap:18px; align-items:flex-start; margin-top: 10px; }
+.tableFriseRow{ display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; margin-top: 10px; }
 .tableCol{ flex:1 1 760px; min-width:0; display:flex; flex-direction:column; gap:12px; }
 .friseCol{ flex:0 0 420px; min-width:0; display:flex; flex-direction:column; gap:12px; }
+.valCol{ flex:0 0 100%; display:flex; flex-direction:column; gap:10px; }
 
 #totalMois, #interruptionTxt{ margin-top: 4px; }
 .notesBox{ margin-top: 6px; }
@@ -696,6 +697,7 @@ body.dark .motoToolBtn.toolBtnActive{
 .notesBox .notesHeader{display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start !important;gap:8px !important;}
 .notesBox .notesHeader h2{margin:0 !important;line-height:1 !important;}
 .notesBox .copyIconBtn{width:28px !important;height:28px !important;min-width:28px !important;min-height:28px !important;padding:0 !important;border-radius:999px !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}
+.copyIconBtn.copyOk{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;animation:_ccPop 0.28s cubic-bezier(.34,1.56,.64,1) forwards;}
 .notesBox .copyIconBtn svg{width:16px !important;height:16px !important;display:block !important;fill:currentColor !important;}
 .notesBox .copyIconBtn path{fill:currentColor !important;}
 
@@ -1272,8 +1274,54 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
   canvas.complexCanvas{ height: 240px !important; }
 }
 
+/* ═══ Layout 3 colonnes — écran CSS ≥ 1260 px ═══ */
+@media (min-width: 1260px) {
+  /* App : utiliser toute la largeur */
+  .app { max-width: none; padding-left: 24px; padding-right: 24px; }
+
+  /* tableFriseRow : 3 colonnes côte à côte, étirées en hauteur */
+  .tableFriseRow { flex-wrap: nowrap !important; align-items: flex-start !important; }
+
+  /* Les 3 colonnes occupent chacune 1/3 de l'espace disponible */
+  .valCol, .tableCol, .friseCol { flex: 1 1 0 !important; min-width: 0 !important; }
+
+  /* Colonne validation : sticky, scrollable indépendamment */
+  .valCol {
+    position: sticky;
+    top: 60px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-right: 4px;
+  }
+
+  .tableFriseRow:not(.complexLayout) #validationCard { display: block !important; }
+  .tableFriseRow:not(.complexLayout) #btnValidationMode { display: none !important; }
+
+  .tableFriseRow.complexLayout { flex-wrap: wrap !important; align-items: flex-start !important; }
+  .tableFriseRow.complexLayout .valCol {
+    flex: 0 0 100% !important; position: static !important;
+    max-height: none !important; overflow-y: visible !important;
+  }
+  .tableFriseRow.complexLayout .tableCol { flex: 1 1 100% !important; }
+
+  /* Masquer la colonne n° pour gagner de la place */
+  .tableFriseRow:not(.complexLayout) #periodsTable td:nth-child(1),
+  .tableFriseRow:not(.complexLayout) #periodsTable th:nth-child(1) { display: none !important; }
+}
+
+@media print {
+  #valCol       { display: block !important; width: 100% !important; }
+  #validationCard { display: block !important; }
+}
+
+
+
 /* === Popup Sinistres === */
 #sinPopupOverlay{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;}
+#valSinPopupOverlay{position:fixed;inset:0;z-index:1101;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;}
+.valSinTypeBtn{font-size:12px;padding:4px 9px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-weight:600;white-space:nowrap;}
+.valSinTypeBtn:hover,.valSinTypeBtn.selected{background:var(--accent);color:#fff;}
 .sinAddBtn{font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--accent);background:transparent;color:var(--accent);cursor:pointer;font-weight:600;white-space:nowrap;}
 .sinAddBtn:hover{background:var(--accent);color:#fff;}
 .sinCount{font-size:10px;color:var(--muted);margin-left:3px;font-weight:600;}
@@ -1640,6 +1688,10 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
       border-color:var(--accent);
       box-shadow:0 0 0 3px color-mix(in oklab,var(--accent) 22%,transparent);
     }
+    /* CRM identiques — grisage pill */
+    .vField--match { opacity:0.38; }
+    .vField--match .vLbl { background:transparent; color:var(--muted); border-right-color:var(--border2); }
+    .vField--match input { color:var(--muted); }
     .vLbl {
       display:flex; align-items:center;
       font-size:12px; font-weight:700;
@@ -1801,9 +1853,15 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
       transition:border-color 120ms, color 120ms, background 120ms;
     }
     .clientCmtBtn:hover { border-color:var(--accent); color:var(--accent); }
+    @keyframes _ccPop {
+      0%   { transform:scale(1); }
+      45%  { transform:scale(1.13); }
+      100% { transform:scale(1); }
+    }
     .clientCmtBtn.ccCopied {
       background:var(--accent) !important; border-color:var(--accent) !important;
       color:#fff !important;
+      animation:_ccPop 0.30s cubic-bezier(.34,1.56,.64,1) forwards;
     }
 
     /* ===== FIN TRAME DE VALIDATION ===== */
@@ -2394,7 +2452,7 @@ a.topNavBtn:focus {
 
 
 
-<div class="tableFriseRow" id="tableFriseRow"><div class="tableCol" id="tableCol">
+<div class="tableFriseRow" id="tableFriseRow"><div id="valCol" class="valCol">
 <button type="button" id="btnValidationMode" class="sectionToggleBtn" onclick="toggleValidationMode()" aria-pressed="false" title="Activer / désactiver la validation guidée">&#10004;&ensp;Validation guidée</button>
 
 <!-- ===== TRAME DE VALIDATION ===== -->
@@ -2490,16 +2548,16 @@ a.topNavBtn:focus {
         <span class="vSep">/</span>
         <input type="text" id="val_antec_decl"
           style="width:46px;text-align:center;" placeholder=" " maxlength="8"
-          oninput="_valUpdateClientComments()">
+          oninput="_valUpdateClientComments();_valAutoRI();">
       </div>
       <!-- CRM : relevé / déclaré -->
       <div class="vField">
         <span class="vLbl">CRM</span>
-        <input type="text" id="val_crm_just" onblur="_valFmtCRM(this)" style="width:58px"
+        <input type="text" id="val_crm_just" onblur="_valFmtCRM(this);_valCheckCrmMatch();" style="width:58px"
           placeholder=" " maxlength="8"
           title="CRM constaté sur le relevé d'informations">
         <span class="vSep">/</span>
-        <input type="text" id="val_crm_decl" onblur="_valFmtCRM(this)" style="width:58px"
+        <input type="text" id="val_crm_decl" onblur="_valFmtCRM(this);_valCheckCrmMatch();" style="width:58px"
           placeholder=" " maxlength="8"
           title="CRM déclaré par l'assuré">
       </div>
@@ -2512,8 +2570,9 @@ a.topNavBtn:focus {
     </div>
     <div class="valRow">
       <button type="button" class="vBtn" id="val_sinistralite"
-        onclick="toggleVBtn(this);_valCheckSinAlert()" aria-pressed="false"
-        title="Sinistralité différente — liste les sinistres du tableau (modif)">Sinistralité différente</button>
+        onclick="_valSinistraliteClick(this)" aria-pressed="false"
+        title="Sinistralité différente">Sinistralité différente</button>
+      <span id="valSinBadge" style="font-size:11px;color:var(--muted);margin-left:3px;display:none;"></span>
       <span id="valSinAlert"
         title="Aucun sinistre saisi en mode complexe — commentaire : mettre à jour la sinistralité">&#9888;</span>
     </div>
@@ -2551,6 +2610,8 @@ a.topNavBtn:focus {
 
 </div>
 <!-- ===== FIN TRAME DE VALIDATION ===== -->
+</div><!-- /valCol -->
+<div class="tableCol" id="tableCol">
 <div class="tableScroll periodsScroll">
 <table class="tableStyled" id="periodsTable">
 <thead><tr>
@@ -2792,10 +2853,58 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.05";
+    const LOCAL_VERSION = "1.3.10";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
+
+## v1.3.10 — Breakpoint 3 colonnes abaissé à 1260 px
+*11 mars 2026*
+
+### ✨ Amélioration
+- Le layout 3 colonnes s'active désormais à partir de **1260 px CSS** (au lieu de 1500 px), ce qui correspond à un écran 1920x1080 avec mise à l'échelle Windows à 150 % en zoom navigateur à 100 %.
+
+---
+
+## v1.3.09
+*11 mars 2026*
+
+- Mode complexe sur grand écran revient au layout original.
+- Animation coche sur bouton copier commentaires.
+- Pop-up sinistres depuis "Sinistralité différente" en mode simple.
+
+---
+
+## v1.3.08 — Validation guidée : auto-switch RI + grisage CRM
+*11 mars 2026*
+
+### ✨ Améliorations validation guidée
+- **Auto-switch RI** : bascule automatiquement en "Finaux" si antéc. justifié ≥ déclaré ; revient en "Supp." si le champ déclaré est vidé. Le basculement manuel reste possible sans être réécrasé.
+- **CRM identiques** : si CRM justifié = CRM déclaré, la pill CRM se grise et le CRM est exclu du commentaire généré.
+
+---
+
+## v1.3.07 — Correctifs layout 3 colonnes
+*10 mars 2026*
+
+### 🐛 Correctifs
+- **Colonne n°** : masquée sur ≥ 1500 px pour gagner de la place dans le tableau.
+- **Boutons copier client** : réapparus en mode 3 colonnes (le check "btnValidationMode actif" était bloquant).
+- **Animation copie** : rebond + couleur teal au clic sur les boutons copier messages clients.
+- **Centrage bulles** : la ligne Date d'effet / N° contrat / Simple–Complexe est désormais centrée.
+
+---
+
+## v1.3.06 — Layout 3 colonnes (≥ 1500 px)
+*10 mars 2026*
+
+### ✨ Layout 3 colonnes sur grand écran
+- À partir de **1500 px CSS** (≈ 1920 px à 100 %, 1366 px dézoomé à 90 %), l'interface passe en **3 colonnes** : Validation guidée | Tableau | Frise.
+- Le panneau de **validation guidée est toujours visible** (sticky, scrollable) — le bouton toggle disparaît.
+- En dessous de 1500 px, le layout revient **exactement à l'original**.
+- Compatible mode complexe (frise intégrée sous le tableau en mode complexe).
+
+---
 
 ## v1.3.05 — Validation guidée : section Photos
 *10 mars 2026*
@@ -4495,9 +4604,13 @@ function copyNotesToClipboard(){
 
   const feedback = (ok) => {
     if(!btn) return;
-    const old = btn.title;
+    const oldTitle=btn.title, oldHTML=btn.innerHTML;
     btn.title = ok ? 'Copié !' : 'Copie impossible';
-    setTimeout(()=>{ btn.title = old; }, 900);
+    if(ok){
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      btn.classList.add('copyOk');
+    }
+    setTimeout(()=>{ btn.title=oldTitle; btn.innerHTML=oldHTML; btn.classList.remove('copyOk'); }, 1400);
   };
 
   const fallback = () => {
@@ -5396,6 +5509,111 @@ function _clEsc(s) {
     if(typeof _valUpdateClientComments==='function') _valUpdateClientComments();
   }
 
+  /* ── Auto-switch RI Supp ↔ Finaux ── */
+  function _valAutoRI() {
+    var lbl = document.getElementById('valAntecLbl');
+    if (!lbl) return;
+    var aJ = (document.getElementById('val_antec_just')||{}).value||'';
+    var aD = (document.getElementById('val_antec_decl')||{}).value||'';
+    if (!aD.trim()) {
+      if (lbl.classList.contains('isFinaux')) {
+        lbl.classList.remove('isFinaux');
+        lbl.setAttribute('aria-checked','false');
+        _valAntecMode = 'supp';
+      }
+      return;
+    }
+    if (!aJ.trim()) return;
+    var nJ = parseFloat(aJ.trim()), nD = parseFloat(aD.trim());
+    if (!isNaN(nJ) && !isNaN(nD) && nJ >= nD) {
+      if (!lbl.classList.contains('isFinaux')) {
+        lbl.classList.add('isFinaux');
+        lbl.setAttribute('aria-checked','true');
+        _valAntecMode = 'finaux';
+      }
+    }
+  }
+
+  /* ── Grisage pill CRM si justifié == déclaré ── */
+  function _valCheckCrmMatch() {
+    var eJ = document.getElementById('val_crm_just');
+    var eD = document.getElementById('val_crm_decl');
+    if (!eJ || !eD) return;
+    var vJ = eJ.value.trim().replace(',','.'), vD = eD.value.trim().replace(',','.');
+    var match = !!(vJ && vD && vJ === vD);
+    var pJ = eJ.closest ? eJ.closest('.vField') : eJ.parentNode;
+    var pD = eD.closest ? eD.closest('.vField') : eD.parentNode;
+    if (pJ) pJ.classList.toggle('vField--match', match);
+    if (pD) pD.classList.toggle('vField--match', match);
+  }
+
+  /* ══ Sinistres validation mode simple ══ */
+  var _valSinistresArr = [];
+  var _valSelType = null;
+  var _SIN_TYPE_LABELS = {'BDG':'BDG','MAT0':'Mat 0%','MAT50':'Mat 50%','MAT100':'Mat 100%',
+    'CPR0':'Corpo 0%','CPR50':'Corpo 50%','CPR100':'Corpo 100%',
+    'VOL':'Vol','TENTV':'Tent. vol','INC':'Inc.','AUTRE':'Autres'};
+
+  function _valSinistraliteClick(btn) {
+    if(_modeComplexe){ toggleVBtn(btn); _valCheckSinAlert(); }
+    else { _openValSinPopup(); }
+  }
+  function _openValSinPopup() {
+    _valSelType=null;
+    document.querySelectorAll('#valSinPopupOverlay .valSinTypeBtn').forEach(function(b){b.classList.remove('selected');});
+    var di=document.getElementById('valSinDate'); if(di) di.value='';
+    _renderValSinList();
+    var ov=document.getElementById('valSinPopupOverlay'); if(ov) ov.style.display='flex';
+  }
+  function _closeValSinPopup() {
+    var ov=document.getElementById('valSinPopupOverlay'); if(ov) ov.style.display='none';
+    var b=document.getElementById('val_sinistralite'); if(b){
+      var has=_valSinistresArr.length>0; b.classList.toggle('vBtnOn',has); b.setAttribute('aria-pressed',has?'true':'false');
+    }
+    _valUpdateSinBadge(); _valCheckSinAlert();
+    if(typeof _valUpdateClientComments==='function') _valUpdateClientComments();
+  }
+  function _selectValSinType(t) {
+    _valSelType=t;
+    document.querySelectorAll('#valSinPopupOverlay .valSinTypeBtn').forEach(function(b){
+      b.classList.toggle('selected', b.getAttribute('data-sintype')===t);
+    });
+  }
+  function _fmtValSinDate(inp) {
+    var v=inp.value.replace(/[^0-9]/g,'');
+    if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2);
+    if(v.length>5) v=v.slice(0,5)+'/'+v.slice(5,9);
+    inp.value=v.slice(0,10);
+  }
+  function _addValSin() {
+    if(!_valSelType){alert('Choisissez un type de sinistre.');return;}
+    var di=document.getElementById('valSinDate'), d=di?di.value.trim():'';
+    if(!d){alert('Saisissez une date.');return;}
+    _valSinistresArr.push({type:_valSelType,date:d});
+    _valSelType=null;
+    document.querySelectorAll('#valSinPopupOverlay .valSinTypeBtn').forEach(function(b){b.classList.remove('selected');});
+    if(di) di.value=''; _renderValSinList();
+  }
+  function _removeValSin(i){_valSinistresArr.splice(i,1);_renderValSinList();}
+  function _renderValSinList() {
+    var box=document.getElementById('valSinList'); if(!box) return;
+    box.innerHTML=_valSinistresArr.length?'':
+      '<span style="font-size:11px;color:var(--muted);">Aucun sinistre.</span>';
+    _valSinistresArr.forEach(function(s,i){
+      var div=document.createElement('div'); div.className='sinListItem';
+      div.innerHTML='<span>'+s.date+' &mdash; '+(_SIN_TYPE_LABELS[s.type]||s.type)+'</span>'
+        +'<button type="button" class="sinDel" onclick="_removeValSin('+i+')" title="Supprimer">&times;</button>';
+      box.appendChild(div);
+    });
+  }
+  function _valUpdateSinBadge() {
+    var badge=document.getElementById('valSinBadge'); if(!badge) return;
+    if(!_valSinistresArr.length){badge.style.display='none';return;}
+    badge.textContent=_valSinistresArr.length+' sin. ('+
+      _valSinistresArr.map(function(s){return _SIN_TYPE_LABELS[s.type]||s.type;}).join(', ')+')';
+    badge.style.display='';
+  }
+
   function _valRefreshAuto() {
     var card=document.getElementById('validationCard');
     if(!card||card.style.display==='none') return;
@@ -5457,6 +5675,7 @@ function _clEsc(s) {
     _valAntecMode='supp';
     var alr=document.getElementById('valSinAlert'); if(alr) alr.classList.remove('show');
     _valRefreshAuto();
+    _valSinistresArr=[]; _valUpdateSinBadge();
     if(typeof _valUpdateClientComments==='function') _valUpdateClientComments();
   }
 
@@ -5473,7 +5692,7 @@ function _clEsc(s) {
       ddn:gv('val_ddn'), permisObtenu:gv('val_permis_obtenu'),
       antecDecl:gv('val_antec_decl'), crmJust:gv('val_crm_just'), crmDecl:gv('val_crm_decl'),
       sinistralite:ga('val_sinistralite'), resil:gv('val_resil'),
-      photosNc:ga('val_photos_nc'),
+      photosNc:ga('val_photos_nc'), valSins:JSON.stringify(_valSinistresArr),
       ribNom:ga('val_rib_nom'), ribTitulaire:ga('val_rib_titulaire'), ribDiff:ga('val_rib_diff'),
       open:!!(document.getElementById('btnValidationMode')&&
               document.getElementById('btnValidationMode').classList.contains('toolBtnActive'))
@@ -5495,6 +5714,9 @@ function _clEsc(s) {
     sv('val_antec_decl',d.antecDecl); sv('val_crm_just',d.crmJust); sv('val_crm_decl',d.crmDecl);
     sa('val_sinistralite',d.sinistralite); sv('val_resil',d.resil);
     sa('val_photos_nc',d.photosNc);
+    if(d.valSins){try{_valSinistresArr=JSON.parse(d.valSins)||[];}catch(e){_valSinistresArr=[];}} _valUpdateSinBadge();
+    (function(){var b=document.getElementById('val_sinistralite');if(!b)return;
+      var has=_valSinistresArr.length>0;b.classList.toggle('vBtnOn',has);b.setAttribute('aria-pressed',has?'true':'false');}());
     sa('val_rib_nom',d.ribNom); sa('val_rib_titulaire',d.ribTitulaire); sa('val_rib_diff',d.ribDiff);
     if(d.open){var btn=document.getElementById('btnValidationMode'),card=document.getElementById('validationCard');
       if(btn){btn.classList.add('toolBtnActive');btn.setAttribute('aria-pressed','true');}
@@ -5593,7 +5815,8 @@ function _clEsc(s) {
   function _valUpdateClientComments() {
     var box = document.getElementById('clientCommentsBox');
     if (!box) return;
-    var valOn = !!(document.getElementById('btnValidationMode') &&
+    var _is3col = !!(window.matchMedia && window.matchMedia('(min-width:1260px)').matches);
+    var valOn = _is3col || !!(document.getElementById('btnValidationMode') &&
                    document.getElementById('btnValidationMode').classList.contains('toolBtnActive'));
     if (!valOn) { box.style.display = 'none'; return; }
     function on(id){ var e=document.getElementById(id); return !!(e&&e.classList.contains('vBtnOn')); }
@@ -5656,8 +5879,14 @@ function _clEsc(s) {
     var aJ=gv('val_antec_just'), aD=gv('val_antec_decl');
     if(aD){var f=(aJ||'?')+'/'+aD; if(_valAntecMode==='supp') dmd.push('dmd RI supp '+f); else modif.push('RI '+f);}
     var cJ=gv('val_crm_just'), cD=gv('val_crm_decl');
-    if(cJ||cD) modif.push('CRM '+(cJ||'?')+'/'+(cD||'?'));
-    if(on('val_sinistralite')){var sl=_getValSinistresList(); modif.push(sl?sl:'mettre à jour la sinistralité');}
+    var _crmMatch = cJ && cD && cJ.replace(',','.') === cD.replace(',','.');
+    if((cJ||cD) && !_crmMatch) modif.push('CRM '+(cJ||'?')+'/'+(cD||'?'));
+    if(on('val_sinistralite')){
+      var sl;
+      if(_modeComplexe){ sl=_getValSinistresList(); }
+      else { sl=_valSinistresArr.map(function(s){return s.date+' - '+(_SIN_TYPE_LABELS[s.type]||s.type);}).join(' • '); }
+      modif.push(sl||'mettre à jour la sinistralité');
+    }
     var res=gv('val_resil'); if(res) modif.push('Resil '+res);
 
     if(on('val_photos_nc'))    dmd.push('refaire photos véhicule');
@@ -6128,6 +6357,42 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
   </div>
 </div>
+<!-- ══ Popup sinistres validation (mode simple) ══ -->
+<div id="valSinPopupOverlay" onclick="if(event.target===this)_closeValSinPopup();">
+  <div class="commentCustomBox" style="width:min(480px,calc(100vw - 32px));gap:14px;">
+    <h3>
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Sinistres &mdash; Validation guidée
+    </h3>
+    <div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);">Type de sinistre</div>
+      <div class="sinTypeRow" style="flex-wrap:wrap;gap:6px;">
+        <button class="valSinTypeBtn" data-sintype="BDG"    onclick="_selectValSinType('BDG')"    type="button">&#x25C6; BDG</button>
+        <button class="valSinTypeBtn" data-sintype="MAT0"   onclick="_selectValSinType('MAT0')"   type="button">Mat 0</button>
+        <button class="valSinTypeBtn" data-sintype="MAT50"  onclick="_selectValSinType('MAT50')"  type="button">&#x26A1; Mat 50</button>
+        <button class="valSinTypeBtn" data-sintype="MAT100" onclick="_selectValSinType('MAT100')" type="button">&#x1F534; Mat 100</button>
+        <button class="valSinTypeBtn" data-sintype="CPR0"   onclick="_selectValSinType('CPR0')"   type="button">Corpo 0</button>
+        <button class="valSinTypeBtn" data-sintype="CPR50"  onclick="_selectValSinType('CPR50')"  type="button">Corpo 50</button>
+        <button class="valSinTypeBtn" data-sintype="CPR100" onclick="_selectValSinType('CPR100')" type="button">Corpo 100</button>
+        <button class="valSinTypeBtn" data-sintype="VOL"    onclick="_selectValSinType('VOL')"    type="button">&#x1F511; Vol</button>
+        <button class="valSinTypeBtn" data-sintype="TENTV"  onclick="_selectValSinType('TENTV')"  type="button">Tent. vol</button>
+        <button class="valSinTypeBtn" data-sintype="INC"    onclick="_selectValSinType('INC')"    type="button">&#x1F525; Inc.</button>
+        <button class="valSinTypeBtn" data-sintype="AUTRE"  onclick="_selectValSinType('AUTRE')"  type="button">Autres</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:12px;font-weight:600;white-space:nowrap;color:var(--muted);">Date</span>
+      <input type="text" id="valSinDate" placeholder="JJ/MM/AAAA" maxlength="10"
+        style="flex:1;text-align:center;" oninput="_fmtValSinDate(this)">
+    </div>
+    <button type="button" onclick="_addValSin()" style="align-self:flex-start;">+ Ajouter</button>
+    <div id="valSinList" style="display:flex;flex-direction:column;gap:5px;min-height:20px;"></div>
+    <div style="display:flex;justify-content:flex-end;">
+      <button type="button" onclick="_closeValSinPopup()">Fermer</button>
+    </div>
+  </div>
+</div>
+
 <div id="autoSaveToast"></div>
 
 <nav id="topNavBar" role="navigation" aria-label="Menu principal">
