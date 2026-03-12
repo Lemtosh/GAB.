@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GAB · Quiz v0.4</title>
+<style>
+:root{--accent:#11a9a6;--al:rgba(17,169,166,.12);--bg:#f0f4f8;--card:#fff;--text:#1a202c;--muted:#718096;--border:#e2e8f0;--border2:#cbd5e1;--gold:#f59e0b;--silver:#94a3b8;--bronze:#b87333;--danger:#e53e3e;--success:#38a169;}
+body.dark{--bg:#0d1117;--card:#161b22;--text:#e6edf3;--muted:#8b949e;--border:#30363d;--border2:#21262d;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fadein{animation:fadein .25s ease}
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 8px rgba(0,0,0,.08);}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.btn-gab{text-decoration:none;display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted);padding:4px 9px;border-radius:7px;border:1px solid var(--border);transition:all .15s;}
+.btn-gab:hover{color:var(--accent);border-color:var(--accent);}
+.topbar-brand{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--accent);}
+.topbar-brand svg{width:20px;height:20px;}
+.version-tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.btn-icon{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+.btn-icon:hover{background:var(--al);border-color:var(--accent);color:var(--accent);}
+.btn-icon svg{width:15px;height:15px;}
+/* LOADING */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+/* MAIN */
+.main{max-width:940px;margin:0 auto;padding:20px;display:none;}
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:8px 12px;font-size:13px;font-weight:600;border-radius:7px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.tab-btn:hover{background:var(--al);color:var(--accent);}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.tab-btn svg{width:14px;height:14px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+/* QUARTER SELECTOR */
+.q-selector{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.q-btn{padding:6px 18px;font-size:13px;font-weight:600;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s;}
+.q-btn:hover{border-color:var(--accent);color:var(--accent);}
+.q-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+/* PODIUM */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:28px;padding:24px 0 0;}
+.podium-item{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:90px;}
+.podium-avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;border:2px solid var(--card);}
+.podium-name{font-size:12px;font-weight:700;text-align:center;line-height:1.3;}
+.podium-name small{font-weight:400;font-size:10px;color:var(--muted);}
+.podium-score{font-size:20px;font-weight:800;color:var(--accent);}
+.podium-bar{width:80px;border-radius:8px 8px 0 0;border:1px solid var(--border);}
+/* RANKING */
+.rank-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.rank-table{width:100%;border-collapse:collapse;}
+.rank-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:10px 16px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);}
+.rank-table td{padding:10px 16px;font-size:13px;border-bottom:1px solid var(--border);}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table tbody tr:hover td{background:var(--al);}
+.r-med{font-size:16px;}.r-num{font-weight:700;color:var(--muted);font-size:12px;}
+.r-name{font-weight:600;}.r-score{font-weight:700;color:var(--accent);font-size:15px;}
+.r-nf{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(229,62,62,.1);color:var(--danger);font-size:10px;font-weight:700;}
+.tag-me{display:inline-block;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+body.hide-absence .col-absence{display:none;}
+/* HISTORY */
+.id-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;}
+.id-name{font-size:15px;font-weight:700;}.id-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.stat-val{font-size:24px;font-weight:800;color:var(--accent);}
+.stat-val.danger{color:var(--danger);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-q{margin-bottom:24px;}
+.hist-q-title{font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.q-badge{background:var(--al);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px;}
+.week-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.wchip{display:flex;flex-direction:column;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:68px;font-size:11px;}
+.wchip .wdate{color:var(--muted);margin-bottom:4px;}
+.wchip .wval{font-size:16px;font-weight:800;color:var(--accent);}
+.wchip.absent{border-color:rgba(229,62,62,.3);}.wchip.absent .wval{color:var(--danger);font-size:12px;font-weight:600;}
+/* ADMIN */
+.admin-banner{background:rgba(17,169,166,.1);border:1px solid rgba(17,169,166,.3);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;}
+.section-ttl{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent);}
+.admin-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;}
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+@media(max-width:680px){.admin-grid{grid-template-columns:1fr;}}
+.inp{width:100%;padding:9px 12px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(17,169,166,.15);}
+.inp-lbl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:block;}
+.inp-wrap{margin-bottom:12px;}
+.csv-zone{border:2px dashed var(--border2);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--card);}
+.csv-zone:hover,.csv-zone.drag{border-color:var(--accent);background:var(--al);}
+.csv-zone svg{width:36px;height:36px;color:var(--accent);margin-bottom:10px;}
+.csv-zone p{font-size:13px;color:var(--muted);}
+.btn{padding:10px 20px;font-size:13px;font-weight:700;border-radius:8px;border:none;cursor:pointer;transition:filter .15s;}
+.btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{filter:brightness(1.08);}
+.btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border);}.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.preview-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.preview-table th{background:var(--bg);padding:7px 10px;text-align:left;font-weight:700;color:var(--muted);border-bottom:1px solid var(--border);}
+.preview-table td{padding:7px 10px;border-bottom:1px solid var(--border);}
+.preview-table tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:2px 6px;}
+.badge-new{background:rgba(56,161,105,.15);color:var(--success);}
+.badge-upd{background:rgba(17,169,166,.15);color:var(--accent);}
+.badge-nf{background:rgba(229,62,62,.1);color:var(--danger);}
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:min(400px,calc(100vw - 32px));box-shadow:0 16px 48px rgba(0,0,0,.25);}
+.modal-box h2{font-size:17px;font-weight:700;margin-bottom:6px;}
+.modal-box p{font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
+.modal-err{font-size:12px;color:var(--danger);margin-top:6px;display:none;}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty svg{width:36px;height:36px;margin-bottom:10px;opacity:.3;}
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:10px;}
+.alert-success{background:rgba(56,161,105,.12);border:1px solid rgba(56,161,105,.3);color:var(--success);}
+.alert-err{background:rgba(229,62,62,.1);border:1px solid rgba(229,62,62,.3);color:var(--danger);}
+@media(max-width:600px){.podium{gap:8px;}.podium-item{min-width:70px;}.rank-table th:nth-child(4),.rank-table td:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="https://lemtosh.github.io/GAB./" class="btn-gab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:12px;height:12px"><polyline points="15 18 9 12 15 6"/></svg>GAB
+    </a>
+    <div class="topbar-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      GAB · Quiz <span class="version-tag">v0.4</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <span id="idDisplay" style="font-size:12px;color:var(--muted);display:none"></span>
+    <button class="btn-icon" id="btnChgId" title="Changer d'identité" style="display:none" onclick="openModal(true)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+    <button class="btn-icon" id="btnDark" title="Mode sombre" onclick="toggleDark()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingWrap" class="loading-wrap">
+  <div class="spinner"></div>
+  <p style="font-size:13px;color:var(--muted)" id="loadingMsg">Chargement des résultats…</p>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="mainWrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="classement" onclick="switchTab('classement')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>Classement
+    </button>
+    <button class="tab-btn" data-tab="historique" onclick="switchTab('historique')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Mon historique
+    </button>
+    <button class="tab-btn" id="tabAdmin" data-tab="admin" style="display:none" onclick="switchTab('admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admin
+    </button>
+  </div>
+
+  <!-- CLASSEMENT -->
+  <div class="tab-content active" id="tab-classement">
+    <div class="q-selector" id="qSelector"></div>
+    <div id="podiumWrap"></div>
+    <div class="rank-wrap">
+      <table class="rank-table">
+        <thead><tr>
+          <th style="width:42px">#</th>
+          <th>Participant</th>
+          <th>Moyenne</th>
+          <th>Quiz</th>
+          <th class="col-absence">Absences</th>
+        </tr></thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="tab-content" id="tab-historique">
+    <div id="histWrap"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="tab-content" id="tab-admin">
+    <div class="admin-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span>Vue admin — importe un export CSV hebdomadaire et publie les résultats sur GitHub.</span>
+    </div>
+
+    <!-- GitHub config -->
+    <div class="admin-card">
+      <div class="section-ttl">🔑 Configuration GitHub</div>
+      <div class="admin-grid">
+        <div class="inp-wrap">
+          <label class="inp-lbl">Personal Access Token (Fine-grained · Contents write)</label>
+          <input class="inp" id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" oninput="saveGhConfig()">
+          <small style="font-size:11px;color:var(--muted)">Stocké uniquement dans ton navigateur</small>
+        </div>
+        <div class="inp-wrap">
+          <label class="inp-lbl">Chemin du fichier JSON dans le repo</label>
+          <input class="inp" id="ghPath" value="resultats.json" oninput="saveGhConfig()">
+        </div>
+      </div>
+    </div>
+
+    <!-- CSV Import -->
+    <div class="admin-card">
+      <div class="section-ttl">📂 Importer l'export CSV de la semaine</div>
+      <div id="csvDropZone" class="csv-zone" onclick="document.getElementById('csvInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        <p>Glisse le fichier CSV ici ou clique<br><span style="color:var(--accent);font-weight:600;font-size:12px">QUIZZ_MIA_DDMMYYYY.csv</span></p>
+        <input type="file" id="csvInput" accept=".csv" style="display:none" onchange="handleCSV(this.files[0])">
+      </div>
+      <div id="csvMsg" style="display:none"></div>
+    </div>
+
+    <!-- Preview + Publish -->
+    <div id="previewWrap" style="display:none">
+      <div class="admin-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+          <div class="section-ttl" style="margin-bottom:0" id="previewTitle">Aperçu de la mise à jour</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" style="padding:8px 14px;font-size:12px" onclick="cancelPreview()">Annuler</button>
+            <button class="btn btn-primary" style="padding:8px 14px;font-size:12px" id="btnPublish" onclick="publishToGitHub()">⬆️ Publier sur GitHub</button>
+          </div>
+        </div>
+        <div id="previewBody"></div>
+      </div>
+    </div>
+
+    <!-- Full ranking (admin view) -->
+    <div id="adminRankWrap"></div>
+  </div>
+</div>
+
+<!-- IDENTITY MODAL -->
+<div class="modal-ov" id="identModal">
+  <div class="modal-box">
+    <h2>👋 Qui es-tu ?</h2>
+    <p>Saisis ton prénom et nom tels qu'ils apparaissent dans les résultats.<br>
+    <small style="color:var(--accent);font-weight:600">Admin : Johann + Lemtosh</small></p>
+    <div class="inp-wrap">
+      <label class="inp-lbl">Prénom</label>
+      <input class="inp" id="inpPrenom" type="text" placeholder="ex : Marie" autocomplete="given-name">
+    </div>
+    <div class="inp-wrap" style="margin-bottom:4px">
+      <label class="inp-lbl">Nom</label>
+      <input class="inp" id="inpNom" type="text" placeholder="ex : DUPONT" autocomplete="family-name">
+    </div>
+    <div class="modal-err" id="modalErr"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="confirmId()">Confirmer</button>
+    <button onclick="skipId()" style="width:100%;padding:8px;margin-top:8px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer">Continuer sans m'identifier</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+var GH_OWNER  = 'lemtosh';
+var GH_REPO   = 'GAB.';
+var GH_PATH   = 'resultats.json';
+var JSON_URL  = 'https://raw.githubusercontent.com/lemtosh/GAB./main/resultats.json';
+var ADMIN_PRE = 'johann';
+var ADMIN_NOM = 'lemtosh';
+var LS_ID     = 'gabQuiz_id';
+var LS_DARK   = 'gabQuiz_dark';
+var LS_TOKEN  = 'gabQuiz_ghtoken';
+var LS_PATH   = 'gabQuiz_ghpath';
+
+// ── STATE ────────────────────────────────────────────────
+var gData        = null;
+var rawJSON      = null;
+var curQ         = 'T1';
+var uid          = null;
+var admin        = false;
+var pendingMerge = null;
+
+// ── INIT ─────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  if (localStorage.getItem(LS_DARK) === '1') document.body.classList.add('dark');
+  var saved = localStorage.getItem(LS_ID);
+  if (saved) { try { uid = JSON.parse(saved); } catch(e){} }
+  loadGhConfig();
+  fetchJSON();
+  var dz = document.getElementById('csvDropZone');
+  dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('drag'); });
+  dz.addEventListener('drop', function(e){
+    e.preventDefault(); dz.classList.remove('drag');
+    if (e.dataTransfer.files[0]) handleCSV(e.dataTransfer.files[0]);
+  });
+});
+
+// ── FETCH JSON ───────────────────────────────────────────
+function fetchJSON() {
+  setLoading('Chargement des résultats…');
+  fetch(JSON_URL + '?t=' + Date.now())
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data){ rawJSON = data; gData = parseJSON(data); hideLoading(); initApp(); })
+    .catch(function(e){ setLoading('⚠️ Impossible de charger les données. ' + e.message); });
+}
+
+function setLoading(msg) {
+  document.getElementById('loadingWrap').style.display = 'flex';
+  document.getElementById('mainWrap').style.display    = 'none';
+  document.getElementById('loadingMsg').textContent    = msg;
+}
+function hideLoading() {
+  document.getElementById('loadingWrap').style.display = 'none';
+  document.getElementById('mainWrap').style.display    = 'block';
+}
+
+// ── PARSE JSON ───────────────────────────────────────────
+function parseJSON(raw) {
+  var ps = (raw.participants || []).map(function(p) {
+    return { nom: p.nom, prenom: p.prenom, scores: p.scores || {}, quarters: computeQuarters(p) };
+  });
+  return { annee: raw.annee, participants: ps };
+}
+
+function assignQuarter(dateStr) {
+  var m = parseInt(dateStr.split('/')[1], 10);
+  return m <= 3 ? 'T1' : m <= 6 ? 'T2' : m <= 9 ? 'T3' : 'T4';
+}
+
+function computeQuarters(p) {
+  var QS = ['T1','T2','T3','T4'], res = {};
+  QS.forEach(function(q){ res[q] = {moyenne:null,nbQuiz:0,nbNonFait:0,weeks:[],active:false}; });
+  var dates = Object.keys(p.scores || {}).sort(function(a,b){
+    var pa=a.split('/'), pb=b.split('/');
+    return new Date(+pa[2],+pa[1]-1,+pa[0]) - new Date(+pb[2],+pb[1]-1,+pb[0]);
+  });
+  dates.forEach(function(d){
+    var v = p.scores[d], q = assignQuarter(d);
+    res[q].weeks.push({date:d, score: v==='NF'?'absent':v});
+    res[q].active = true;
+    if (v === 'NF') res[q].nbNonFait++;
+    else res[q].nbQuiz++;
+  });
+  QS.forEach(function(q){
+    var nums = res[q].weeks.filter(function(w){return typeof w.score==='number';}).map(function(w){return w.score;});
+    if (nums.length) res[q].moyenne = Math.round(nums.reduce(function(a,b){return a+b;},0)/nums.length*100)/100;
+  });
+  return res;
+}
+
+// ── APP INIT ─────────────────────────────────────────────
+function initApp() {
+  var m = new Date().getMonth() + 1;
+  curQ = m<=3?'T1':m<=6?'T2':m<=9?'T3':'T4';
+  if (uid) { checkAdmin(); updateIdDisplay(); }
+  else { openModal(true); }
+  applyAdminUI();
+  buildQSelector();
+  renderClassement(curQ);
+  renderHistory();
+  if (admin) renderAdminRank();
+}
+
+function checkAdmin() {
+  admin = !!(uid && uid.prenom.toLowerCase()===ADMIN_PRE && uid.nom.toLowerCase()===ADMIN_NOM);
+}
+
+function applyAdminUI() {
+  document.getElementById('tabAdmin').style.display = admin ? 'flex' : 'none';
+  document.body.classList.toggle('hide-absence', !admin);
+}
+
+function updateIdDisplay() {
+  if (!uid) return;
+  document.getElementById('idDisplay').textContent = capFull(uid.prenom) + ' ' + uid.nom.toUpperCase();
+  document.getElementById('idDisplay').style.display = 'block';
+  document.getElementById('btnChgId').style.display  = 'flex';
+  checkAdmin(); applyAdminUI();
+  if (admin && document.getElementById('tab-admin').classList.contains('active')) renderAdminRank();
+}
+
+// ── IDENTITY MODAL ───────────────────────────────────────
+function openModal(forced) {
+  document.getElementById('identModal').classList.add('open');
+  if (uid) {
+    document.getElementById('inpPrenom').value = capFull(uid.prenom);
+    document.getElementById('inpNom').value    = uid.nom.toUpperCase();
+  }
+  document.getElementById('modalErr').style.display = 'none';
+  setTimeout(function(){ document.getElementById('inpPrenom').focus(); }, 80);
+}
+
+function confirmId() {
+  var prenom = document.getElementById('inpPrenom').value.trim();
+  var nom    = document.getElementById('inpNom').value.trim().toUpperCase();
+  var errEl  = document.getElementById('modalErr');
+  if (!prenom || !nom) { errEl.textContent='Merci de renseigner prénom et nom.'; errEl.style.display='block'; return; }
+  if (prenom.toLowerCase()===ADMIN_PRE && nom.toLowerCase()===ADMIN_NOM) { setId(prenom,nom); return; }
+  if (gData) {
+    var found = gData.participants.find(function(p){ return matchId(p,{nom:nom,prenom:prenom}); });
+    if (!found) { errEl.textContent='Participant non trouvé. Vérifie l\'orthographe (ex : DUPONT, Marie).'; errEl.style.display='block'; return; }
+  }
+  setId(prenom, nom);
+}
+
+function setId(prenom, nom) {
+  uid = {prenom:prenom, nom:nom};
+  localStorage.setItem(LS_ID, JSON.stringify(uid));
+  document.getElementById('identModal').classList.remove('open');
+  updateIdDisplay(); renderHistory();
+  if (gData) renderClassement(curQ);
+  if (admin) renderAdminRank();
+}
+
+function skipId() { document.getElementById('identModal').classList.remove('open'); }
+
+document.addEventListener('keydown', function(e){
+  if (e.key==='Enter' && document.getElementById('identModal').classList.contains('open')) confirmId();
+});
+
+// ── TABS ─────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab===tab); });
+  document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.toggle('active', c.id==='tab-'+tab); });
+  if (tab==='admin' && admin) renderAdminRank();
+}
+
+// ── QUARTER SELECTOR ─────────────────────────────────────
+function buildQSelector() {
+  var wrap = document.getElementById('qSelector'); wrap.innerHTML='';
+  var labels={T1:'T1 · Jan – Mar',T2:'T2 · Avr – Juin',T3:'T3 · Jul – Sep',T4:'T4 · Oct – Déc'};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    var btn=document.createElement('button');
+    btn.className='q-btn'+(q===curQ?' active':'');
+    btn.textContent=labels[q];
+    btn.onclick=function(){
+      document.querySelectorAll('.q-btn').forEach(function(b){b.classList.remove('active');});
+      btn.classList.add('active'); curQ=q; renderClassement(q);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// ── RANKS WITH TIES ──────────────────────────────────────
+function assignRanks(ps, q) {
+  var result=[], rank=1;
+  for (var i=0;i<ps.length;i++){
+    if (i>0 && ps[i].quarters[q].moyenne !== ps[i-1].quarters[q].moyenne) rank=i+1;
+    result.push({p:ps[i], rank:rank});
+  }
+  return result;
+}
+
+// ── CLASSEMENT ───────────────────────────────────────────
+function renderClassement(q) {
+  curQ=q;
+  if (!gData) return;
+  var ps = gData.participants
+    .filter(function(p){ return p.quarters[q].active; })
+    .sort(function(a,b){ return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0); });
+  renderPodium(ps, q);
+  var tbody=document.getElementById('rankBody'); tbody.innerHTML='';
+  if (!ps.length){ tbody.innerHTML='<tr><td colspan="5"><div class="empty"><p>Aucune donnée pour ce trimestre.</p></div></td></tr>'; return; }
+  assignRanks(ps,q).forEach(function(item){
+    var p=item.p, rk=item.rank, qd=p.quarters[q];
+    var med=rk===1?'🥇':rk===2?'🥈':rk===3?'🥉':'';
+    var isMe=uid&&matchId(p,uid);
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td>'+(med?'<span class="r-med">'+med+'</span>':'<span class="r-num">'+rk+'</span>')+'</td>'+
+      '<td class="r-name">'+capFull(p.prenom)+' '+p.nom+(isMe?'<span class="tag-me">Moi</span>':'')+'</td>'+
+      '<td class="r-score">'+(qd.moyenne!==null?qd.moyenne.toFixed(2):'—')+'</td>'+
+      '<td>'+(qd.nbQuiz>0?qd.nbQuiz:'—')+'</td>'+
+      '<td class="col-absence">'+(qd.nbNonFait>0?'<span class="r-nf">'+qd.nbNonFait+'</span>':'<span style="color:var(--success)">✓</span>')+'</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ── PODIUM (multi / ex-aequo) ────────────────────────────
+function renderPodium(ps, q) {
+  var wrap=document.getElementById('podiumWrap');
+  if (!ps||ps.length<2){wrap.innerHTML='';return;}
+  var byRank={};
+  assignRanks(ps,q).forEach(function(r){ if(!byRank[r.rank]) byRank[r.rank]=[]; byRank[r.rank].push(r.p); });
+  if (Object.keys(byRank).length<2){wrap.innerHTML='';return;}
+  var colors={1:'#f59e0b',2:'#94a3b8',3:'#b87333'};
+  var heights={1:'78px',2:'55px',3:'40px'}, sizes={1:'58px',2:'46px',3:'46px'};
+  var rkLbl={1:'1er 🏆',2:'2ème',3:'3ème'};
+  var html='<div class="podium fadein">';
+  [2,1,3].forEach(function(rk){
+    var people=byRank[rk]; if(!people||!people.length) return;
+    var score=people[0].quarters[q].moyenne;
+    var col=colors[rk]||'#718096', h=heights[rk]||'40px', sz=sizes[rk]||'44px', lbl=rkLbl[rk]||rk+'ème';
+    var avH='<div style="display:flex;justify-content:center;flex-wrap:wrap;gap:3px;margin-bottom:3px">';
+    people.forEach(function(p){ avH+='<div class="podium-avatar" style="background:'+col+';width:'+sz+';height:'+sz+'">'+(p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'')+'</div>'; });
+    avH+='</div>';
+    var nH='<div class="podium-name">';
+    people.forEach(function(p,pi){ if(pi>0) nH+='<hr style="margin:2px 0;border:none;border-top:1px solid var(--border)">'; nH+=capFull(p.prenom)+'<br><small>'+p.nom+'</small>'; });
+    nH+='</div>';
+    html+='<div class="podium-item"><div style="font-size:11px;color:var(--muted);margin-bottom:2px">'+lbl+'</div>'+avH+nH+'<div class="podium-score">'+(score!==null?score.toFixed(2):'—')+'</div><div class="podium-bar" style="height:'+h+';background:'+col+';opacity:.2"></div></div>';
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
+}
+
+// ── HISTORY ──────────────────────────────────────────────
+function renderHistory() {
+  var wrap=document.getElementById('histWrap');
+  if (!uid){ wrap.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><p>Identifie-toi pour voir ton historique.</p></div>'; return; }
+  if (!gData) return;
+  var me=gData.participants.find(function(p){return matchId(p,uid);});
+  if (!me){ wrap.innerHTML='<div class="empty"><p>Aucun résultat pour <strong>'+capFull(uid.prenom)+' '+uid.nom.toUpperCase()+'</strong>.<br>Vérifie ton identité.</p></div>'; return; }
+  var QS=['T1','T2','T3','T4'], allS=[], nf=0, nq=0;
+  QS.forEach(function(q){ var qd=me.quarters[q]; if(!qd.active)return; nf+=qd.nbNonFait; nq+=qd.nbQuiz; qd.weeks.forEach(function(w){if(typeof w.score==='number')allS.push(w.score);}); });
+  var moy=allS.length?Math.round(allS.reduce(function(a,b){return a+b;},0)/allS.length*100)/100:null;
+  var best=allS.length?Math.max.apply(null,allS):null;
+  var sorted=gData.participants.filter(function(p){return p.quarters[curQ].active;}).sort(function(a,b){return (b.quarters[curQ].moyenne||0)-(a.quarters[curQ].moyenne||0);});
+  var myRank=sorted.findIndex(function(p){return matchId(p,uid);})+1||null;
+  var cqd=me.quarters[curQ];
+  var html='<div class="id-bar"><div><div class="id-name">👤 '+capFull(me.prenom)+' '+me.nom+'</div><div class="id-sub">Résultats Quiz 2026</div></div>'+
+    '<button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="openModal(true)">Changer</button></div>'+
+    '<div class="stats-row">'+
+    sc('Moyenne annuelle',moy!==null?moy.toFixed(2):'—','/10',false)+
+    sc('Meilleur score',best!==null?best:'—','/10',false)+
+    sc('Rang '+curQ,myRank&&cqd.active?'#'+myRank:'—',cqd.active&&cqd.moyenne?'moy. '+cqd.moyenne.toFixed(2):'non actif',false)+
+    sc('Non faits (année)',nf,nq+' quiz réalisés',nf>5)+
+    '</div>';
+  var qL={T1:'T1 · Jan – Mars',T2:'T2 · Avr – Juin',T3:'T3 · Jul – Sep',T4:'T4 · Oct – Déc'};
+  QS.forEach(function(q){ var qd=me.quarters[q]; if(!qd.active)return;
+    var chips=qd.weeks.map(function(w){
+      if(w.score==='absent') return '<div class="wchip absent"><div class="wdate">'+w.date+'</div><div class="wval">NF</div></div>';
+      var col=w.score>=8?'var(--success)':w.score>=5?'var(--accent)':'var(--danger)';
+      return '<div class="wchip"><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
+    }).join('');
+    html+='<div class="hist-q fadein"><div class="hist-q-title"><span class="q-badge">'+q+'</span>'+qL[q]+(qd.moyenne!==null?' &mdash; <strong>'+qd.moyenne.toFixed(2)+'/10</strong>':'')+
+      '</div><div class="week-grid">'+chips+'</div></div>';
+  });
+  wrap.innerHTML=html;
+}
+function sc(lbl,val,sub,danger){ return '<div class="stat-card"><div class="stat-lbl">'+lbl+'</div><div class="stat-val'+(danger?' danger':'')+'" >'+val+'</div><div class="stat-sub">'+sub+'</div></div>'; }
+
+// ── ADMIN RANKING ─────────────────────────────────────────
+function renderAdminRank() {
+  if (!admin||!gData) return;
+  var wrap=document.getElementById('adminRankWrap'); wrap.innerHTML='';
+  var QS=['T1','T2','T3','T4'], qLbl={T1:'T1 — Jan à Mars',T2:'T2 — Avr à Juin',T3:'T3 — Jul à Sep',T4:'T4 — Oct à Déc'};
+  var html='';
+  QS.forEach(function(q){
+    var active=gData.participants.filter(function(p){return p.quarters[q].active;});
+    if(!active.length) return;
+    var sorted=active.slice().sort(function(a,b){return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0);});
+    html+='<div style="margin-bottom:24px"><div class="section-ttl">'+qLbl[q]+' — '+active.length+' participants</div>';
+    html+='<div class="rank-wrap"><table class="rank-table"><thead><tr><th>#</th><th>Participant</th><th>Moyenne</th><th>Quiz</th><th>Non faits</th></tr></thead><tbody>';
+    assignRanks(sorted,q).forEach(function(item){
+      var p=item.p, rk=item.rank, qd=p.quarters[q];
+      var med=rk===1?'🥇':rk===2?'🥈':rk===3?'🥉':'<span class="r-num">'+rk+'</span>';
+      html+='<tr><td><span class="r-med">'+med+'</span></td><td class="r-name">'+capFull(p.prenom)+' '+p.nom+'</td>'+
+        '<td class="r-score">'+(qd.moyenne!==null?qd.moyenne.toFixed(2):'—')+'</td>'+
+        '<td>'+(qd.nbQuiz||'—')+'</td>'+
+        '<td>'+(qd.nbNonFait>0?'<span class="r-nf">'+qd.nbNonFait+'</span>':'<span style="color:var(--success)">✓</span>')+'</td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+  });
+  wrap.innerHTML=html;
+}
+
+// ── CSV IMPORT ────────────────────────────────────────────
+function handleCSV(file) {
+  var reader=new FileReader();
+  reader.onload=function(e){ var parsed=parseCSV(e.target.result, file.name); if(!parsed){showCsvMsg('err','Format CSV non reconnu. Vérifie le fichier.'); return;} buildPreview(parsed); };
+  reader.readAsText(file, 'utf-8');
+}
+
+function parseCSV(text, filename) {
+  var delim=text.indexOf(';')!==-1?';':',';
+  var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
+  if (lines.length<2) return null;
+  var headers=lines[0].split(delim).map(function(h){return h.replace(/^"|"$/g,'').trim();});
+  var iNom=headers.indexOf('Nom'), iPre=headers.indexOf('Prénom'), iScore=headers.indexOf('Score total'), iDate=headers.indexOf('Date de début');
+  if (iNom<0||iPre<0||iScore<0) return null;
+  var weekDate=null;
+  var fm=filename.match(/(\d{2})(\d{2})(\d{4})/);
+  if (fm) weekDate=fm[1]+'/'+fm[2]+'/'+fm[3];
+  var rows=[];
+  for (var i=1;i<lines.length;i++){
+    var cols=lines[i].split(delim).map(function(c){return c.replace(/^"|"$/g,'').trim();});
+    var nom=cols[iNom]?cols[iNom].toUpperCase():'', prenom=cols[iPre]||'', scoreRaw=parseInt(cols[iScore],10);
+    if (!nom||!prenom||isNaN(scoreRaw)) continue;
+    if (!weekDate&&iDate>=0&&cols[iDate]){var dm=cols[iDate].match(/^(\d{2})\/(\d{2})\/(\d{4})/); if(dm) weekDate=dm[1]+'/'+dm[2]+'/'+dm[3];}
+    rows.push({nom:nom, prenom:prenom, score:Math.min(scoreRaw,10)});
+  }
+  return (rows.length&&weekDate)?{weekDate:weekDate,rows:rows}:null;
+}
+
+function buildPreview(parsed) {
+  if (!gData){showCsvMsg('err','Données non chargées.'); return;}
+  pendingMerge=parsed;
+  var wd=parsed.weekDate, rows=parsed.rows;
+  showCsvMsg('ok','Semaine détectée : <strong>'+wd+'</strong> · <strong>'+rows.length+'</strong> participants dans le CSV');
+  var csvKeys={};
+  rows.forEach(function(r){csvKeys[r.nom+'|'+r.prenom.toLowerCase()]=r;});
+  var tRows='';
+  rows.forEach(function(r){
+    var ex=gData.participants.find(function(p){return matchId(p,{nom:r.nom,prenom:r.prenom});});
+    var type=ex?'badge-upd':'badge-new', lbl=ex?'MAJ':'Nouveau';
+    var prev=ex&&ex.scores[wd]!==undefined?(ex.scores[wd]==='NF'?'NF':ex.scores[wd]):'—';
+    tRows+='<tr><td>'+capFull(r.prenom)+' '+r.nom+'</td><td><span class="badge '+type+'">'+lbl+'</span></td><td>'+prev+'</td><td><strong>'+r.score+'</strong></td></tr>';
+  });
+  gData.participants.forEach(function(p){
+    if (csvKeys[p.nom+'|'+p.prenom.toLowerCase()]) return;
+    if (!p.quarters[assignQuarter(wd)].active) return;
+    var prev=p.scores[wd]!==undefined?(p.scores[wd]==='NF'?'NF':p.scores[wd]):'—';
+    tRows+='<tr><td>'+capFull(p.prenom)+' '+p.nom+'</td><td><span class="badge badge-nf">Absent</span></td><td>'+prev+'</td><td><em style="color:var(--danger)">NF</em></td></tr>';
+  });
+  document.getElementById('previewTitle').textContent='Aperçu · Semaine du '+wd;
+  document.getElementById('previewBody').innerHTML='<table class="preview-table"><thead><tr><th>Participant</th><th>Statut</th><th>Avant</th><th>Après</th></tr></thead><tbody>'+tRows+'</tbody></table>';
+  document.getElementById('previewWrap').style.display='block';
+  document.getElementById('previewWrap').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function cancelPreview(){document.getElementById('previewWrap').style.display='none'; pendingMerge=null;}
+function showCsvMsg(type,msg){var el=document.getElementById('csvMsg'); el.style.display='block'; el.className='alert '+(type==='err'?'alert-err':'alert-success'); el.innerHTML=msg;}
+
+// ── GITHUB PUBLISH ────────────────────────────────────────
+function loadGhConfig(){
+  var t=localStorage.getItem(LS_TOKEN), p=localStorage.getItem(LS_PATH);
+  if(t) document.getElementById('ghToken').value=t;
+  document.getElementById('ghPath').value=p||GH_PATH;
+}
+function saveGhConfig(){localStorage.setItem(LS_TOKEN,document.getElementById('ghToken').value); localStorage.setItem(LS_PATH,document.getElementById('ghPath').value);}
+
+function publishToGitHub() {
+  if (!pendingMerge) return;
+  var token=document.getElementById('ghToken').value.trim();
+  var path=document.getElementById('ghPath').value.trim()||GH_PATH;
+  if (!token){showCsvMsg('err','⚠️ Saisis ton GitHub Personal Access Token dans la configuration.'); return;}
+  var btn=document.getElementById('btnPublish');
+  btn.textContent='⏳ Publication…'; btn.disabled=true;
+  var updated=JSON.parse(JSON.stringify(rawJSON));
+  var wd=pendingMerge.weekDate;
+  var csvKeys={};
+  pendingMerge.rows.forEach(function(r){csvKeys[r.nom+'|'+r.prenom.toLowerCase()]=r.score;});
+  updated.participants.forEach(function(p){
+    var key=p.nom+'|'+p.prenom.toLowerCase();
+    if (csvKeys[key]!==undefined) p.scores[wd]=csvKeys[key];
+    else if (gData.participants.find(function(gp){return matchId(gp,{nom:p.nom,prenom:p.prenom})&&gp.quarters[assignQuarter(wd)].active;}))
+      p.scores[wd]='NF';
+  });
+  pendingMerge.rows.forEach(function(r){
+    if (!updated.participants.find(function(p){return matchId(p,{nom:r.nom,prenom:r.prenom});}))
+      updated.participants.push({nom:r.nom,prenom:r.prenom,scores:{[wd]:r.score}});
+  });
+  updated.generated=new Date().toISOString();
+  var content=btoa(unescape(encodeURIComponent(JSON.stringify(updated,null,2))));
+  var apiUrl='https://api.github.com/repos/'+GH_OWNER+'/'+GH_REPO+'/contents/'+path;
+  fetch(apiUrl,{headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'}})
+    .then(function(r){return r.json();})
+    .then(function(meta){
+      return fetch(apiUrl,{method:'PUT',headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+        body:JSON.stringify({message:'Quiz results — semaine '+wd,content:content,sha:meta.sha})});
+    })
+    .then(function(r){if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
+    .then(function(){
+      btn.textContent='✅ Publié !'; btn.disabled=false;
+      showCsvMsg('ok','✅ Publié sur GitHub ! Les résultats seront visibles dans ~1 minute.');
+      rawJSON=updated; gData=parseJSON(updated);
+      renderClassement(curQ); renderHistory(); renderAdminRank(); cancelPreview();
+      setTimeout(function(){btn.textContent='⬆️ Publier sur GitHub';},3000);
+    })
+    .catch(function(e){
+      btn.textContent='⬆️ Publier sur GitHub'; btn.disabled=false;
+      showCsvMsg('err','❌ Erreur GitHub : '+e.message+'. Vérifie le token (permission Contents → Read & write).');
+    });
+}
+
+// ── HELPERS ───────────────────────────────────────────────
+function matchId(p,id){return p.nom.toLowerCase()===id.nom.toLowerCase()&&p.prenom.toLowerCase()===id.prenom.toLowerCase();}
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():'';}
+function capFull(s){return String(s).split(/[-\s]/).map(cap).join(String(s).indexOf('-')>=0?'-':' ');}
+function toggleDark(){document.body.classList.toggle('dark');localStorage.setItem(LS_DARK,document.body.classList.contains('dark')?'1':'0');}
+</script>
+</body>
+</html>
