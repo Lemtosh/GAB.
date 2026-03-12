@@ -2368,7 +2368,10 @@ a.topNavBtn:focus {
   color: var(--accent, #11a9a6);
   border-color: color-mix(in oklab, var(--accent, #11a9a6) 45%, transparent);
 }
-</style>
+
+    /* Canvas frise : toujours pleine largeur de la card */
+    #canvasAuto, #canvasMoto { display:block; width:100% !important; max-width:100%; }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -2788,7 +2791,7 @@ a.topNavBtn:focus {
   <button id="permitAlertTriangle" type="button" title="CRM incohérent avec la date de permis" style="display:none;background:none;border:none;cursor:pointer;padding:0;font-size:17px;color:#e67e22;line-height:1;" onclick="document.getElementById('permitAlertPopup').style.display='flex';">&#9888;</button>
 </h2>
 <div class="muted" id="legendAuto" style="margin:6px 0 6px 0;"></div>
-<canvas height="136" id="canvasAuto" width="420"></canvas>
+<canvas height="136" id="canvasAuto" style="display:block;width:100%;"></canvas>
 <div class="interruptions" id="interruptionsAuto"></div>
 <div class="row" style="margin-top:10px; justify-content:flex-start;">
   <button class="pillBtn" id="btnRiCommentAuto" disabled type="button" title="Copier un commentaire RI basé sur les interruptions Auto">Commentaire automatique interruption(s)</button>
@@ -2797,7 +2800,7 @@ a.topNavBtn:focus {
 </div><div class="card" id="cardMoto" style="display:none;">
 <h2>Frise MOTO</h2>
 <div class="muted" id="legendMoto" style="margin:6px 0 6px 0;"></div>
-<canvas height="136" id="canvasMoto" width="420"></canvas>
+<canvas height="136" id="canvasMoto" style="display:block;width:100%;"></canvas>
 <div class="interruptions" id="interruptionsMoto"></div>
 <div class="row" style="margin-top:10px; justify-content:flex-start;">
   <button class="pillBtn" id="btnRiCommentMoto" disabled type="button" title="Copier un commentaire RI basé sur les interruptions Moto">Commentaire automatique interruption(s)</button>
@@ -2846,10 +2849,28 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.30";
+    const LOCAL_VERSION = "1.3.32";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
+
+## v1.3.32
+*12 mars 2026*
+
+- Frise (simple + complexe) : canvas ancré à la card — width:100%, offsetWidth pour le calcul DPI, suppression du width=420 fixe.
+- Frise mode complexe : correction barres/chiffres écrasés verticalement (cssH lit clientHeight au lieu de 220px fixe).
+
+---
+
+## v1.3.31
+*12 mars 2026*
+
+- Frise : correction chiffres déformés sur écrans haute densité (canvas.style.width aligné sur cssW).
+- Message client RI supp : bouton accessible même sans ouvrir le module validation.
+- Slots : saisir un numéro absent du localStorage déclenche effacerTout (contrat vierge).
+- RI Finaux auto-switch : bascule Supp→Finaux déclenchée quand la frise recalcule après saisie du déclaré.
+
+---
 
 ## v1.3.30
 *11 mars 2026*
@@ -3827,7 +3848,7 @@ function roundRectPath(ctx, x, y, w, h, r){
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
 
-  const cssW = canvas.clientWidth || 420;
+  const cssW = canvas.offsetWidth || canvas.parentElement.clientWidth || 420;
   const ratio = window.devicePixelRatio || 1;
   canvas.width  = Math.floor(cssW * ratio);
   canvas.height = Math.floor(136 * ratio);
@@ -5387,8 +5408,11 @@ function buildImmatColorMap(){
 
 function drawTimelineComplex(canvasId,legendId,windowStart,windowEnd,lineIntervals,label,crmMarkers){
   var canvas=document.getElementById(canvasId);if(!canvas)return;
-  var ctx=canvas.getContext('2d'),cssW=canvas.clientWidth||420,cssH=220,ratio=window.devicePixelRatio||1;
+  var ctx=canvas.getContext('2d'),ratio=window.devicePixelRatio||1;
+  var cssW=canvas.offsetWidth||canvas.parentElement.clientWidth||420;
+  var cssH=canvas.clientHeight>10?canvas.clientHeight:220;
   canvas.width=Math.floor(cssW*ratio);canvas.height=Math.floor(cssH*ratio);
+  canvas.style.height=cssH+'px';
   ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,cssW,cssH);
   var padL=14,padR=14,lineW=cssW-padL-padR;
   var t0=windowStart.getTime(),t1=windowEnd.getTime(),span=Math.max(1,t1-t0);
@@ -5865,6 +5889,7 @@ function _clEsc(s) {
     var raw=(document.getElementById('totalMois')||{}).textContent||'';
     var m=raw.match(/\d+/), el=document.getElementById('val_antec_just');
     if(el) el.value=m?m[0]:'';
+    _valAutoRI(); // re-évalue Supp/Finaux après maj du justifié
   }
 
   (function _initValObs(){
@@ -6065,16 +6090,25 @@ function _clEsc(s) {
     var _is3col = !!(window.matchMedia && window.matchMedia('(min-width:1260px)').matches);
     var valOn = _is3col || !!(document.getElementById('btnValidationMode') &&
                    document.getElementById('btnValidationMode').classList.contains('toolBtnActive'));
-    if (!valOn) { box.style.display = 'none'; return; }
+    // riS calculé indépendamment du module ouvert ou non
+    var riS = (_valAntecMode === 'supp') &&
+              !!(document.getElementById('val_antec_decl') &&
+                 document.getElementById('val_antec_decl').value.trim());
+    if (!valOn) {
+      // Module fermé : seul le bouton RI supp reste accessible si applicable
+      ['ccbTitulaire','ccbCotitulaire','ccbNomDiff','ccbRibTitulaire','ccbRibDiff','ccbPhotos']
+        .forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display='none'; });
+      var riEl = document.getElementById('ccbRiSupp');
+      if (riEl) riEl.style.display = riS ? '' : 'none';
+      box.style.display = riS ? 'block' : 'none';
+      return;
+    }
     function on(id){ var e=document.getElementById(id); return !!(e&&e.classList.contains('vBtnOn')); }
     var tit  = on('val_titulaire');
     var cot  = on('val_cotitulaire');
     var nom  = on('val_nom_diff_cg') || on('val_nom_diff_permis') || on('val_rib_nom');
     var ribT = on('val_rib_titulaire');
     var ribD = on('val_rib_diff');
-    var riS  = (_valAntecMode === 'supp') &&
-               !!(document.getElementById('val_antec_decl') &&
-                  document.getElementById('val_antec_decl').value.trim());
     var photos = on('val_photos_nc');
     var any  = tit || cot || nom || ribT || ribD || riS || photos;
     box.style.display = any ? 'block' : 'none';
@@ -6316,6 +6350,8 @@ document.addEventListener('DOMContentLoaded',function(){
         if(typeof showToast==='function') showToast('Contrat chargé','loaded');
         _slRender();setTimeout(function(){_slFlashDot(idx,'dot-loaded');},0);
       } else {
+        _effacerTout();
+        if(typeof _resetValidationPanel==='function') _resetValidationPanel();
         _slSt[idx]={num:val,hash:null,pending:true};
         _slSyncHidden(val);_sessionNum=null;_sessionHash=null;_slRender();
       }
