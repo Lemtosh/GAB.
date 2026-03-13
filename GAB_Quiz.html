@@ -53,7 +53,7 @@ a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgb
 .btn-sm:hover{background:var(--al);border-color:var(--accent);color:var(--accent);}
 
 /* TABS */
-.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;}
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-top:10px;padding:4px;margin-bottom:20px;}
 .tab-btn{flex:1;padding:8px 10px;font-size:13px;font-weight:600;border-radius:7px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:5px;}
 .tab-btn:hover{background:var(--al);color:var(--accent);}
 .tab-btn.active{background:var(--accent);color:#fff;}
@@ -216,7 +216,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 <nav id="topNavBar" role="navigation" aria-label="Menu principal">
 
   <!-- Retour GAB -->
-  <a class="topNavBtn" href="GAB_v1.3.32.html" id="linkGAB">
+  <a class="topNavBtn" href="https://lemtosh.github.io/GAB./" id="linkGAB">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     <span>Retour GAB</span>
   </a>
@@ -506,7 +506,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.20.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.21.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1938,6 +1938,8 @@ function openChangeIdentity() {
     if (!confirm('⚠️ Attention — tu es connecté en tant qu\'administrateur.\n\nChanger d\'identité te fera perdre l\'accès admin jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
   } else if (isManager()) {
     if (!confirm('⚠️ Attention — tu as un accès manager.\n\nChanger d\'identité te fera perdre cet accès jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
+  } else {
+    if (!confirm('🚫 Action non recommandée.\n\nChanger de nom peut affecter ton suivi de résultats.\n\nForcer quand même ?')) return;
   }
   openModal(true);
 }
