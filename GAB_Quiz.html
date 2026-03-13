@@ -506,7 +506,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.21.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.22.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1977,6 +1977,34 @@ function handleFileAdmin(file) {
         entries = parseCSVRows(rows);
       }
       if (!entries || !entries.length) throw new Error('Aucune donnée valide');
+      // Vérifier doublons avant merge
+      var existingLog = (gData && gData.importsLog) || (loadResults()||{}).importsLog || [];
+      var weekKeys = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
+      var dupeByLabel = fileLabel && existingLog.some(function(l){ return l.label === fileLabel; });
+      var dupeByWeek  = weekKeys.some(function(wk){ return existingLog.some(function(l){ return l.week === wk; }); });
+      if (dupeByLabel || dupeByWeek) {
+        var dupeInfo = dupeByLabel ? 'le fichier "'+fileLabel+'" a déjà été importé' : 'la semaine '+weekKeys[0]+' existe déjà';
+        if (!confirm('⚠️ Doublon détecté — ' + dupeInfo + '.\n\nÉcraser les données existantes ?')) {
+          var status = document.getElementById('importAdminStatus');
+          status.style.display = 'block';
+          status.style.color = 'var(--warning,#d69e2e)';
+          status.textContent = '⚠️ Import annulé — doublon ignoré.';
+          return;
+        }
+        // Si on écrase : retirer l'entrée existante de importsLog
+        if (gData && gData.importsLog) {
+          gData.importsLog = gData.importsLog.filter(function(l){
+            return !(weekKeys.indexOf(l.week) !== -1 || (fileLabel && l.label === fileLabel));
+          });
+          var raw2 = loadResults();
+          if (raw2 && raw2.importsLog) {
+            raw2.importsLog = raw2.importsLog.filter(function(l){
+              return !(weekKeys.indexOf(l.week) !== -1 || (fileLabel && l.label === fileLabel));
+            });
+            saveResults(raw2);
+          }
+        }
+      }
       var data = mergeCSVEntries(entries, fileLabel);
       saveResults(data);
       gData = buildGData(data);
