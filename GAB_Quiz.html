@@ -260,7 +260,10 @@ tr.row-disq .r-score{color:var(--danger)!important;}
         <polyline points="14 2 14 8 20 8"/>
         <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
       </svg>
-      <h2>Importer un export MIA</h2>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+            <button class="topNavBtn" onclick="cancelUpload()" id="btnCancelUpload" style="display:none">← Retour</button>
+            <h2 style="margin:0">Importer un export MIA</h2>
+          </div>
       <p>Glisse le fichier Excel ici ou clique pour sélectionner<br>
       <span style="color:var(--accent);font-weight:600">QUIZZ_MIA_semaine.csv</span></p>
       <input type="file" id="fileInput" accept=".csv" onchange="handleFile(this.files[0])">
@@ -290,7 +293,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       <span>Fichier&nbsp;: <strong id="fileNameTxt"></strong></span>
     </div>
-    <button class="btn-sm" onclick="resetFile()">Changer de fichier</button>
+    <button class="btn-sm" onclick="showUpload()">⬆️ Charger un export</button>
   </div>
   <div id="importCount" style="display:none;font-size:12px;color:var(--success);margin-top:6px;padding:6px 16px;background:rgba(56,161,105,.08);border-radius:8px;border:1px solid rgba(56,161,105,.2);"></div>
 
@@ -491,7 +494,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.1.5'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.13.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -766,6 +769,13 @@ function mergeCSVEntries(entries) {
   });
 
   data.generated = new Date().toISOString();
+  // Enregistrer la liste des semaines importées
+  if (!data.importsLog) data.importsLog = [];
+  var importedWeeks = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
+  importedWeeks.forEach(function(wk){
+    var already = data.importsLog.some(function(l){ return l.week === wk; });
+    if (!already) data.importsLog.push({week:wk, importedAt: new Date().toISOString(), count: entries.filter(function(e){ return e.weekKey===wk; }).length});
+  });
   return data;
 }
 
@@ -824,6 +834,8 @@ var QS_MONTHS = {T1:[1,2,3], T2:[4,5,6], T3:[7,8,9], T4:[10,11,12]};
 function buildGData(data) {
   if (!data || !data.participants) return null;
   var participants = [];
+  // Extraire la config depuis le JSON (priorité sur localStorage)
+  var config = data.config || null;
   data.participants.forEach(function(p){
     var qData = {};
     ['T1','T2','T3','T4'].forEach(function(q){
@@ -850,7 +862,7 @@ function buildGData(data) {
     });
     participants.push({nom:p.nom, prenom:p.prenom, quarters:qData});
   });
-  return {participants:participants};
+  return {participants:participants, config:config};
 }
 
 // ══ TABS ══════════════════════════════════════════
@@ -925,10 +937,21 @@ function renderClassement(q) {
     return;
   }
 
-  var rank = 0, prev = null;
-  normal.forEach(function(p, i){
+  // Exclure du tableau les personnes déjà dans le podium (top 3 groupes)
+  var podiumGroups = [];
+  var _pg = [], _pgPrev = null, _pgRank = 0;
+  normal.forEach(function(p){
     var moy = p.quarters[q].moyenne;
-    rank = i + 1; // position réelle (1,2,3,4...) — ex-æquo affichent le même numéro
+    if (moy !== _pgPrev) { _pgRank++; _pgPrev = moy; _pg.push({rank:_pgRank, moy:moy}); }
+  });
+  var top3Moys = _pg.slice(0,3).map(function(g){ return g.moy; });
+  var tablePs = normal.filter(function(p){ return top3Moys.indexOf(p.quarters[q].moyenne) < 0; });
+
+  var rank = 0, prev = null;
+  tablePs.forEach(function(p, i){
+    var moy = p.quarters[q].moyenne;
+    rank = i + 1 + top3Moys.length; // commencer après le podium (4ème, 5ème...)
+    // Pour ex-æquo : garder le même rang
     if (moy !== prev) { prev = moy; }
     var med  = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
     var isMe = uid && matchId(p, uid);
@@ -1167,6 +1190,31 @@ function renderAdmin() {
     html+='</div>';
   }
   html+='</div></div>';
+  // ── Bloc imports log
+  var raw = loadResults();
+  if (raw && raw.importsLog && raw.importsLog.length) {
+    var logs = raw.importsLog.slice().sort(function(a,b){
+      var da = a.week.split('/'), db = b.week.split('/');
+      return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
+    });
+    html += '<div class="param-card" style="margin-top:16px"><div class="param-row"><span class="param-lbl">📋 Quiz importés ('+logs.length+')</span></div>';
+    html += '<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">';
+    html += '<thead><tr>' +
+      '<th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)">Semaine</th>' +
+      '<th style="padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);text-align:center">Participations</th>' +
+      '<th style="padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);text-align:right">Importé le</th>' +
+      '</tr></thead><tbody>';
+    logs.forEach(function(l){
+      var d   = new Date(l.importedAt);
+      var fmt = d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      html += '<tr>' +
+        '<td style="padding:6px 8px;font-weight:600">Semaine du '+l.week+'</td>' +
+        '<td style="padding:6px 8px;text-align:center">'+l.count+'</td>' +
+        '<td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:12px">'+fmt+'</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
   wrap.innerHTML=html;
 }
 
@@ -1239,6 +1287,14 @@ document.addEventListener('keydown', function(e){
 var DEFAULT_PARAMS = { seuilZero: 6, seuilDisq: 10, exceptSeuilZero: [], exceptSeuilDisq: [] };
 
 function loadParams() {
+  if (gData && gData.config) {
+    return {
+      seuilZero:       gData.config.seuilZero       != null ? gData.config.seuilZero       : DEFAULT_PARAMS.seuilZero,
+      seuilDisq:       gData.config.seuilDisq       != null ? gData.config.seuilDisq       : DEFAULT_PARAMS.seuilDisq,
+      exceptSeuilZero: gData.config.exceptSeuilZero || [],
+      exceptSeuilDisq: gData.config.exceptSeuilDisq || []
+    };
+  }
   try {
     var s = localStorage.getItem(LS_PARAMS);
     if (s) return Object.assign({}, DEFAULT_PARAMS, JSON.parse(s));
@@ -1250,10 +1306,10 @@ function saveParam(key) {
   var params = loadParams();
   if (key === 'seuilZero') {
     var v = parseInt(document.getElementById('paramSeuilZero').value, 10);
-    if (!isNaN(v) && v >= 1) params.seuilZero = v;
+    if (!isNaN(v) && v >= 1) { params.seuilZero = v; syncConfig({seuilZero: v}); }
   } else if (key === 'seuilDisq') {
     var v = parseInt(document.getElementById('paramSeuilDisq').value, 10);
-    if (!isNaN(v) && v >= 1) params.seuilDisq = v;
+    if (!isNaN(v) && v >= 1) { params.seuilDisq = v; syncConfig({seuilDisq: v}); }
   }
   localStorage.setItem(LS_PARAMS, JSON.stringify(params));
   var el = document.getElementById('saved' + key.charAt(0).toUpperCase() + key.slice(1));
@@ -1270,6 +1326,7 @@ function addException(key) {
   var name   = inp.value.trim();
   if (params[field].indexOf(name) < 0) params[field].push(name);
   localStorage.setItem(LS_PARAMS, JSON.stringify(params));
+  var upd = {}; upd[field] = params[field]; syncConfig(upd);
   inp.value = '';
   renderParamTags();
   renderClassement(curQ);
@@ -1280,6 +1337,7 @@ function removeException(key, name) {
   var field  = key === 'seuilZero' ? 'exceptSeuilZero' : 'exceptSeuilDisq';
   params[field] = params[field].filter(function(n){ return n !== name; });
   localStorage.setItem(LS_PARAMS, JSON.stringify(params));
+  var upd = {}; upd[field] = params[field]; syncConfig(upd);
   renderParamTags();
   renderClassement(curQ);
 }
@@ -1311,6 +1369,7 @@ function renderParamTags() {
 
 // ══ BLACKLIST (localStorage) ═══════════════════════════════
 function loadBlacklist() {
+  if (gData && gData.config && gData.config.blacklist) return gData.config.blacklist;
   try {
     var s = localStorage.getItem(LS_BLACKLIST);
     if (s) return JSON.parse(s);
@@ -1325,6 +1384,7 @@ function addBlacklist() {
   var name = inp.value.trim();
   if (list.indexOf(name) < 0) list.push(name);
   localStorage.setItem(LS_BLACKLIST, JSON.stringify(list));
+  syncConfig({blacklist: list});
   inp.value = '';
   renderBlacklistTags();
   renderClassement(curQ);
@@ -1333,6 +1393,7 @@ function addBlacklist() {
 function removeBlacklist(name) {
   var list = loadBlacklist().filter(function(n){ return n !== name; });
   localStorage.setItem(LS_BLACKLIST, JSON.stringify(list));
+  syncConfig({blacklist: list});
   renderBlacklistTags();
   renderClassement(curQ);
 }
@@ -1603,6 +1664,7 @@ function toggleStatsCol(q) {
 
 // ══ MANAGERS ═══════════════════════════════════════
 function loadManagers() {
+  if (gData && gData.config && gData.config.managers) return gData.config.managers;
   try {
     var s = localStorage.getItem(LS_MANAGERS);
     if (s) return JSON.parse(s);
@@ -1623,6 +1685,7 @@ function addManager() {
   var name = inp.value.trim();
   if (list.indexOf(name) < 0) list.push(name);
   localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  syncConfig({managers: list});
   inp.value = '';
   renderManagersTags();
 }
@@ -1630,6 +1693,7 @@ function addManager() {
 function removeManager(name) {
   var list = loadManagers().filter(function(n){ return n !== name; });
   localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  syncConfig({managers: list});
   renderManagersTags();
 }
 
@@ -1753,6 +1817,50 @@ function renderEquipeTable(q) {
   }
   html += '</tbody></table></div>';
   document.getElementById('equipeTableWrap').innerHTML = html;
+}
+
+// ══ SYNC CONFIG → gData + LS_RESULTS ══════════════
+// Toute modification de config passe par là
+function syncConfig(updates) {
+  if (!gData) return;
+  if (!gData.config) gData.config = {};
+  Object.keys(updates).forEach(function(k){ gData.config[k] = updates[k]; });
+
+  // Persister dans LS_RESULTS pour le prochain push GitHub
+  var raw = loadResults();
+  if (raw) {
+    if (!raw.config) raw.config = {};
+    Object.keys(updates).forEach(function(k){ raw.config[k] = updates[k]; });
+    saveResults(raw);
+  }
+}
+
+// ══ UPLOAD FLOW ════════════════════════════════════
+function showUpload() {
+  document.getElementById('uploadWrap').style.display  = 'block';
+  document.getElementById('mainWrap').style.display    = 'none';
+  // Afficher le bouton retour seulement si on a déjà des données
+  var btn = document.getElementById('btnCancelUpload');
+  if (btn) btn.style.display = gData ? 'inline-flex' : 'none';
+}
+
+function cancelUpload() {
+  document.getElementById('uploadWrap').style.display = 'none';
+  document.getElementById('mainWrap').style.display   = 'block';
+  renderClassement(curQ);
+  renderHistory();
+  if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderManagersTags(); renderStats(); }
+  if (admin || isManager()) renderEquipe();
+}
+
+// ── Changer d'identité avec alerte préventive
+function openChangeIdentity() {
+  if (admin) {
+    if (!confirm('⚠️ Attention — tu es connecté en tant qu\'administrateur.\n\nChanger d\'identité te fera perdre l\'accès admin jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
+  } else if (isManager()) {
+    if (!confirm('⚠️ Attention — tu as un accès manager.\n\nChanger d\'identité te fera perdre cet accès jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
+  }
+  openModal(true);
 }
 </script>
 
