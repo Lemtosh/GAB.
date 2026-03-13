@@ -185,6 +185,22 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 /* ── LISTE NOIRE (participants supprimés) ── */
 .tag-item.blacklisted{background:rgba(229,62,62,.08);border-color:rgba(229,62,62,.3);color:var(--danger);}
+
+/* ── STATS TAB ── */
+.stats-table{width:100%;border-collapse:collapse;}
+.stats-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:9px 12px;text-align:center;background:var(--bg);border-bottom:1px solid var(--border);}
+.stats-table th:first-child{text-align:left;}
+.stats-table td{padding:9px 12px;font-size:13px;border-bottom:1px solid var(--border);text-align:center;}
+.stats-table td:first-child{text-align:left;font-weight:600;}
+.stats-table tr:last-child td{border-bottom:none;}
+.stats-table tbody tr:hover td{background:var(--al);}
+.nf-cell{font-weight:700;}
+.nf-ok{color:var(--muted);}
+.nf-warn{color:#f59e0b;}
+.nf-danger{color:var(--danger);}
+.stats-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.stats-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.stats-filter label{font-size:12px;font-weight:600;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -285,6 +301,14 @@ tr.row-disq .r-score{color:var(--danger)!important;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Admin
     </button>
+    <button class="tab-btn" id="tabStats" data-tab="stats" style="display:none" onclick="switchTab('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Statistiques
+    </button>
+    <button class="tab-btn" id="tabEquipe" data-tab="equipe" style="display:none" onclick="switchTab('equipe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Équipe
+    </button>
   </div>
 
   <!-- CLASSEMENT -->
@@ -362,6 +386,21 @@ tr.row-disq .r-score{color:var(--danger)!important;}
       </div>
 
       <!-- Liste noire participants -->
+            <!-- MANAGERS -->
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">👔 Managers (accès étendu)</span>
+        </div>
+        <div class="param-desc">Ces participants ont un accès étendu : ils voient les résultats, moyennes trimestrielles/annuelles et les non-faits de tous les participants.</div>
+        <div style="margin-top:12px;">
+          <div class="tag-list" id="managersList"></div>
+          <div class="tag-add-row">
+            <input class="tag-add-inp" type="text" id="managersInp" placeholder="Prénom NOM">
+            <button class="tag-add-btn" onclick="addManager()">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+
       <div class="param-card">
         <div class="param-row">
           <span class="param-lbl">🗑️ Participants supprimés</span>
@@ -416,6 +455,16 @@ tr.row-disq .r-score{color:var(--danger)!important;}
   </div>
 </div>
 
+  <!-- STATS -->
+  <div class="tab-content" id="tab-stats">
+    <div id="statsWrap"></div>
+  </div>
+
+  <!-- EQUIPE -->
+  <div class="tab-content" id="tab-equipe">
+    <div id="equipeWrap"></div>
+  </div>
+
 <!-- IDENTITY MODAL -->
 <div class="modal-ov" id="identModal">
   <div class="modal-box">
@@ -436,24 +485,26 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.1.0b'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.1.4'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
 var ADMIN_SECRET = 'Lemtosh'; // comparaison exacte pour détecter admin
-var LS_ID        = 'gabQuiz_id';
-var LS_DARK      = 'gabQuiz_dark';
-var LS_DATA      = 'gabQuiz_data';    // données Excel sérialisées (admin persiste)
-var LS_PARAMS    = 'gabQuiz_params';  // paramètres admin
-var LS_BLACKLIST = 'gabQuiz_blacklist'; // participants exclus
-var LS_RESULTS   = 'gabQuiz_results';   // JSON résultats cumulés
-var LS_GITHUB    = 'gabQuiz_github';    // config GitHub
+var LS_ID        = 'gabQuiz_v2_id';
+var LS_DARK      = 'gabQuiz_v2_dark';
+var LS_DATA      = 'gabQuiz_v2_data';    // données Excel sérialisées (admin persiste)
+var LS_PARAMS    = 'gabQuiz_v2_params';  // paramètres admin
+var LS_BLACKLIST = 'gabQuiz_v2_blacklist'; // participants exclus
+var LS_RESULTS   = 'gabQuiz_v2_results';   // JSON résultats cumulés
+var LS_GITHUB    = 'gabQuiz_v2_github';    // config GitHub
+var LS_MANAGERS  = 'gabQuiz_v2_managers';  // liste des managers
 
 // ══ STATE ════════════════════════════════════════
 var gData  = null;
 var curQ   = 'T1';
 var uid    = null;   // {nom, prenom} — stocké localStorage
 var admin  = false;
+var manager = false;
 var modalAllowClose = false;
 
 // ══ BOOT ═════════════════════════════════════════
@@ -479,7 +530,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Restore identity
   try { var s = localStorage.getItem(LS_ID); if (s) uid = JSON.parse(s); } catch(e){}
-  admin = uid && uid.nom === ADMIN_SECRET;
+  admin   = uid && uid.nom === ADMIN_SECRET;
+  manager = !admin && uid && isManager();
 
   // Restaurer depuis LS_RESULTS (JSON cumulé) ou LS_DATA (fallback)
   var resultsData = loadResults();
@@ -490,6 +542,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (cached) { try { gData = JSON.parse(cached); } catch(e){ gData = null; } }
   }
 
+  // Remplir les champs GitHub dès le boot (token survivra au refresh)
+  renderGithubConfig();
   // Charger les résultats depuis GitHub si config présente
   var _ghCfg = loadGithubConfig();
   if (_ghCfg && _ghCfg.repo && _ghCfg.file) {
@@ -540,6 +594,9 @@ function showMain() {
   document.getElementById('mainWrap').style.display    = 'block';
   document.getElementById('adminFileBar').style.display = admin ? 'flex' : 'none';
   document.getElementById('tabAdmin').style.display    = admin ? 'flex' : 'none';
+  document.getElementById('tabStats').style.display    = admin ? 'flex' : 'none';
+  var _isManager = isManager();
+  document.getElementById('tabEquipe').style.display   = (admin || _isManager) ? 'flex' : 'none';
 
   var m = new Date().getMonth() + 1;
   curQ  = m <= 3 ? 'T1' : m <= 6 ? 'T2' : m <= 9 ? 'T3' : 'T4';
@@ -547,7 +604,8 @@ function showMain() {
   buildQSelector();
   renderClassement(curQ);
   renderHistory();
-  if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); }
+  if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderStats(); renderManagersTags(); }
+  if (admin || isManager()) renderEquipe();
 }
 
 // ══ DARK MODE ═════════════════════════════════════
@@ -668,6 +726,10 @@ function fmtDate(d) {
 function mergeCSVEntries(entries) {
   var data = loadResults();
   if (!data) data = {annee: new Date().getFullYear(), generated:'', participants:[]};
+  // Sanitize : ne garder que nom, prenom, scores (ignorer champs pré-calculés legacy)
+  data.participants = data.participants.map(function(p){
+    return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
+  });
 
   // Identifier la semaine importée
   var weeks = {};
@@ -1119,7 +1181,8 @@ function confirmId() {
   }
 
   uid   = {prenom:prenom, nom: isAdminAttempt ? ADMIN_SECRET : nom};
-  admin = isAdminAttempt;
+  admin   = isAdminAttempt;
+  manager = !admin && isManager();
   localStorage.setItem(LS_ID, JSON.stringify(uid));
   var _modal = document.getElementById('identModal');
   _modal.classList.remove('open');
@@ -1293,7 +1356,8 @@ function renderGithubConfig() {
   var tok = document.getElementById('ghToken');
   var rep = document.getElementById('ghRepo');
   var fil = document.getElementById('ghFile');
-  if (tok) tok.value = cfg.token || '';
+  // Toujours mettre à jour si le champ existe (même hors onglet admin)
+  if (tok && !tok.value) tok.value = cfg.token || '';
   if (rep) rep.value = cfg.repo  || 'Lemtosh/GAB.';
   if (fil) fil.value = cfg.file  || 'resultats.json';
 }
@@ -1319,6 +1383,12 @@ function fetchFromGithub() {
   fetch(url + '?nocache=' + Date.now())
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
     .then(function(data){
+      // Sanitize : ne garder que nom, prenom, scores
+      if (data && data.participants) {
+        data.participants = data.participants.map(function(p){
+          return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
+        });
+      }
       saveResults(data);
       gData = buildGData(data);
       try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
@@ -1393,6 +1463,274 @@ function pushToGithub() {
   .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
   .then(function(){ ghStatus('✅ Push réussi !', true); })
   .catch(function(e){ ghStatus('❌ ' + e.message, false); });
+}
+
+// ══ STATISTIQUES ══════════════════════════════════
+function renderStats() {
+  var wrap = document.getElementById('statsWrap');
+  if (!wrap || !gData) return;
+
+  var QS = ['T1','T2','T3','T4'];
+  var params = loadParams();
+  var blacklist = loadBlacklist();
+
+  // Construire les données stats par participant
+  var rows = [];
+  gData.participants.forEach(function(p){
+    if (isBlacklisted(p, blacklist)) return;
+    var nfByQ = {};
+    var totalNF = 0, totalQuiz = 0;
+    QS.forEach(function(q){
+      var qd = p.quarters[q];
+      nfByQ[q] = qd ? qd.nbNonFait : 0;
+      totalNF  += nfByQ[q];
+      totalQuiz+= qd ? qd.nbQuiz : 0;
+    });
+    var moyAnnuelle = null;
+    var allScores = [];
+    QS.forEach(function(q){
+      var qd = p.quarters[q];
+      if (qd && qd.weeks) qd.weeks.forEach(function(w){ if(typeof w.score==='number') allScores.push(w.score); });
+    });
+    if (allScores.length) moyAnnuelle = Math.round(allScores.reduce(function(a,b){return a+b;},0)/allScores.length*100)/100;
+    var exemptDisq = params.exceptSeuilDisq.some(function(ex){ return matchName(p,ex); });
+    var isDisq = !exemptDisq && totalNF >= params.seuilDisq;
+    rows.push({p:p, nfByQ:nfByQ, totalNF:totalNF, totalQuiz:totalQuiz, moyAnnuelle:moyAnnuelle, isDisq:isDisq});
+  });
+
+  // Trier par NF total décroissant
+  rows.sort(function(a,b){ return b.totalNF - a.totalNF; });
+
+  // Cartes résumé
+  var totalParticipants = rows.length;
+  var disqCount = rows.filter(function(r){ return r.isDisq; }).length;
+  var warnCount = rows.filter(function(r){ return !r.isDisq && r.totalNF >= params.seuilZero; }).length;
+  var okCount   = totalParticipants - disqCount - warnCount;
+
+  var html = '<div class="stats-summary">' +
+    statCard('Participants', totalParticipants, 'actifs', false) +
+    statCard('En règle', okCount, 'NF < '+params.seuilZero, false) +
+    statCard('En alerte', warnCount, 'NF ≥ '+params.seuilZero, warnCount > 0) +
+    statCard('Disqualifiés', disqCount, 'NF ≥ '+params.seuilDisq, disqCount > 0) +
+    '</div>';
+
+  // Filtre trimestre
+  html += '<div class="stats-filter">' +
+    '<label>Afficher :</label>' +
+    ['T1','T2','T3','T4','Année'].map(function(q){
+      return '<button class="q-btn active" id="statsFilter'+q+'" onclick="toggleStatsCol(&apos;'+q+'&apos;)">' + q + '</button>';
+    }).join('') +
+    '</div>';
+
+  // Tableau
+  html += '<div class="rank-wrap"><table class="stats-table"><thead><tr>' +
+    '<th>Participant</th>' +
+    '<th id="sth-T1">NF T1</th>' +
+    '<th id="sth-T2">NF T2</th>' +
+    '<th id="sth-T3">NF T3</th>' +
+    '<th id="sth-T4">NF T4</th>' +
+    '<th id="sth-Annee">NF Année</th>' +
+    '<th>Quiz faits</th>' +
+    '<th>Moy. annuelle</th>' +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var nfClass = function(n) {
+      if (n === 0) return 'nf-ok';
+      if (n >= params.seuilDisq) return 'nf-danger';
+      if (n >= params.seuilZero) return 'nf-warn';
+      return 'nf-cell';
+    };
+    var disqBadge = r.isDisq ? '<span class="tag-disq">DISQUALIFIÉ</span>' : '';
+    html += '<tr>' +
+      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T1)+'" id="sc-T1">' + r.nfByQ.T1 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T2)+'" id="sc-T2">' + r.nfByQ.T2 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T3)+'" id="sc-T3">' + r.nfByQ.T3 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T4)+'" id="sc-T4">' + r.nfByQ.T4 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.totalNF)+'"><strong>' + r.totalNF + '</strong></td>' +
+      '<td>' + r.totalQuiz + '</td>' +
+      '<td class="r-score">' + (r.moyAnnuelle !== null ? r.moyAnnuelle.toFixed(2) : '—') + '</td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+function toggleStatsCol(q) {
+  var colMap = {T1:1, T2:2, T3:3, T4:4};
+  var btn = document.getElementById('statsFilter' + q);
+  if (!btn) return;
+  btn.classList.toggle('active');
+  var visible = btn.classList.contains('active');
+  if (q === 'Année') {
+    // Colonne NF Année = col 5 (index 5)
+    document.querySelectorAll('.stats-table tr').forEach(function(tr){
+      var cells = tr.querySelectorAll('th, td');
+      if (cells[5]) cells[5].style.display = visible ? '' : 'none';
+    });
+  } else {
+    var col = colMap[q];
+    document.querySelectorAll('.stats-table tr').forEach(function(tr){
+      var cells = tr.querySelectorAll('th, td');
+      if (cells[col]) cells[col].style.display = visible ? '' : 'none';
+    });
+  }
+}
+
+// ══ MANAGERS ═══════════════════════════════════════
+function loadManagers() {
+  try {
+    var s = localStorage.getItem(LS_MANAGERS);
+    if (s) return JSON.parse(s);
+  } catch(e){}
+  return [];
+}
+
+function isManager() {
+  if (!uid) return false;
+  var list = loadManagers();
+  return list.some(function(n){ return n.trim().toLowerCase() === (capFull(uid.prenom)+' '+uid.nom).trim().toLowerCase(); });
+}
+
+function addManager() {
+  var inp  = document.getElementById('managersInp');
+  if (!inp || !inp.value.trim()) return;
+  var list = loadManagers();
+  var name = inp.value.trim();
+  if (list.indexOf(name) < 0) list.push(name);
+  localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  inp.value = '';
+  renderManagersTags();
+}
+
+function removeManager(name) {
+  var list = loadManagers().filter(function(n){ return n !== name; });
+  localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  renderManagersTags();
+}
+
+function renderManagersTags() {
+  var list = loadManagers();
+  var el   = document.getElementById('managersList');
+  if (!el) return;
+  el.innerHTML = list.map(function(n){
+    return '<span class="tag-item" style="background:rgba(17,169,166,.08);border-color:rgba(17,169,166,.3);color:var(--accent)">👔 ' + n +
+      '<button class="tag-del" onclick="removeManager(&apos;'+n+'&apos;)">×</button></span>';
+  }).join('') || '<span style="font-size:12px;color:var(--muted)">Aucun manager défini</span>';
+}
+
+// ══ VUE ÉQUIPE (managers + admin) ═════════════════
+function renderEquipe() {
+  var wrap = document.getElementById('equipeWrap');
+  if (!wrap || !gData) return;
+
+  var QS = ['T1','T2','T3','T4'];
+  var blacklist = loadBlacklist();
+  var params    = loadParams();
+
+  // Cartes résumé rapide
+  var allPs = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
+
+  var html = '<div class="admin-banner" style="margin-bottom:16px;">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+    'Vue Équipe — résultats complets de tous les participants.' +
+    '</div>';
+
+  // Sélecteur trimestre pour la vue équipe
+  html += '<div class="q-selector" id="equipeQSelector">';
+  var qLabels = {T1:'T1 · Jan–Mar', T2:'T2 · Avr–Juin', T3:'T3 · Jul–Sep', T4:'T4 · Oct–Déc', Annee:'Année'};
+  ['T1','T2','T3','T4','Annee'].forEach(function(q){
+    var isCur = q === 'T1';
+    html += '<button class="q-btn'+(isCur?' active':'')+'" onclick="renderEquipeTable(&apos;'+q+'&apos;)" id="equipeQ'+q+'">'+qLabels[q]+'</button>';
+  });
+  html += '</div><div id="equipeTableWrap"></div>';
+  wrap.innerHTML = html;
+  renderEquipeTable('T1');
+}
+
+function renderEquipeTable(q) {
+  // Mettre à jour boutons
+  ['T1','T2','T3','T4','Annee'].forEach(function(qt){
+    var btn = document.getElementById('equipeQ'+qt);
+    if (btn) btn.classList.toggle('active', qt===q);
+  });
+
+  var blacklist = loadBlacklist();
+  var params    = loadParams();
+  var QS        = ['T1','T2','T3','T4'];
+  var allPs     = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
+
+  var rows = allPs.map(function(p){
+    var totalNF = 0, totalQuiz = 0, allScores = [];
+    QS.forEach(function(qt){
+      var qd = p.quarters[qt];
+      totalNF   += qd ? qd.nbNonFait : 0;
+      totalQuiz += qd ? qd.nbQuiz    : 0;
+      if (qd && qd.weeks) qd.weeks.forEach(function(w){ if(typeof w.score==='number') allScores.push(w.score); });
+    });
+    var moyAnn = allScores.length ? Math.round(allScores.reduce(function(a,b){return a+b;},0)/allScores.length*100)/100 : null;
+    var exemptDisq = params.exceptSeuilDisq.some(function(ex){ return matchName(p,ex); });
+    var isDisq = !exemptDisq && totalNF >= params.seuilDisq;
+    return {p:p, totalNF:totalNF, totalQuiz:totalQuiz, moyAnn:moyAnn, isDisq:isDisq};
+  });
+
+  var html = '<div class="rank-wrap"><table class="stats-table"><thead><tr>';
+  if (q === 'Annee') {
+    html += '<th style="text-align:left">Participant</th><th>Moy. T1</th><th>Moy. T2</th><th>Moy. T3</th><th>Moy. T4</th><th>Moy. Année</th><th>NF Année</th><th>Quiz faits</th>';
+  } else {
+    html += '<th style="text-align:left">Participant</th><th>Moyenne '+q+'</th><th>Quiz faits</th><th>Non faits</th><th>Moy. Année</th><th>NF Année</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  // Trier par moyenne desc (disqualifiés en bas)
+  var normal = rows.filter(function(r){ return !r.isDisq; });
+  var disqRows = rows.filter(function(r){ return r.isDisq; });
+  var sortFn = function(a,b){
+    if (q === 'Annee') return (b.moyAnn||0)-(a.moyAnn||0);
+    return ((b.p.quarters[q]&&b.p.quarters[q].moyenne)||0)-((a.p.quarters[q]&&a.p.quarters[q].moyenne)||0);
+  };
+  normal.sort(sortFn);
+  disqRows.sort(sortFn);
+
+  var renderRow = function(r, isDisq){
+    var isMe = uid && matchId(r.p, uid);
+    var nfClass = r.totalNF >= params.seuilDisq ? 'nf-danger' : r.totalNF >= params.seuilZero ? 'nf-warn' : 'nf-ok';
+    var badge = isDisq ? '<span class="tag-disq">DISQ.</span>' : '';
+    var meTag = isMe ? '<span class="tag-me">Moi</span>' : '';
+    if (q === 'Annee') {
+      return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+'</td>' +
+        ['T1','T2','T3','T4'].map(function(qt){
+          var m = r.p.quarters[qt] && r.p.quarters[qt].moyenne;
+          return '<td class="r-score" style="font-size:13px">'+(m!==null&&m!==undefined?m.toFixed(2):'—')+'</td>';
+        }).join('') +
+        '<td class="r-score">'+(r.moyAnn!==null?r.moyAnn.toFixed(2):'—')+'</td>' +
+        '<td class="nf-cell '+nfClass+'">'+r.totalNF+'</td>' +
+        '<td>'+r.totalQuiz+'</td></tr>';
+    } else {
+      var qd = r.p.quarters[q];
+      var moy = qd ? qd.moyenne : null;
+      var nfQ = qd ? qd.nbNonFait : 0;
+      var nfQClass = nfQ >= params.seuilDisq ? 'nf-danger' : nfQ >= params.seuilZero ? 'nf-warn' : 'nf-ok';
+      return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+'</td>' +
+        '<td class="r-score">'+(moy!==null&&moy!==undefined?moy.toFixed(2):'—')+'</td>' +
+        '<td>'+(qd?qd.nbQuiz:0)+'</td>' +
+        '<td class="nf-cell '+nfQClass+'">'+nfQ+'</td>' +
+        '<td class="r-score" style="font-size:12px">'+(r.moyAnn!==null?r.moyAnn.toFixed(2):'—')+'</td>' +
+        '<td class="nf-cell '+nfClass+'">'+r.totalNF+'</td></tr>';
+    }
+  };
+
+  normal.forEach(function(r){ html += renderRow(r, false); });
+  if (disqRows.length) {
+    html += '<tr><td colspan="8"><div class="disq-sep"></div></td></tr>';
+    disqRows.forEach(function(r){ html += renderRow(r, true); });
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('equipeTableWrap').innerHTML = html;
 }
 </script>
 
