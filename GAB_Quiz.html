@@ -506,7 +506,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.19.1'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.20.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1248,8 +1248,11 @@ function renderAdmin() {
   var imLog = (gData && gData.importsLog) ? gData.importsLog : (loadResults()||{}).importsLog || [];
   if (imLog.length) {
     var logs = imLog.slice().sort(function(a,b){
-      var da = a.week.split('/'), db = b.week.split('/');
-      return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
+      var wa = (a.label||a.week||''), wb = (b.label||b.week||'');
+      var da = wa.split('/'), db = wb.split('/');
+      var dA = da.length===3 ? new Date(da[2],da[1]-1,da[0]) : new Date(wa);
+      var dB = db.length===3 ? new Date(db[2],db[1]-1,db[0]) : new Date(wb);
+      return dB - dA;
     });
     html += '<div class="param-card" style="margin-top:16px"><div class="param-row"><span class="param-lbl">📋 Quiz importés ('+logs.length+')</span></div>';
     html += '<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">';
@@ -1262,7 +1265,7 @@ function renderAdmin() {
       var d   = new Date(l.importedAt);
       var fmt = d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       html += '<tr>' +
-        '<td style="padding:6px 8px;font-weight:600">Quiz du '+(l.label||l.week)+'</td>' +
+        '<td style="padding:6px 8px;font-weight:600">Quiz du '+(l.label||l.week||'?')+'</td>' +
         '<td style="padding:6px 8px;text-align:center">'+l.count+'</td>' +
         '<td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:12px">'+fmt+'</td>' +
         '</tr>';
@@ -1570,8 +1573,26 @@ function testGithubConnection() {
 function pushToGithub() {
   var cfg = loadGithubConfig();
   if (!cfg.token) { ghStatus('❌ Token manquant', false); return; }
-  var data = loadResults();
-  if (!data) { ghStatus('❌ Aucun résultat à pousser', false); return; }
+  // Utiliser gData en priorité (contient importsLog à jour), fallback localStorage
+  var raw = loadResults() || {};
+  var data = {
+    participants: (gData ? gData.participants.map(function(p){
+      var scores = {};
+      ['T1','T2','T3','T4'].forEach(function(q){
+        if (p.quarters && p.quarters[q]) {
+          p.quarters[q].weeks.forEach(function(w){
+            scores[w.date] = w.score === 'absent' ? 'NF' : w.score;
+          });
+        }
+      });
+      return {nom:p.nom, prenom:p.prenom, scores:scores};
+    }) : raw.participants) || [],
+    config: (gData && gData.config) || raw.config || null,
+    importsLog: (gData && gData.importsLog && gData.importsLog.length)
+                  ? gData.importsLog
+                  : (raw.importsLog || [])
+  };
+  if (!data.participants || !data.participants.length) { ghStatus('❌ Aucun résultat à pousser', false); return; }
 
   ghStatus('⏳ Push en cours...', true);
   var url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + cfg.file;
@@ -1957,10 +1978,14 @@ function handleFileAdmin(file) {
       var data = mergeCSVEntries(entries, fileLabel);
       saveResults(data);
       gData = buildGData(data);
+      // S'assurer que importsLog est bien dans gData depuis data
+      if (!gData.importsLog || !gData.importsLog.length) gData.importsLog = data.importsLog || [];
       var status = document.getElementById('importAdminStatus');
       status.style.display = 'block';
       status.style.color = 'var(--success)';
-      status.textContent = '✅ ' + entries.length + ' participations importées — ' + Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{})).length + ' semaine(s)';
+      var nbWeeks = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{})).length;
+      var imported = gData.importsLog[gData.importsLog.length-1];
+      status.textContent = '✅ ' + entries.length + ' participations importées — Quiz du ' + (imported ? imported.label : '') + ' (' + nbWeeks + ' semaine(s))';
       renderAdmin();
       renderParamTags();
       renderBlacklistTags();
