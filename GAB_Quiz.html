@@ -244,7 +244,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
   <div class="topNavSpacer"></div>
 
   <!-- Identité utilisateur (pill à droite) -->
-  <div class="id-pill" id="idPill" style="display:none;cursor:pointer" onclick="openChangeIdentity()" title="Changer d'identité">
+  <div class="id-pill" id="idPill" style="display:none;cursor:pointer" onclick="openChangeIdentity()" title="Changer d&#39;identit&#233;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span id="idPillTxt"></span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="margin-left:3px;opacity:.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -261,7 +261,12 @@ tr.row-disq .r-score{color:var(--danger)!important;}
         <polyline points="14 2 14 8 20 8"/>
         <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
       </svg>
-      <h2>Importer un export MIA</h2>
+      <div style="margin-bottom:16px;">
+            <button class="topNavBtn" id="btnCancelUpload" style="display:none" onclick="cancelUpload()">
+              ← Retour aux résultats
+            </button>
+          </div>
+          <h2>Importer un export MIA</h2>
       <p>Glisse le fichier Excel ici ou clique pour sélectionner<br>
       <span style="color:var(--accent);font-weight:600">QUIZZ_MIA_semaine.csv</span></p>
       <input type="file" id="fileInput" accept=".csv" onchange="handleFile(this.files[0])">
@@ -285,15 +290,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <!-- MAIN CONTENT -->
 <div class="main" id="mainWrap" style="display:none">
-  <!-- Admin file bar -->
-  <div class="file-bar" id="adminFileBar" style="display:none">
-    <div class="file-bar-left">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span>Fichier&nbsp;: <strong id="fileNameTxt"></strong></span>
-    </div>
-    <button class="btn-sm" id="btnCancelUpload" style="display:none" onclick="cancelUpload()">← Retour aux résultats</button>
-        <button class="btn-sm" onclick="showUpload()">⬆️ Charger un export</button>
-  </div>
+
   <div id="importCount" style="display:none;font-size:12px;color:var(--success);margin-top:6px;padding:6px 16px;background:rgba(56,161,105,.08);border-radius:8px;border:1px solid rgba(56,161,105,.2);"></div>
 
   <div class="tabs">
@@ -349,6 +346,22 @@ tr.row-disq .r-score{color:var(--danger)!important;}
     <div class="admin-banner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Vue administrateur — accès complet, suivi des absences et paramètres du quiz.
+    </div>
+
+    <!-- Zone import rapide pour admin -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">⬆️ Importer un export MIA</span></div>
+      <div class="upload-zone" id="dropZoneAdmin" onclick="document.getElementById('fileInputAdmin').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="this.classList.remove('drag-over');handleDropAdmin(event)"
+           style="margin-top:12px;padding:20px;min-height:80px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:28px;height:28px;opacity:.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p style="margin:6px 0 0;font-size:13px;color:var(--muted)">Glisse le fichier Excel ici ou clique pour sélectionner</p>
+        <p id="dropZoneAdminFile" style="margin:4px 0 0;font-size:12px;font-weight:700;color:var(--accent)"></p>
+      </div>
+      <input type="file" id="fileInputAdmin" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileAdmin(this.files[0])">
+      <div id="importAdminStatus" style="margin-top:8px;font-size:13px;display:none"></div>
     </div>
 
     <!-- PARAMÈTRES ADMIN -->
@@ -493,7 +506,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.16.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.19.1'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -600,10 +613,8 @@ function showMain() {
   document.getElementById('uploadWrap').style.display  = 'none';
   document.getElementById('userWait').style.display    = 'none';
   document.getElementById('mainWrap').style.display    = 'block';
-  document.getElementById('adminFileBar').style.display = admin ? 'flex' : 'none';
   // Bouton retour toujours visible quand on est dans mainWrap
-  var _btnBack = document.getElementById('btnCancelUpload');
-  if (_btnBack) _btnBack.style.display = 'inline-flex';
+
   document.getElementById('tabAdmin').style.display    = admin ? 'flex' : 'none';
   document.getElementById('tabStats').style.display    = admin ? 'flex' : 'none';
   var _isManager = isManager();
@@ -734,7 +745,7 @@ function fmtDate(d) {
 }
 
 // Fusionner les entrées CSV dans le JSON résultats existant
-function mergeCSVEntries(entries) {
+function mergeCSVEntries(entries, fileLabel) {
   var data = loadResults();
   if (!data) data = {annee: new Date().getFullYear(), generated:'', participants:[]};
   // Sanitize : ne garder que nom, prenom, scores (ignorer champs pré-calculés legacy)
@@ -776,7 +787,7 @@ function mergeCSVEntries(entries) {
   var importedWeeks = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
   importedWeeks.forEach(function(wk){
     var already = data.importsLog.some(function(l){ return l.week === wk; });
-    if (!already) data.importsLog.push({week:wk, importedAt: new Date().toISOString(), count: entries.filter(function(e){ return e.weekKey===wk; }).length});
+    if (!already) data.importsLog.push({week:wk, importedAt: new Date().toISOString(), count: entries.filter(function(e){ return e.weekKey===wk; }).length, label: fileLabel || wk});
   });
   return data;
 }
@@ -865,7 +876,24 @@ function buildGData(data) {
     participants.push({nom:p.nom, prenom:p.prenom, quarters:qData});
   });
   var importsLog = data.importsLog || [];
-  return {participants:participants, config:config, importsLog:importsLog};
+
+  // Construire qCols : liste unique des semaines par trimestre
+  var qCols = {};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    var weekSet = {}, weekList = [];
+    participants.forEach(function(p){
+      if (p.quarters[q]) p.quarters[q].weeks.forEach(function(w){
+        if (!weekSet[w.date]) { weekSet[w.date]=true; weekList.push(w.date); }
+      });
+    });
+    weekList.sort(function(a,b){
+      var pa=a.split('/'), pb=b.split('/');
+      return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
+    });
+    qCols[q] = {weeks: weekList};
+  });
+
+  return {participants:participants, config:config, importsLog:importsLog, qCols:qCols};
 }
 
 // ══ TABS ══════════════════════════════════════════
@@ -1183,7 +1211,7 @@ function renderAdmin() {
   });
 
   // Suivi dernière semaine
-  var curActive=gData.participants.filter(function(p){return p.quarters[curQ].active;});
+  var curActive=gData.participants.filter(function(p){return p.quarters && p.quarters[curQ] && p.quarters[curQ].active;});
   var wks=gData.qCols[curQ].weeks;
   html+='<div class="admin-section"><div class="section-ttl">Suivi absences — '+curQ+' en cours</div>';
   var lastWkIdx=-1;
@@ -1234,7 +1262,7 @@ function renderAdmin() {
       var d   = new Date(l.importedAt);
       var fmt = d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
       html += '<tr>' +
-        '<td style="padding:6px 8px;font-weight:600">Semaine du '+l.week+'</td>' +
+        '<td style="padding:6px 8px;font-weight:600">Quiz du '+(l.label||l.week)+'</td>' +
         '<td style="padding:6px 8px;text-align:center">'+l.count+'</td>' +
         '<td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:12px">'+fmt+'</td>' +
         '</tr>';
@@ -1870,6 +1898,8 @@ function syncConfig(updates) {
 function showUpload() {
   document.getElementById('uploadWrap').style.display  = 'block';
   document.getElementById('mainWrap').style.display    = 'none';
+  var btn = document.getElementById('btnCancelUpload');
+  if (btn) btn.style.display = gData ? 'inline-flex' : 'none';
 }
 
 function cancelUpload() {
@@ -1889,6 +1919,63 @@ function openChangeIdentity() {
     if (!confirm('⚠️ Attention — tu as un accès manager.\n\nChanger d\'identité te fera perdre cet accès jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
   }
   openModal(true);
+}
+
+// ══ ADMIN UPLOAD INLINE ════════════════════════════
+function handleDropAdmin(e) {
+  e.preventDefault();
+  var file = e.dataTransfer.files[0];
+  if (file) handleFileAdmin(file);
+}
+
+function extractDateFromFilename(name) {
+  // Cherche un pattern ddmmyyyy ou dd-mm-yyyy ou dd_mm_yyyy dans le nom
+  var m = name.match(/(\d{2})[\-_]?(\d{2})[\-_]?(\d{4})/);
+  if (m) return m[1]+'/'+m[2]+'/'+m[3];
+  return null;
+}
+
+function handleFileAdmin(file) {
+  if (!file) return;
+  document.getElementById('dropZoneAdminFile').textContent = file.name;
+  var fileLabel = extractDateFromFilename(file.name) || file.name.replace(/\.[^.]+$/,'');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      // Supporter xlsx ET csv
+      var entries = [];
+      if (file.name.match(/\.csv$/i)) {
+        var text = new TextDecoder('utf-8').decode(e.target.result);
+        entries = parseCSV(text);
+      } else {
+        var wb = XLSX.read(e.target.result, {type:'array'});
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        entries = parseCSVRows(rows);
+      }
+      if (!entries || !entries.length) throw new Error('Aucune donnée valide');
+      var data = mergeCSVEntries(entries, fileLabel);
+      saveResults(data);
+      gData = buildGData(data);
+      var status = document.getElementById('importAdminStatus');
+      status.style.display = 'block';
+      status.style.color = 'var(--success)';
+      status.textContent = '✅ ' + entries.length + ' participations importées — ' + Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{})).length + ' semaine(s)';
+      renderAdmin();
+      renderParamTags();
+      renderBlacklistTags();
+      renderGithubConfig();
+      renderManagersTags();
+      renderStats();
+      renderClassement(curQ);
+    } catch(err) {
+      var status = document.getElementById('importAdminStatus');
+      status.style.display = 'block';
+      status.style.color = 'var(--danger)';
+      status.textContent = '❌ Erreur : ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 </script>
 
