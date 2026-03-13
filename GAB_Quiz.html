@@ -244,9 +244,10 @@ tr.row-disq .r-score{color:var(--danger)!important;}
   <div class="topNavSpacer"></div>
 
   <!-- Identité utilisateur (pill à droite) -->
-  <div class="id-pill" id="idPill" style="display:none">
+  <div class="id-pill" id="idPill" style="display:none;cursor:pointer" onclick="openChangeIdentity()" title="Changer d'identité">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span id="idPillTxt"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="margin-left:3px;opacity:.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
   </div>
 
 </nav>
@@ -260,10 +261,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
         <polyline points="14 2 14 8 20 8"/>
         <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
       </svg>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
-            <button class="topNavBtn" onclick="cancelUpload()" id="btnCancelUpload" style="display:none">← Retour</button>
-            <h2 style="margin:0">Importer un export MIA</h2>
-          </div>
+      <h2>Importer un export MIA</h2>
       <p>Glisse le fichier Excel ici ou clique pour sélectionner<br>
       <span style="color:var(--accent);font-weight:600">QUIZZ_MIA_semaine.csv</span></p>
       <input type="file" id="fileInput" accept=".csv" onchange="handleFile(this.files[0])">
@@ -293,7 +291,8 @@ tr.row-disq .r-score{color:var(--danger)!important;}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       <span>Fichier&nbsp;: <strong id="fileNameTxt"></strong></span>
     </div>
-    <button class="btn-sm" onclick="showUpload()">⬆️ Charger un export</button>
+    <button class="btn-sm" id="btnCancelUpload" style="display:none" onclick="cancelUpload()">← Retour aux résultats</button>
+        <button class="btn-sm" onclick="showUpload()">⬆️ Charger un export</button>
   </div>
   <div id="importCount" style="display:none;font-size:12px;color:var(--success);margin-top:6px;padding:6px 16px;background:rgba(56,161,105,.08);border-radius:8px;border:1px solid rgba(56,161,105,.2);"></div>
 
@@ -494,7 +493,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.13.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.16.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -602,6 +601,9 @@ function showMain() {
   document.getElementById('userWait').style.display    = 'none';
   document.getElementById('mainWrap').style.display    = 'block';
   document.getElementById('adminFileBar').style.display = admin ? 'flex' : 'none';
+  // Bouton retour toujours visible quand on est dans mainWrap
+  var _btnBack = document.getElementById('btnCancelUpload');
+  if (_btnBack) _btnBack.style.display = 'inline-flex';
   document.getElementById('tabAdmin').style.display    = admin ? 'flex' : 'none';
   document.getElementById('tabStats').style.display    = admin ? 'flex' : 'none';
   var _isManager = isManager();
@@ -862,7 +864,8 @@ function buildGData(data) {
     });
     participants.push({nom:p.nom, prenom:p.prenom, quarters:qData});
   });
-  return {participants:participants, config:config};
+  var importsLog = data.importsLog || [];
+  return {participants:participants, config:config, importsLog:importsLog};
 }
 
 // ══ TABS ══════════════════════════════════════════
@@ -993,7 +996,7 @@ function renderPodium(ps, q) {
   var wrap = document.getElementById('podiumWrap');
   if (!ps.length) { wrap.innerHTML=''; return; }
 
-  // Grouper par rang (ex-æquo ensemble)
+  // Grouper par rang (ex-aequo ensemble)
   var groups = [];
   var curRank = 0, prevMoy = null;
   ps.forEach(function(p){
@@ -1002,48 +1005,68 @@ function renderPodium(ps, q) {
     groups[groups.length-1].people.push(p);
   });
 
-  var g1 = groups.find(function(g){ return g.rank===1; });
-  var g2 = groups.find(function(g){ return g.rank===2; });
-  var g3 = groups.find(function(g){ return g.rank===3; });
+  var gChamp = groups.find(function(g){ return g.rank===1; }); // Champion = 1er du trimestre
+  var g1     = groups.find(function(g){ return g.rank===2; }); // 1er du podium
+  var g2     = groups.find(function(g){ return g.rank===3; }); // 2ème
+  var g3     = groups.find(function(g){ return g.rank===4; }); // 3ème
 
   var html = '';
 
-  // ── Champion (1er) — bloc séparé au-dessus
-  if (g1) {
-    var avHtml1 = g1.people.map(function(p){
-      return '<div class="podium-avatar" style="background:#f59e0b;width:52px;height:52px;font-size:16px">' +
-             (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') + '</div>';
+  // ── Champion (hors classement, meilleur du trimestre)
+  if (gChamp) {
+    var champAv = gChamp.people.map(function(p){
+      var isMe = uid && matchId(p, uid);
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
+        '<div class="podium-avatar" style="background:#f59e0b;width:54px;height:54px;font-size:17px">' +
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
+        '</div>' +
+        '<div style="font-size:12px;font-weight:700;text-align:center">' +
+          capFull(p.prenom)+'<br><span style="font-weight:400;color:var(--muted);font-size:11px">'+p.nom+'</span>' +
+          (isMe ? '<span class="tag-me" style="font-size:9px;margin-left:2px">Moi</span>' : '') +
+        '</div>' +
+        '</div>';
     }).join('');
-    var names1 = g1.people.map(function(p){
-      return capFull(p.prenom)+' <small>'+p.nom+'</small>';
-    }).join(' &amp; ');
-    html += '<div class="champion-wrap">' +
-      '<div class="champion-crown">👑</div>' +
-      '<div class="podium-avatars" style="justify-content:center;margin-bottom:6px">'+avHtml1+'</div>' +
-      '<div class="champion-name">'+names1+'</div>' +
-      '<div class="champion-score">'+(g1.moy!==null?g1.moy.toFixed(2):'—')+' / 10</div>' +
+    html += '<div style="text-align:center;padding:20px 8px 12px;border-bottom:1px solid var(--border);margin-bottom:16px;">' +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#f59e0b;margin-bottom:10px">👑 Champion du trimestre</div>' +
+      '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">'+champAv+'</div>' +
+      '<div style="font-size:22px;font-weight:900;color:#f59e0b;margin-top:8px">'+gChamp.moy.toFixed(2)+' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
       '</div>';
   }
 
-  // ── 2ème et 3ème côte à côte
-  if (g2 || g3) {
+  // ── Podium 1er / 2ème / 3ème
+  var podiumLevels = [
+    {grp:g1, label:'1er',  icon:'🥇', color:'#94a3b8', h:'70px', sz:'44px', fsz:'15px'},
+    {grp:g2, label:'2ème', icon:'🥈', color:'#b87333', h:'50px', sz:'40px', fsz:'14px'},
+    {grp:g3, label:'3ème', icon:'🥉', color:'#6b7280', h:'36px', sz:'36px', fsz:'13px'},
+  ].filter(function(x){ return x.grp; });
+
+  if (podiumLevels.length) {
+    // Ordre affichage : 2ème, 1er, 3ème
+    var display = [];
+    var p1 = podiumLevels.find(function(x){return x.label==='1er';});
+    var p2 = podiumLevels.find(function(x){return x.label==='2ème';});
+    var p3 = podiumLevels.find(function(x){return x.label==='3ème';});
+    if (p2) display.push(p2);
+    if (p1) display.push(p1);
+    if (p3) display.push(p3);
+
     html += '<div class="podium">';
-    [[g2,'#94a3b8','2ème 🥈','54px'],[g3,'#b87333','3ème 🥉','40px']].forEach(function(item){
-      var grp=item[0], col=item[1], lbl=item[2], h=item[3];
-      if (!grp) return;
-      var avHtml = grp.people.map(function(p){
-        return '<div class="podium-avatar" style="background:'+col+';width:42px;height:42px">' +
-               (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') + '</div>';
+    display.forEach(function(item){
+      var avHtml = item.grp.people.map(function(p){
+        return '<div class="podium-avatar" style="background:'+item.color+';width:'+item.sz+';height:'+item.sz+';font-size:'+item.fsz+'">'+
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'')+
+        '</div>';
       }).join('');
-      var namesHtml = grp.people.map(function(p){
-        return capFull(p.prenom)+'<br><small>'+p.nom+'</small>';
+      var namesHtml = item.grp.people.map(function(p){
+        var isMe = uid && matchId(p, uid);
+        return capFull(p.prenom)+'<br><small>'+p.nom+'</small>'+(isMe?'<span class="tag-me" style="font-size:9px">Moi</span>':'');
       }).join('<hr style="border:none;margin:2px 0">');
       html += '<div class="podium-slot">' +
-        '<div class="podium-rank-lbl">'+lbl+'</div>' +
+        '<div class="podium-rank-lbl">'+item.icon+' '+item.label+'</div>' +
         '<div class="podium-avatars">'+avHtml+'</div>' +
         '<div class="podium-names">'+namesHtml+'</div>' +
-        '<div class="podium-score">'+(grp.moy!==null?grp.moy.toFixed(2):'—')+'</div>' +
-        '<div class="podium-bar" style="height:'+h+';background:'+col+';opacity:.2"></div>' +
+        '<div class="podium-score">'+item.grp.moy.toFixed(2)+'</div>' +
+        '<div class="podium-bar" style="height:'+item.h+';background:'+item.color+';opacity:.18"></div>' +
         '</div>';
     });
     html += '</div>';
@@ -1051,6 +1074,9 @@ function renderPodium(ps, q) {
 
   wrap.innerHTML = html;
 }
+
+
+
 
 
 // ══ HISTORY ════════════════════════════════════════
@@ -1191,9 +1217,9 @@ function renderAdmin() {
   }
   html+='</div></div>';
   // ── Bloc imports log
-  var raw = loadResults();
-  if (raw && raw.importsLog && raw.importsLog.length) {
-    var logs = raw.importsLog.slice().sort(function(a,b){
+  var imLog = (gData && gData.importsLog) ? gData.importsLog : (loadResults()||{}).importsLog || [];
+  if (imLog.length) {
+    var logs = imLog.slice().sort(function(a,b){
       var da = a.week.split('/'), db = b.week.split('/');
       return new Date(db[2],db[1]-1,db[0]) - new Date(da[2],da[1]-1,da[0]);
     });
@@ -1476,6 +1502,11 @@ function fetchFromGithub() {
         data.participants = data.participants.map(function(p){
           return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
         });
+      }
+      // Merger importsLog local si le JSON GitHub n'en a pas encore
+      if (!data.importsLog || !data.importsLog.length) {
+        var _localRaw = loadResults();
+        if (_localRaw && _localRaw.importsLog) data.importsLog = _localRaw.importsLog;
       }
       saveResults(data);
       gData = buildGData(data);
@@ -1839,9 +1870,6 @@ function syncConfig(updates) {
 function showUpload() {
   document.getElementById('uploadWrap').style.display  = 'block';
   document.getElementById('mainWrap').style.display    = 'none';
-  // Afficher le bouton retour seulement si on a déjà des données
-  var btn = document.getElementById('btnCancelUpload');
-  if (btn) btn.style.display = gData ? 'inline-flex' : 'none';
 }
 
 function cancelUpload() {
