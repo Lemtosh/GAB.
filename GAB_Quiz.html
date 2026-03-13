@@ -201,6 +201,12 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 .stats-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
 .stats-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
 .stats-filter label{font-size:12px;font-weight:600;color:var(--muted);}
+
+/* ── CHAMPION ── */
+.champion-wrap{text-align:center;padding:20px 16px 16px;margin-bottom:4px;position:relative;}
+.champion-crown{font-size:28px;line-height:1;margin-bottom:6px;}
+.champion-name{font-size:15px;font-weight:800;color:var(--text);margin-top:8px;}
+.champion-score{font-size:22px;font-weight:900;color:#f59e0b;margin-top:2px;}
 </style>
 </head>
 <body>
@@ -485,7 +491,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.1.4'; // ← modifier ici à chaque mise à jour
+var local_version = 'v0.1.5'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -922,7 +928,8 @@ function renderClassement(q) {
   var rank = 0, prev = null;
   normal.forEach(function(p, i){
     var moy = p.quarters[q].moyenne;
-    if (moy !== prev) { rank = i + 1; prev = moy; }
+    rank = i + 1; // position réelle (1,2,3,4...) — ex-æquo affichent le même numéro
+    if (moy !== prev) { prev = moy; }
     var med  = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
     var isMe = uid && matchId(p, uid);
     var tr   = document.createElement('tr');
@@ -963,7 +970,7 @@ function renderPodium(ps, q) {
   var wrap = document.getElementById('podiumWrap');
   if (!ps.length) { wrap.innerHTML=''; return; }
 
-  // Group by rank
+  // Grouper par rang (ex-æquo ensemble)
   var groups = [];
   var curRank = 0, prevMoy = null;
   ps.forEach(function(p){
@@ -972,36 +979,56 @@ function renderPodium(ps, q) {
     groups[groups.length-1].people.push(p);
   });
 
-  var top3groups = groups.slice(0,3);
-  var colors  = {1:'#f59e0b',2:'#94a3b8',3:'#b87333'};
-  var rkLbl   = {1:'1er 🏆',2:'2ème',3:'3ème'};
-  var heights = {1:'76px',2:'54px',3:'40px'};
-  // Display order: 2, 1, 3
-  var order   = [2,1,3].map(function(r){ return top3groups.find(function(g){ return g.rank===r; })||null; });
+  var g1 = groups.find(function(g){ return g.rank===1; });
+  var g2 = groups.find(function(g){ return g.rank===2; });
+  var g3 = groups.find(function(g){ return g.rank===3; });
 
-  var html = '<div class="podium">';
-  order.forEach(function(grp){
-    if (!grp) return;
-    var col = colors[grp.rank] || '#94a3b8';
-    var avHtml = grp.people.map(function(p){
-      return '<div class="podium-avatar" style="background:'+col+';width:42px;height:42px">' +
+  var html = '';
+
+  // ── Champion (1er) — bloc séparé au-dessus
+  if (g1) {
+    var avHtml1 = g1.people.map(function(p){
+      return '<div class="podium-avatar" style="background:#f59e0b;width:52px;height:52px;font-size:16px">' +
              (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') + '</div>';
     }).join('');
-    var namesHtml = grp.people.map(function(p){
-      return capFull(p.prenom)+'<br><small>'+p.nom+'</small>';
-    }).join('<hr style="border:none;margin:2px 0">');
-    html +=
-      '<div class="podium-slot">' +
-      '<div class="podium-rank-lbl">'+rkLbl[grp.rank]+'</div>' +
-      '<div class="podium-avatars">'+avHtml+'</div>' +
-      '<div class="podium-names">'+namesHtml+'</div>' +
-      '<div class="podium-score">'+(grp.moy!==null?grp.moy.toFixed(2):'—')+'</div>' +
-      '<div class="podium-bar" style="height:'+heights[grp.rank]+';background:'+col+';opacity:.2"></div>' +
+    var names1 = g1.people.map(function(p){
+      return capFull(p.prenom)+' <small>'+p.nom+'</small>';
+    }).join(' &amp; ');
+    html += '<div class="champion-wrap">' +
+      '<div class="champion-crown">👑</div>' +
+      '<div class="podium-avatars" style="justify-content:center;margin-bottom:6px">'+avHtml1+'</div>' +
+      '<div class="champion-name">'+names1+'</div>' +
+      '<div class="champion-score">'+(g1.moy!==null?g1.moy.toFixed(2):'—')+' / 10</div>' +
       '</div>';
-  });
-  html += '</div>';
+  }
+
+  // ── 2ème et 3ème côte à côte
+  if (g2 || g3) {
+    html += '<div class="podium">';
+    [[g2,'#94a3b8','2ème 🥈','54px'],[g3,'#b87333','3ème 🥉','40px']].forEach(function(item){
+      var grp=item[0], col=item[1], lbl=item[2], h=item[3];
+      if (!grp) return;
+      var avHtml = grp.people.map(function(p){
+        return '<div class="podium-avatar" style="background:'+col+';width:42px;height:42px">' +
+               (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') + '</div>';
+      }).join('');
+      var namesHtml = grp.people.map(function(p){
+        return capFull(p.prenom)+'<br><small>'+p.nom+'</small>';
+      }).join('<hr style="border:none;margin:2px 0">');
+      html += '<div class="podium-slot">' +
+        '<div class="podium-rank-lbl">'+lbl+'</div>' +
+        '<div class="podium-avatars">'+avHtml+'</div>' +
+        '<div class="podium-names">'+namesHtml+'</div>' +
+        '<div class="podium-score">'+(grp.moy!==null?grp.moy.toFixed(2):'—')+'</div>' +
+        '<div class="podium-bar" style="height:'+h+';background:'+col+';opacity:.2"></div>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
   wrap.innerHTML = html;
 }
+
 
 // ══ HISTORY ════════════════════════════════════════
 function renderHistory() {
@@ -1393,13 +1420,8 @@ function fetchFromGithub() {
       gData = buildGData(data);
       try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
       console.log('[GAB Quiz] Résultats chargés depuis GitHub ✅');
-      if (document.getElementById('mainWrap').style.display !== 'none') {
-        renderClassement(curQ);
-        renderHistory();
-        if (admin) renderAdmin();
-      } else {
-        showMain();
-      }
+      // Toujours appeler showProperView pour garantir l'affichage correct
+      showProperView();
     })
     .catch(function(err){
       console.warn('[GAB Quiz] GitHub fetch failed, fallback localStorage:', err.message);
