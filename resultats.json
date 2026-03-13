@@ -1,6 +1,4 @@
 {
-  "annee": 2026,
-  "generated": "2026-03-13T13:58:11.259Z",
   "participants": [
     {
       "nom": "LINSOLAS",
@@ -206,6 +204,11 @@
       }
     }
   ],
+  "config": {
+    "managers": [
+      "Maxence MORTIER"
+    ]
+  },
   "importsLog": [
     {
       "week": "07/01/2026",
