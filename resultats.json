@@ -1,6 +1,6 @@
 {
   "annee": 2026,
-  "generated": "2026-03-13T11:49:00",
+  "generated": "2026-03-13T10:57:00.503Z",
   "participants": [
     {
       "nom": "GARBACIAK",
@@ -686,6 +686,20 @@
         "11/02/2026": "NF",
         "18/02/2026": "NF",
         "25/02/2026": "NF"
+      }
+    },
+    {
+      "nom": "NONNENMACHER",
+      "prenom": "David",
+      "scores": {
+        "18/02/2026": 4
+      }
+    },
+    {
+      "nom": "ROY",
+      "prenom": "Charlotte",
+      "scores": {
+        "18/02/2026": 7
       }
     }
   ]
