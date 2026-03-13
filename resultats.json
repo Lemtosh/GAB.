@@ -1,271 +1,372 @@
 {
   "annee": 2026,
-  "generated": "2026-03-13T12:01:35.641Z",
+  "generated": "2026-03-13T12:11:06.874Z",
   "participants": [
     {
       "nom": "MAUBON",
       "prenom": "Julien",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "NONNENMACHER",
       "prenom": "David",
       "scores": {
-        "04/03/2026": 4
+        "04/03/2026": 4,
+        "18/02/2026": 4
       }
     },
     {
       "nom": "LINSOLAS",
       "prenom": "Andy",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 6
       }
     },
     {
       "nom": "CHANEAC",
       "prenom": "Cécile",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "FERNANDES",
       "prenom": "Joao",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "ALI BEY",
       "prenom": "Eline",
       "scores": {
-        "04/03/2026": 3
+        "04/03/2026": 3,
+        "18/02/2026": 4
       }
     },
     {
       "nom": "MORTIER",
       "prenom": "Maxence",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": 6
       }
     },
     {
       "nom": "EHLERINGER",
       "prenom": "Lou",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 5
       }
     },
     {
       "nom": "PORCHE",
       "prenom": "Romain",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "FRONTINI",
       "prenom": "Léa",
       "scores": {
-        "04/03/2026": 5
+        "04/03/2026": 5,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "LAENCINA",
       "prenom": "Loris",
       "scores": {
-        "04/03/2026": 4
+        "04/03/2026": 4,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "GARRIGUES",
       "prenom": "Céline",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": 9
       }
     },
     {
       "nom": "GALLOIS",
       "prenom": "Léa",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "BOUILLARD",
       "prenom": "Karine",
       "scores": {
-        "04/03/2026": 6
+        "04/03/2026": 6,
+        "18/02/2026": 4
       }
     },
     {
       "nom": "BATAILLON",
       "prenom": "Anaelle",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 5
       }
     },
     {
       "nom": "LEYDIER",
       "prenom": "Perrine",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "MARTINEZ",
       "prenom": "Lucas",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "GUYONNET",
       "prenom": "Margaux",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "VERRYKEN",
       "prenom": "Laura",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "TARDIEU",
       "prenom": "Paul",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": 10
       }
     },
     {
       "nom": "CHASSIN",
       "prenom": "Mathilde",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "CHASTEL",
       "prenom": "Julie",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "GARBACIAK",
       "prenom": "Camille",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "ARNAUDO",
       "prenom": "Coraline",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "ALFA",
       "prenom": "Edwige",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "MARCHISET",
       "prenom": "Elsa",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "DEJEAN",
       "prenom": "Kevin",
       "scores": {
-        "04/03/2026": 7
+        "04/03/2026": 7,
+        "18/02/2026": 8
       }
     },
     {
       "nom": "BRIGNOU",
       "prenom": "Marielou",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "FISCHER",
       "prenom": "Elodie",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "DEGRELLE",
       "prenom": "Mathis",
       "scores": {
-        "04/03/2026": 6
+        "04/03/2026": 6,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "CLARETON",
       "prenom": "Mathieu",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "SOUQUE",
       "prenom": "Axel",
       "scores": {
-        "04/03/2026": 5
+        "04/03/2026": 5,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "BUIX",
       "prenom": "Lisa",
       "scores": {
-        "04/03/2026": 6
+        "04/03/2026": 6,
+        "18/02/2026": 6
       }
     },
     {
       "nom": "ROUX",
       "prenom": "Morgane",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": 6
       }
     },
     {
       "nom": "BRIEND",
       "prenom": "Sami",
       "scores": {
-        "04/03/2026": 8
+        "04/03/2026": 8,
+        "18/02/2026": "NF"
       }
     },
     {
       "nom": "BALLOUARD",
       "prenom": "Alexandre",
       "scores": {
-        "04/03/2026": 10
+        "04/03/2026": 10,
+        "18/02/2026": 5
       }
     },
     {
       "nom": "CHATELET",
       "prenom": "Andreas",
       "scores": {
-        "04/03/2026": 6
+        "04/03/2026": 6,
+        "18/02/2026": 7
       }
     },
     {
       "nom": "FONTEIX",
       "prenom": "Benjamin",
       "scores": {
-        "04/03/2026": 9
+        "04/03/2026": 9,
+        "18/02/2026": 7
+      }
+    },
+    {
+      "nom": "NOURI",
+      "prenom": "Hamza",
+      "scores": {
+        "18/02/2026": 6
+      }
+    },
+    {
+      "nom": "GRIMARD",
+      "prenom": "Illiona",
+      "scores": {
+        "18/02/2026": 7
+      }
+    },
+    {
+      "nom": "ROY",
+      "prenom": "Charlotte",
+      "scores": {
+        "18/02/2026": 7
+      }
+    },
+    {
+      "nom": "AUDIBERT",
+      "prenom": "Thomas",
+      "scores": {
+        "18/02/2026": 5
+      }
+    },
+    {
+      "nom": "RAOUX",
+      "prenom": "Lauren",
+      "scores": {
+        "18/02/2026": 9
+      }
+    },
+    {
+      "nom": "THEVENET",
+      "prenom": "Lou anne",
+      "scores": {
+        "18/02/2026": 4
+      }
+    },
+    {
+      "nom": "COSTE",
+      "prenom": "Killian",
+      "scores": {
+        "18/02/2026": 9
+      }
+    },
+    {
+      "nom": "FIEU",
+      "prenom": "Axel",
+      "scores": {
+        "18/02/2026": 10
+      }
+    },
+    {
+      "nom": "KOENIG",
+      "prenom": "Noémie",
+      "scores": {
+        "18/02/2026": 6
       }
     }
   ]
