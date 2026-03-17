@@ -1538,6 +1538,12 @@ body.dark #btnModeComplexe.toolBtnActive{ color: rgba(255,255,255,0.92) !importa
     .menuExpandItem:hover svg { stroke: #fff; }
     .menuExpandItem--tools { border-color: var(--accent); color: var(--accent); font-weight: 600; }
     .menuExpandItem--tools:hover { color: #fff; }
+    
+    .menuQuizBadge {
+      position: absolute; top: -3px; right: -5px; width: 8px; height: 8px;
+      border-radius: 50%; background: #3b82f6; border: 2px solid var(--card);
+      display: none; pointer-events: none;
+    }
     .menuSGPBadge {
       position: absolute; top: -3px; right: -5px; width: 8px; height: 8px;
       border-radius: 50%; background: #e53e3e; border: 2px solid var(--card);
@@ -2849,7 +2855,7 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.3.32";
+    const LOCAL_VERSION = "1.4";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
@@ -6465,7 +6471,7 @@ document.addEventListener('DOMContentLoaded',function(){
       const nb = info.pending;
       textEl.innerHTML = '📋 <strong>' + nb + ' retour' + (nb > 1 ? 's' : '') + ' SGP en attente</strong>'
         + formatDeadlineFR(info.deadline)
-        + ' &nbsp;<a href="https://lemtosh.github.io/GAB./GAB_SGP.html" onclick="event.stopPropagation()" style="color:var(--link,#0b3d91);font-weight:700;">Ouvrir →</a>';
+        + ' &nbsp;<a href="https://lemtosh.github.io/GAB./GAB_SGP_preview.html" onclick="event.stopPropagation()" style="color:var(--link,#0b3d91);font-weight:700;">Ouvrir →</a>';
       banner.style.display = 'block';
     }
 
@@ -6712,10 +6718,17 @@ document.addEventListener('DOMContentLoaded',function(){
   </div>
 
   <!-- Gestionnaire SGP -->
-  <a class="topNavBtn" href="https://lemtosh.github.io/GAB./GAB_SGP.html" id="linkSGP">
+  <a class="topNavBtn" href="https://lemtosh.github.io/GAB./GAB_SGP_preview.html" id="linkSGP">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     <span>SGP</span>
     <span class="menuSGPBadge" id="menuSGPBadge"></span>
+  </a>
+
+  <!-- Résultats Quiz -->
+  <a class="topNavBtn" href="https://lemtosh.github.io/GAB./GAB_Quiz.html" id="linkQuiz" style="position:relative" onclick="clearQuizDot()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    <span>Résultats Quiz</span>
+    <span class="menuQuizBadge" id="menuQuizBadge"></span>
   </a>
 
   <!-- Succès -->
@@ -6928,6 +6941,16 @@ window.closeMenu  = function() {};
     { id:'sgp_100_serie_2',  label:'SGP 100% Série ×2',    desc:'SGP — 100 % pendant 2 semaines consécutives!',   img:'badges/serie1002semFINAL.png' },
     { id:'sgp_100_serie_3',  label:'SGP 100% Série ×3',    desc:'SGP — 100 % pendant 3 semaines consécutives!',   img:'badges/serie1003semFINAL.png' },
     { id:'sgp_100_serie_4',  label:'SGP 100% Série ×4',    desc:'SGP — 100 % pendant 4 semaines consécutives!',   img:'badges/serie1004semFINAL.png' }
+  ,
+    /* ── Quiz ── */
+    { id:'quiz_first',    label:'Premier Quiz',     desc:'Première participation au quiz',                  img:'badges/quiz_first.png' },
+    { id:'quiz_10',       label:'Quiz x10',          desc:'10 participations au quiz',                      img:'badges/quiz_10.png' },
+    { id:'quiz_moy8',     label:'Moyenne 8',         desc:'Moyenne annuelle au quiz ≥ 8/10',                img:'badges/quiz_moy8.png' },
+    { id:'quiz_moy9',     label:'Moyenne 9',         desc:'Moyenne annuelle au quiz ≥ 9/10',                img:'badges/quiz_moy9.png' },
+    { id:'quiz_perfect',  label:'Score Parfait',     desc:'Au moins un 10/10 au quiz',                      img:'badges/quiz_perfect.png' },
+    { id:'quiz_perfect3', label:'Série Parfaite',    desc:'3 scores de 10/10 consécutifs au quiz',          img:'badges/quiz_perfect3.png' },
+    { id:'quiz_perfect5', label:'Maître du Quiz',    desc:'5 scores de 10/10 consécutifs au quiz',          img:'badges/quiz_perfect5.png' },
+    { id:'quiz_assidu',   label:'Assidu',            desc:'Aucune absence sur un trimestre entier du quiz', img:'badges/quiz_assidu.png' }
   ];
 
 
@@ -7047,6 +7070,105 @@ window.closeMenu  = function() {};
     if(fresh.length) _showBadgeToast(fresh);
   }
 
+  // ══ QUIZ BADGES ═══════════════════════════════════════════
+  
+// ══ DOT BLEUE QUIZ (v1.3.33) ══════════════════════
+var GAB_QUIZ_JSON_URL = 'https://raw.githubusercontent.com/Lemtosh/GAB./main/resultats.json';
+var LS_QUIZ_LAST_SEEN = 'gabQuizLastSeen';
+
+function checkQuizDot() {
+  fetch(GAB_QUIZ_JSON_URL + '?nc=' + Date.now(), {cache: 'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (!data || !data.generated) return;
+      var lastSeen = localStorage.getItem(LS_QUIZ_LAST_SEEN);
+      var dot = document.getElementById('menuQuizBadge');
+      if (dot) dot.style.display = (lastSeen !== data.generated) ? 'block' : 'none';
+    })
+    .catch(function(){});
+}
+
+function clearQuizDot() {
+  fetch(GAB_QUIZ_JSON_URL + '?nc=' + Date.now(), {cache: 'no-store'})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data) {
+      if (data && data.generated) localStorage.setItem(LS_QUIZ_LAST_SEEN, data.generated);
+    })
+    .catch(function(){});
+  var dot = document.getElementById('menuQuizBadge');
+  if (dot) dot.style.display = 'none';
+}
+
+function checkBadgesQuiz() {
+    try {
+      var uidRaw = localStorage.getItem('gabQuiz_v2_id');
+      // v1.3.33 : fallback sur gabUserId si pas de gabQuiz_v2_id
+      if (!uidRaw) uidRaw = localStorage.getItem('gabUserId');
+      if (!uidRaw) return;
+      var uid = JSON.parse(uidRaw);
+      if (!uid.nom || !uid.prenom) return;
+      // Preview : repo hardcodé — indépendant de la config localStorage
+      var url = 'https://raw.githubusercontent.com/Lemtosh/GAB./main/resultats.json?nc=' + Date.now();
+      fetch(url).then(function(r){ return r.ok ? r.json() : null; }).then(function(data){
+        if (!data || !data.participants) return;
+        var me = data.participants.find(function(p){
+          return p.nom.toLowerCase() === uid.nom.toLowerCase() &&
+                 p.prenom.toLowerCase() === uid.prenom.toLowerCase();
+        });
+        if (!me || !me.scores) return;
+        var scoreEntries = Object.keys(me.scores).map(function(d){
+          return { date: d, score: me.scores[d] };
+        }).filter(function(e){ return typeof e.score === 'number'; })
+          .sort(function(a, b){
+            var pa=a.date.split('/'), pb=b.date.split('/');
+            return new Date(pa[2],pa[1]-1,pa[0]) - new Date(pb[2],pb[1]-1,pb[0]);
+          });
+        var totalQuiz = scoreEntries.length;
+        var sum       = scoreEntries.reduce(function(s,e){ return s + e.score; }, 0);
+        var moyAnn    = totalQuiz ? sum / totalQuiz : null;
+        var has10     = scoreEntries.some(function(e){ return e.score === 10; });
+        var maxStreak10 = 0, curStreak10 = 0;
+        scoreEntries.forEach(function(e){
+          if (e.score === 10) { curStreak10++; maxStreak10 = Math.max(maxStreak10, curStreak10); }
+          else { curStreak10 = 0; }
+        });
+        var QS_MONTHS = { T1:[1,2,3], T2:[4,5,6], T3:[7,8,9], T4:[10,11,12] };
+        var assidu = false;
+        ['T1','T2','T3','T4'].forEach(function(q){
+          var months = QS_MONTHS[q];
+          var qDates = Object.keys(me.scores).filter(function(d){
+            var m = parseInt(d.split('/')[1], 10);
+            return months.indexOf(m) >= 0;
+          });
+          if (qDates.length < 2) return;
+          var hasNF = qDates.some(function(d){ return me.scores[d] === 'NF'; });
+          if (!hasNF) assidu = true;
+        });
+        var store = _getBadgeStore(), fresh = [];
+        [
+          { id:'quiz_first',    ok: totalQuiz >= 1 },
+          { id:'quiz_10',       ok: totalQuiz >= 10 },
+          { id:'quiz_moy8',     ok: moyAnn !== null && moyAnn >= 8 },
+          { id:'quiz_moy9',     ok: moyAnn !== null && moyAnn >= 9 },
+          { id:'quiz_perfect',  ok: has10 },
+          { id:'quiz_perfect3', ok: maxStreak10 >= 3 },
+          { id:'quiz_perfect5', ok: maxStreak10 >= 5 },
+          { id:'quiz_assidu',   ok: assidu }
+        ].forEach(function(c){
+          if (!c.ok) return;
+          if (store[c.id] && store[c.id].unlocked) return;
+          var def = BADGE_DEFINITIONS.find(function(d){ return d.id === c.id; });
+          if (!def) return;
+          store[c.id] = { unlocked: true, unlockedAt: new Date().toISOString() };
+          fresh.push(def);
+        });
+        _saveBadgeStore(store);
+        if (fresh.length) _showBadgeToast(fresh);
+      }).catch(function(){});
+    } catch(e) {}
+  }
+
+
   function _showBadgeToast(defs){
     defs.forEach(function(def,i){
       setTimeout(function(){
@@ -7155,6 +7277,8 @@ window.closeMenu  = function() {};
       };
     }
     setTimeout(checkBadges,600); // vérif initiale au chargement (refs déjà existantes)
+    setTimeout(checkBadgesQuiz, 1200); // badges Quiz
+  setTimeout(checkQuizDot, 1800);    // v1.3.33 : dot bleue quiz
   });
 
   /* ==================== BADGES SGP (sgpgraded) ==================== */

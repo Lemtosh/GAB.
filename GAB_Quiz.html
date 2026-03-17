@@ -69,15 +69,21 @@ a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgb
 .now-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle;opacity:.7;}
 
 /* PODIUM */
-.podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:28px;padding:24px 0 0;flex-wrap:wrap;}
-.podium-slot{display:flex;flex-direction:column;align-items:center;gap:4px;}
-.podium-rank-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:2px;}
-.podium-avatars{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;}
-.podium-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
-.podium-names{text-align:center;font-size:12px;font-weight:700;line-height:1.4;max-width:120px;}
-.podium-names small{font-weight:400;font-size:10px;color:var(--muted);}
-.podium-score{font-size:20px;font-weight:800;color:var(--accent);}
-.podium-bar{width:72px;border-radius:8px 8px 0 0;border:1px solid var(--border);}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:28px;padding:24px 0 0;flex-wrap:wrap;}
+.podium-slot{display:flex;flex-direction:column;align-items:center;}
+.podium-rank-lbl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:.02em;}
+.podium-avatars{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+.podium-avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+.podium-names{text-align:center;line-height:1.5;max-width:140px;margin-bottom:6px;}
+.podium-names .p-prenom{font-size:12px;font-weight:700;display:block;}
+.podium-names .p-nom{font-weight:400;font-size:10px;color:var(--muted);display:block;}
+.podium-names .p-me{font-size:9px;margin-left:3px;}
+.podium-exaequo{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:2px;text-align:center;}
+.podium-score{font-size:22px;font-weight:900;color:var(--accent);margin-bottom:8px;}
+.podium-bar{width:90px;border-radius:8px 8px 0 0;border:1px solid var(--border);}
+.podium-slot.rank-1 .podium-bar{background:linear-gradient(180deg,rgba(245,158,11,.3),rgba(245,158,11,.07));border-color:rgba(245,158,11,.35);}
+.podium-slot.rank-2 .podium-bar{background:linear-gradient(180deg,rgba(148,163,184,.3),rgba(148,163,184,.07));border-color:rgba(148,163,184,.35);}
+.podium-slot.rank-3 .podium-bar{background:linear-gradient(180deg,rgba(184,115,51,.3),rgba(184,115,51,.07));border-color:rgba(184,115,51,.35);}
 
 /* TABLE */
 .rank-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
@@ -207,6 +213,33 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 .champion-crown{font-size:28px;line-height:1;margin-bottom:6px;}
 .champion-name{font-size:15px;font-weight:800;color:var(--text);margin-top:8px;}
 .champion-score{font-size:22px;font-weight:900;color:#f59e0b;margin-top:2px;}
+
+  .week-del-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+  .week-del-select { flex:1; min-width:160px; padding:7px 12px; font-size:13px; border-radius:8px;
+    border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; }
+  .week-del-select:focus { border-color:var(--accent); }
+  .week-del-btn { padding:7px 14px; font-size:12px; font-weight:700; border-radius:8px; border:none;
+    background:var(--danger); color:#fff; cursor:pointer; transition:filter .15s; white-space:nowrap; }
+  .week-del-btn:hover { filter:brightness(1.1); }
+  .week-del-status { font-size:12px; margin-top:6px; display:none; }
+
+/* ── RESET JSON MODAL ── */
+.reset-check-list { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.reset-check-item { display:flex; align-items:center; gap:10px; background:var(--bg);
+  border:1px solid var(--border); border-radius:8px; padding:10px 14px; cursor:pointer;
+  transition:border-color .15s, background .15s; }
+.reset-check-item:hover { border-color:var(--accent); background:var(--al); }
+.reset-check-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--danger); cursor:pointer; flex-shrink:0; }
+.reset-check-item label { font-size:13px; font-weight:600; cursor:pointer; flex:1; }
+.reset-check-item .reset-sub { font-size:11px; color:var(--muted); margin-top:2px; display:block; }
+.reset-confirm-step { display:none; }
+.reset-confirm-step.active { display:block; }
+.btn-danger { padding:10px; font-size:14px; font-weight:700; border-radius:10px;
+  border:none; background:var(--danger); color:#fff; cursor:pointer; width:100%;
+  transition:filter .15s; margin-top:8px; }
+.btn-danger:hover { filter:brightness(1.1); }
+.reset-select-all { font-size:12px; font-weight:600; color:var(--accent);
+  background:none; border:none; cursor:pointer; padding:0; margin-bottom:4px; text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -240,6 +273,12 @@ tr.row-disq .r-score{color:var(--danger)!important;}
   <div class="topNavSep"></div>
 
   <span id="versionBadge"></span>
+
+  <!-- Rafraîchir -->
+  <button class="topNavBtn" id="btnRefresh" type="button" onclick="refreshData()" title="Recharger les résultats depuis GitHub">
+    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.7s ease"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <span id="refreshLabel">Rafraîchir</span>
+  </button>
 
   <div class="topNavSpacer"></div>
 
@@ -328,7 +367,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
             <th>Participant</th>
             <th>Moyenne</th>
             <th>Quiz faits</th>
-            <th style="color:var(--danger)">Non faits</th>
+            <th style="color:var(--danger)" id="thNonFaits">Non faits</th>
           </tr>
         </thead>
         <tbody id="rankBody"></tbody>
@@ -360,8 +399,47 @@ tr.row-disq .r-score{color:var(--danger)!important;}
         <p style="margin:6px 0 0;font-size:13px;color:var(--muted)">Glisse le fichier Excel ici ou clique pour sélectionner</p>
         <p id="dropZoneAdminFile" style="margin:4px 0 0;font-size:12px;font-weight:700;color:var(--accent)"></p>
       </div>
-      <input type="file" id="fileInputAdmin" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleFileAdmin(this.files[0])">
+      <input type="file" id="fileInputAdmin" accept=".xlsx,.xls,.csv" style="display:none" multiple onchange="handleFilesAdmin(this.files)">
       <div id="importAdminStatus" style="margin-top:8px;font-size:13px;display:none"></div>
+    </div>
+
+    <!-- AJOUTER UN PARTICIPANT MANUELLEMENT -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">➕ Ajouter un participant manuellement</span></div>
+      <div class="param-desc">Permet d'ajouter un score pour un participant (dérogation, rattrapage, etc.) sur une semaine existante ou nouvelle.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <div>
+          <label class="modal-lbl">Prénom</label>
+          <input class="modal-inp" type="text" id="addPartPrenom" placeholder="ex: Marie">
+        </div>
+        <div>
+          <label class="modal-lbl">Nom</label>
+          <input class="modal-inp" type="text" id="addPartNom" placeholder="ex: DUPONT">
+        </div>
+        <div>
+          <label class="modal-lbl">Semaine (jj/mm/aaaa)</label>
+          <input class="modal-inp" type="text" id="addPartWeek" placeholder="ex: 18/03/2026">
+        </div>
+        <div>
+          <label class="modal-lbl">Score (1-10 ou NF)</label>
+          <input class="modal-inp" type="text" id="addPartScore" placeholder="ex: 8 ou NF">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <button class="param-save-btn" onclick="addParticipantManual()">Ajouter</button>
+        <span id="addPartStatus" style="font-size:12px;display:none"></span>
+      </div>
+    </div>
+
+    <!-- SUPPRIMER UNE SEMAINE -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">Supprimer une semaine importée</span></div>
+      <div class="param-desc">Supprime toutes les données d'une semaine du JSON (scores + entrée importsLog) et re-pousse vers GitHub.</div>
+      <div class="week-del-row">
+        <select class="week-del-select" id="weekDelSelect"><option value="">— Choisir une semaine —</option></select>
+        <button class="week-del-btn" onclick="deleteWeek()">Supprimer</button>
+      </div>
+      <div class="week-del-status" id="weekDelStatus"></div>
     </div>
 
     <!-- PARAMÈTRES ADMIN -->
@@ -437,6 +515,13 @@ tr.row-disq .r-score{color:var(--danger)!important;}
       </div>
     </div>
 
+    
+    <!-- RESET JSON -->
+    <div class="param-card" style="border-color:rgba(229,62,62,.3);margin-bottom:16px;">
+      <div class="param-row"><span class="param-lbl" style="color:var(--danger)">⚠️ Reset JSON</span></div>
+      <div class="param-desc">Remet à zéro les éléments sélectionnés dans le JSON et pousse sur GitHub.</div>
+      <button class="param-save-btn" style="background:var(--danger);margin-top:12px;" onclick="openResetModal()">Ouvrir le reset</button>
+    </div>
     <!-- GITHUB CONFIG -->
       <div class="param-card">
         <div class="param-row">
@@ -506,7 +591,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v0.22.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.0'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -554,13 +639,17 @@ document.addEventListener('DOMContentLoaded', function() {
   admin   = uid && uid.nom === ADMIN_SECRET;
   manager = !admin && uid && isManager();
 
-  // Restaurer depuis LS_RESULTS (JSON cumulé) ou LS_DATA (fallback)
-  var resultsData = loadResults();
-  if (resultsData) {
-    gData = buildGData(resultsData);
-  } else {
-    var cached = localStorage.getItem(LS_DATA);
-    if (cached) { try { gData = JSON.parse(cached); } catch(e){ gData = null; } }
+  // v0.24 : si GitHub configuré, ne pas pré-charger le LS — la vérité vient du JSON GitHub
+  var _ghCfgBoot = loadGithubConfig();
+  if (!_ghCfgBoot || !_ghCfgBoot.repo || !_ghCfgBoot.file) {
+    // Pas de GitHub configuré : fallback localStorage normal
+    var resultsData = loadResults();
+    if (resultsData) {
+      gData = buildGData(resultsData);
+    } else {
+      var cached = localStorage.getItem(LS_DATA);
+      if (cached) { try { gData = JSON.parse(cached); } catch(e){ gData = null; } }
+    }
   }
 
   // Remplir les champs GitHub dès le boot (token survivra au refresh)
@@ -592,6 +681,12 @@ function showProperView() {
     document.getElementById('userWait').style.display    = 'none';
     document.getElementById('uploadWrap').style.display  = 'none';
     document.getElementById('mainWrap').style.display    = 'none';
+    // v0.33 : préremplir depuis gabUserId si disponible
+    try {
+      var _gabUid = JSON.parse(localStorage.getItem('gabUserId'));
+      if (_gabUid && _gabUid.prenom) document.getElementById('inpPrenom').value = _gabUid.prenom;
+      if (_gabUid && _gabUid.nom)    document.getElementById('inpNom').value    = _gabUid.nom;
+    } catch(e) {}
     document.getElementById('modalBg').style.display     = 'block';
     openModal(false); // modal obligatoire, non fermable
     return;
@@ -961,6 +1056,12 @@ function renderClassement(q) {
 
   renderPodium(normal, q);
 
+  // Masquer colonne NF pour utilisateurs standard
+  var _isManager = isManager();
+  var showNF = admin || _isManager;
+  var thNF = document.getElementById('thNonFaits');
+  if (thNF) thNF.style.display = showNF ? '' : 'none';
+
   var tbody = document.getElementById('rankBody');
   tbody.innerHTML = '';
   if (!normal.length && !disq.length) {
@@ -975,16 +1076,19 @@ function renderClassement(q) {
     var moy = p.quarters[q].moyenne;
     if (moy !== _pgPrev) { _pgRank++; _pgPrev = moy; _pg.push({rank:_pgRank, moy:moy}); }
   });
-  var top3Moys = _pg.slice(0,3).map(function(g){ return g.moy; });
-  var tablePs = normal.filter(function(p){ return top3Moys.indexOf(p.quarters[q].moyenne) < 0; });
+  // Champion (rank1) + podium 1er/2ème/3ème (ranks 2/3/4) = 4 groupes exclus du tableau
+  var top4Moys = _pg.slice(0,4).map(function(g){ return g.moy; });
+  var tablePs = normal.filter(function(p){ return top4Moys.indexOf(p.quarters[q].moyenne) < 0; });
 
-  var rank = 0, prev = null;
+  // Rang affiché : 4 groupes exclus → le tableau commence à la 4ème place visible
+  // On recalcule le vrai rang en comptant les ex-æquo
+  var rankOffset = top4Moys.length; // nombre de groupes dans le podium+champion
+  var rank = 0, prev = null, displayRank = rankOffset;
   tablePs.forEach(function(p, i){
     var moy = p.quarters[q].moyenne;
-    rank = i + 1 + top3Moys.length; // commencer après le podium (4ème, 5ème...)
-    // Pour ex-æquo : garder le même rang
-    if (moy !== prev) { prev = moy; }
-    var med  = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    if (moy !== prev) { displayRank++; prev = moy; }
+    rank = displayRank;
+    var med  = '';
     var isMe = uid && matchId(p, uid);
     var tr   = document.createElement('tr');
     tr.innerHTML =
@@ -992,7 +1096,7 @@ function renderClassement(q) {
       '<td class="r-name">' + capFull(p.prenom) + ' ' + p.nom + (isMe ? '<span class="tag-me">Moi</span>' : '') + '</td>' +
       '<td class="r-score">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
       '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
-      '<td class="r-nf-cell" style="color:var(--danger)">' + (p.quarters[q].nbNonFait || 0) + '</td>';
+      '<td class="r-nf-cell" style="color:var(--danger);display:' + (showNF ? '' : 'none') + '">' + (p.quarters[q].nbNonFait || 0) + '</td>';
     tbody.appendChild(tr);
   });
 
@@ -1013,7 +1117,7 @@ function renderClassement(q) {
           '<span class="tag-disq">DISQUALIFIÉ</span></td>' +
         '<td class="r-score">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
         '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
-        '<td class="r-nf-cell" style="color:var(--danger)">' + (p.quarters[q].nbNonFait || 0) + '</td>';
+        '<td class="r-nf-cell" style="color:var(--danger);display:' + (showNF ? '' : 'none') + '">' + (p.quarters[q].nbNonFait || 0) + '</td>';
       tbody.appendChild(tr);
     });
   }
@@ -1033,69 +1137,89 @@ function renderPodium(ps, q) {
     groups[groups.length-1].people.push(p);
   });
 
-  var gChamp = groups.find(function(g){ return g.rank===1; }); // Champion = 1er du trimestre
-  var g1     = groups.find(function(g){ return g.rank===2; }); // 1er du podium
-  var g2     = groups.find(function(g){ return g.rank===3; }); // 2ème
-  var g3     = groups.find(function(g){ return g.rank===4; }); // 3ème
+  var gChamp = groups.find(function(g){ return g.rank===1; }); // Champion hors classement
+  var g1     = groups.find(function(g){ return g.rank===2; }); // 🥇 1er du podium
+  var g2     = groups.find(function(g){ return g.rank===3; }); // 🥈 2ème du podium
+  var g3     = groups.find(function(g){ return g.rank===4; }); // 🥉 3ème du podium
 
   var html = '';
 
-  // ── Champion (hors classement, meilleur du trimestre)
+  // ── Champion
   if (gChamp) {
     var champAv = gChamp.people.map(function(p){
       var isMe = uid && matchId(p, uid);
-      return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">' +
-        '<div class="podium-avatar" style="background:#f59e0b;width:54px;height:54px;font-size:17px">' +
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px">' +
+        '<div class="podium-avatar" style="background:#f59e0b;width:56px;height:56px;font-size:17px">' +
           (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
         '</div>' +
-        '<div style="font-size:12px;font-weight:700;text-align:center">' +
-          capFull(p.prenom)+'<br><span style="font-weight:400;color:var(--muted);font-size:11px">'+p.nom+'</span>' +
-          (isMe ? '<span class="tag-me" style="font-size:9px;margin-left:2px">Moi</span>' : '') +
+        '<div style="text-align:center">' +
+          '<span style="font-size:12px;font-weight:700">'+capFull(p.prenom)+'</span><br>' +
+          '<span style="font-weight:400;color:var(--muted);font-size:10px">'+p.nom+'</span>' +
+          (isMe ? '<span class="tag-me" style="font-size:9px;margin-left:3px">Moi</span>' : '') +
         '</div>' +
         '</div>';
     }).join('');
-    html += '<div style="text-align:center;padding:20px 8px 12px;border-bottom:1px solid var(--border);margin-bottom:16px;">' +
+    html += '<div style="text-align:center;padding:20px 8px 12px;border-bottom:1px solid var(--border);margin-bottom:16px">' +
       '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#f59e0b;margin-bottom:10px">👑 Champion du trimestre</div>' +
       '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">'+champAv+'</div>' +
-      '<div style="font-size:22px;font-weight:900;color:#f59e0b;margin-top:8px">'+gChamp.moy.toFixed(2)+' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
+      '<div style="font-size:24px;font-weight:900;color:#f59e0b;margin-top:8px">'+gChamp.moy.toFixed(2)+
+        ' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
       '</div>';
   }
 
-  // ── Podium 1er / 2ème / 3ème
+  // ── Podium 1er/2ème/3ème
+  // Couleurs et tailles par rang
+  var rankCfg = {
+    '1er':  {color:'#94a3b8', avSz:'46px', avFs:'15px', barH:70,  icon:'🥇', rankCls:'rank-1'},
+    '2ème': {color:'#b87333', avSz:'42px', avFs:'14px', barH:50,  icon:'🥈', rankCls:'rank-2'},
+    '3ème': {color:'#6b7280', avSz:'38px', avFs:'13px', barH:36,  icon:'🥉', rankCls:'rank-3'},
+  };
+
   var podiumLevels = [
-    {grp:g1, label:'1er',  icon:'🥇', color:'#94a3b8', h:'70px', sz:'44px', fsz:'15px'},
-    {grp:g2, label:'2ème', icon:'🥈', color:'#b87333', h:'50px', sz:'40px', fsz:'14px'},
-    {grp:g3, label:'3ème', icon:'🥉', color:'#6b7280', h:'36px', sz:'36px', fsz:'13px'},
+    {grp:g1, label:'1er'},
+    {grp:g2, label:'2ème'},
+    {grp:g3, label:'3ème'},
   ].filter(function(x){ return x.grp; });
 
   if (podiumLevels.length) {
-    // Ordre affichage : 2ème, 1er, 3ème
+    // Ordre affichage : 2ème | 1er | 3ème
     var display = [];
-    var p1 = podiumLevels.find(function(x){return x.label==='1er';});
-    var p2 = podiumLevels.find(function(x){return x.label==='2ème';});
-    var p3 = podiumLevels.find(function(x){return x.label==='3ème';});
-    if (p2) display.push(p2);
-    if (p1) display.push(p1);
-    if (p3) display.push(p3);
+    var lv1 = podiumLevels.find(function(x){return x.label==='1er';});
+    var lv2 = podiumLevels.find(function(x){return x.label==='2ème';});
+    var lv3 = podiumLevels.find(function(x){return x.label==='3ème';});
+    if (lv2) display.push(lv2);
+    if (lv1) display.push(lv1);
+    if (lv3) display.push(lv3);
 
     html += '<div class="podium">';
     display.forEach(function(item){
+      var cfg = rankCfg[item.label];
+      var isExAequo = item.grp.people.length > 1;
+
+      // Avatars
       var avHtml = item.grp.people.map(function(p){
-        return '<div class="podium-avatar" style="background:'+item.color+';width:'+item.sz+';height:'+item.sz+';font-size:'+item.fsz+'">'+
-          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'')+
+        return '<div class="podium-avatar" style="background:'+cfg.color+';width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+'">' +
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
         '</div>';
       }).join('');
+
+      // Noms — un bloc par personne, empilés verticalement
       var namesHtml = item.grp.people.map(function(p){
         var isMe = uid && matchId(p, uid);
-        return capFull(p.prenom)+'<br><small>'+p.nom+'</small>'+(isMe?'<span class="tag-me" style="font-size:9px">Moi</span>':'');
-      }).join('<hr style="border:none;margin:2px 0">');
-      html += '<div class="podium-slot">' +
-        '<div class="podium-rank-lbl">'+item.icon+' '+item.label+'</div>' +
+        return '<div>' +
+          '<span class="p-prenom">'+capFull(p.prenom)+(isMe?'<span class="tag-me p-me">Moi</span>':'')+'</span>' +
+          '<span class="p-nom">'+p.nom+'</span>' +
+        '</div>';
+      }).join('');
+
+      html += '<div class="podium-slot '+cfg.rankCls+'">' +
+        '<div class="podium-rank-lbl">'+cfg.icon+' '+item.label+'</div>' +
         '<div class="podium-avatars">'+avHtml+'</div>' +
+        (isExAequo ? '<div class="podium-exaequo">ex æquo</div>' : '') +
         '<div class="podium-names">'+namesHtml+'</div>' +
         '<div class="podium-score">'+item.grp.moy.toFixed(2)+'</div>' +
-        '<div class="podium-bar" style="height:'+item.h+';background:'+item.color+';opacity:.18"></div>' +
-        '</div>';
+        '<div class="podium-bar" style="height:'+cfg.barH+'px"></div>' +
+      '</div>';
     });
     html += '</div>';
   }
@@ -1245,7 +1369,7 @@ function renderAdmin() {
   }
   html+='</div></div>';
   // ── Bloc imports log
-  var imLog = (gData && gData.importsLog) ? gData.importsLog : (loadResults()||{}).importsLog || [];
+  var imLog = (gData && gData.importsLog) ? gData.importsLog : [];
   if (imLog.length) {
     var logs = imLog.slice().sort(function(a,b){
       var wa = (a.label||a.week||''), wb = (b.label||b.week||'');
@@ -1254,25 +1378,29 @@ function renderAdmin() {
       var dB = db.length===3 ? new Date(db[2],db[1]-1,db[0]) : new Date(wb);
       return dB - dA;
     });
-    html += '<div class="param-card" style="margin-top:16px"><div class="param-row"><span class="param-lbl">📋 Quiz importés ('+logs.length+')</span></div>';
+    html += '<div class="param-card" style="margin-top:16px"><div class="param-row"><span class="param-lbl">Quiz importés ('+logs.length+')</span></div>';
     html += '<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">';
     html += '<thead><tr>' +
-      '<th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)">Semaine</th>' +
+      '<th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)">Date du fichier</th>' +
       '<th style="padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);text-align:center">Participations</th>' +
-      '<th style="padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);text-align:right">Importé le</th>' +
       '</tr></thead><tbody>';
     logs.forEach(function(l){
-      var d   = new Date(l.importedAt);
-      var fmt = d.toLocaleDateString('fr-FR')+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      var dateStr = '';
+      if (l.label) {
+        var m = l.label.match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+        if (!m) m = l.label.match(/(\d{2})(\d{2})(\d{4})/);
+        if (m) dateStr = m[1]+'/'+m[2]+'/'+m[3];
+        else dateStr = l.label;
+      } else if (l.week) { dateStr = l.week; }
       html += '<tr>' +
-        '<td style="padding:6px 8px;font-weight:600">Quiz du '+(l.label||l.week||'?')+'</td>' +
-        '<td style="padding:6px 8px;text-align:center">'+l.count+'</td>' +
-        '<td style="padding:6px 8px;text-align:right;color:var(--muted);font-size:12px">'+fmt+'</td>' +
+        '<td style="padding:6px 8px;font-weight:600">' + dateStr + '</td>' +
+        '<td style="padding:6px 8px;text-align:center">' + (l.count||'—') + '</td>' +
         '</tr>';
     });
     html += '</tbody></table></div>';
   }
   wrap.innerHTML=html;
+  populateWeekDelSelect();
 }
 
 // ══ IDENTITY MODAL ═════════════════════════════════
@@ -1292,7 +1420,10 @@ document.getElementById('identModal').addEventListener('click', function(e){
 });
 
 function confirmId() {
-  var prenom = document.getElementById('inpPrenom').value.trim();
+  var _prenomRaw = document.getElementById('inpPrenom').value.trim();
+  // Normaliser : chaque mot avec 1ère lettre maj (ex: "marie lou" → "Marie Lou")
+  var prenom = _prenomRaw.replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+                          .replace(/\B\w/g, function(c){ return c.toLowerCase(); });
   var nom    = document.getElementById('inpNom').value.trim().toUpperCase();
   var errEl  = document.getElementById('modalErr');
   errEl.style.display='none';
@@ -1306,7 +1437,12 @@ function confirmId() {
 
   if (!isAdminAttempt && gData) {
     var found = gData.participants.find(function(p){ return matchId(p, {nom:nom, prenom:prenom}); });
-    if (!found) {
+    // FIX v0.31 : vérifier aussi dans la liste managers (peut n'avoir aucun score)
+    var fullName = (prenom + ' ' + nom).toLowerCase();
+    var isManagerAttempt = (gData.config && gData.config.managers || []).some(function(m){
+      return m.toLowerCase() === fullName || m.toLowerCase() === (nom + ' ' + prenom).toLowerCase();
+    });
+    if (!found && !isManagerAttempt) {
       errEl.innerHTML = 'Participant non trouvé.<br>Vérifie l\'orthographe (ex&nbsp;: <em>DUPONT</em>, <em>Marie</em>).';
       errEl.style.display='block'; return;
     }
@@ -1316,6 +1452,8 @@ function confirmId() {
   admin   = isAdminAttempt;
   manager = !admin && isManager();
   localStorage.setItem(LS_ID, JSON.stringify(uid));
+  // v0.33 : partager l'identité avec GAB pour les badges quiz
+  localStorage.setItem('gabUserId', JSON.stringify({prenom: prenom, nom: isAdminAttempt ? ADMIN_SECRET : nom}));
   var _modal = document.getElementById('identModal');
   _modal.classList.remove('open');
   _modal.style.display = 'none';
@@ -1524,6 +1662,8 @@ function ghStatus(msg, ok) {
 function fetchFromGithub() {
   var cfg = loadGithubConfig();
   if (!cfg.repo || !cfg.file) return;
+  // Preview : jsDelivr (cache ~1min) + fallback raw.githubusercontent
+  // Raw GitHub = pas de cache CDN, toujours le fichier le plus récent
   var url = 'https://raw.githubusercontent.com/' + cfg.repo + '/main/' + cfg.file;
   fetch(url + '?nocache=' + Date.now())
     .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
@@ -1534,17 +1674,55 @@ function fetchFromGithub() {
           return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
         });
       }
-      // Merger importsLog local si le JSON GitHub n'en a pas encore
-      if (!data.importsLog || !data.importsLog.length) {
-        var _localRaw = loadResults();
-        if (_localRaw && _localRaw.importsLog) data.importsLog = _localRaw.importsLog;
-      }
+      // v0.25 : le JSON GitHub est la seule source de vérité
+      if (!data.importsLog) data.importsLog = [];
+      if (!data.config) data.config = {};
+      // Sync LS depuis config GitHub pour que les param-inp soient cohérents
+      try {
+        var _p = {
+          seuilZero:       data.config.seuilZero       != null ? data.config.seuilZero       : DEFAULT_PARAMS.seuilZero,
+          seuilDisq:       data.config.seuilDisq       != null ? data.config.seuilDisq       : DEFAULT_PARAMS.seuilDisq,
+          exceptSeuilZero: data.config.exceptSeuilZero || [],
+          exceptSeuilDisq: data.config.exceptSeuilDisq || []
+        };
+        localStorage.setItem(LS_PARAMS,    JSON.stringify(_p));
+        localStorage.setItem(LS_BLACKLIST, JSON.stringify(data.config.blacklist || []));
+        localStorage.setItem(LS_MANAGERS,  JSON.stringify(data.config.managers  || []));
+      } catch(e){}
       saveResults(data);
-      gData = buildGData(data);
+      var newGData = buildGData(data);
+      // Ne pas écraser gData si on a déjà plus de semaines en mémoire
+      var currentWeeks = gData ? Object.keys(
+        gData.participants.reduce(function(acc,p){
+          ['T1','T2','T3','T4'].forEach(function(q){
+            if(p.quarters&&p.quarters[q]) p.quarters[q].weeks.forEach(function(w){acc[w.date]=1;});
+          }); return acc;
+        }, {})
+      ).length : 0;
+      var newWeeks = newGData ? Object.keys(
+        newGData.participants.reduce(function(acc,p){
+          ['T1','T2','T3','T4'].forEach(function(q){
+            if(p.quarters&&p.quarters[q]) p.quarters[q].weeks.forEach(function(w){acc[w.date]=1;});
+          }); return acc;
+        }, {})
+      ).length : 0;
+      if (!gData || newWeeks >= currentWeeks) gData = newGData;
+      else { console.log('[GAB Quiz] Fetch ignoré — gData plus récent ('+currentWeeks+' sem > '+newWeeks+' sem)'); }
       try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
       console.log('[GAB Quiz] Résultats chargés depuis GitHub ✅');
-      // Toujours appeler showProperView pour garantir l'affichage correct
-      showProperView();
+      var _lbl = document.getElementById('refreshLabel');
+      if (_lbl) { _lbl.textContent='✅ À jour'; setTimeout(function(){ _lbl.textContent='Rafraîchir'; }, 2500); }
+      // Re-render immédiat sans passer par showProperView (évite le flash)
+      if (document.getElementById('mainWrap').style.display !== 'none') {
+        buildQSelector();
+        renderClassement(curQ);
+        renderHistory();
+        if (admin) { renderAdmin(); renderStats(); }
+        var _isMgr = isManager();
+        if (admin || _isMgr) renderEquipe();
+      } else {
+        showProperView();
+      }
     })
     .catch(function(err){
       console.warn('[GAB Quiz] GitHub fetch failed, fallback localStorage:', err.message);
@@ -1575,19 +1753,37 @@ function pushToGithub() {
   if (!cfg.token) { ghStatus('❌ Token manquant', false); return; }
   // Utiliser gData en priorité (contient importsLog à jour), fallback localStorage
   var raw = loadResults() || {};
+  var _params    = loadParams();
+  var _blacklist = loadBlacklist();
+  var _managers  = loadManagers();
+  var _cfg = Object.assign({}, (gData && gData.config) || raw.config || {}, {
+    seuilZero:       _params.seuilZero,
+    seuilDisq:       _params.seuilDisq,
+    exceptSeuilZero: _params.exceptSeuilZero,
+    exceptSeuilDisq: _params.exceptSeuilDisq,
+    blacklist:       _blacklist,
+    managers:        _managers
+  });
   var data = {
+    version: '0.25',
+    annee:   new Date().getFullYear(),
     participants: (gData ? gData.participants.map(function(p){
       var scores = {};
+      // Trier les semaines par date chronologique
+      var allWeeks = [];
       ['T1','T2','T3','T4'].forEach(function(q){
         if (p.quarters && p.quarters[q]) {
-          p.quarters[q].weeks.forEach(function(w){
-            scores[w.date] = w.score === 'absent' ? 'NF' : w.score;
-          });
+          p.quarters[q].weeks.forEach(function(w){ allWeeks.push(w); });
         }
       });
+      allWeeks.sort(function(a,b){
+        var pa=a.date.split('/'), pb=b.date.split('/');
+        return new Date(pa[2],pa[1]-1,pa[0]) - new Date(pb[2],pb[1]-1,pb[0]);
+      });
+      allWeeks.forEach(function(w){ scores[w.date] = w.score === 'absent' ? 'NF' : w.score; });
       return {nom:p.nom, prenom:p.prenom, scores:scores};
-    }) : raw.participants) || [],
-    config: (gData && gData.config) || raw.config || null,
+    }).sort(function(a,b){ return a.nom.localeCompare(b.nom); }) : raw.participants) || [],
+    config: _cfg,
     importsLog: (gData && gData.importsLog && gData.importsLog.length)
                   ? gData.importsLog
                   : (raw.importsLog || [])
@@ -1609,7 +1805,15 @@ function pushToGithub() {
   .then(function(existing){
     var sha = existing.sha || '';
     var body = {
-      message: 'GAB Quiz — mise à jour résultats ' + new Date().toLocaleDateString('fr-FR'),
+      message: (function(){
+      var log = (gData && gData.importsLog) ? gData.importsLog : [];
+      if (log.length) {
+        var weeks = log.map(function(l){ return l.week || l.label || ''; })
+                       .filter(function(w){ return w; });
+        return 'GAB Quiz — import semaine' + (weeks.length > 1 ? 's' : '') + ' ' + weeks.join(', ');
+      }
+      return 'GAB Quiz — mise à jour résultats ' + new Date().toLocaleDateString('fr-FR');
+    })(),
       content: content
     };
     if (sha) body.sha = sha;
@@ -1624,7 +1828,16 @@ function pushToGithub() {
     });
   })
   .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(function(){ ghStatus('✅ Push réussi !', true); })
+  .then(function(){
+    ghStatus('✅ Push réussi — purge cache...', true);
+    // Purger le cache jsDelivr pour que fetchFromGithub voie les nouvelles données immédiatement
+    fetch('https://purge.jsdelivr.net/gh/Lemtosh/GAB.@main/resultats.json')
+      .catch(function(){}) // silencieux si purge échoue
+      .finally(function(){
+        ghStatus('✅ Push réussi !', true);
+        setTimeout(fetchFromGithub, 1500); // refetch après purge
+      });
+  })
   .catch(function(e){ ghStatus('❌ ' + e.message, false); });
 }
 
@@ -1947,8 +2160,7 @@ function openChangeIdentity() {
 // ══ ADMIN UPLOAD INLINE ════════════════════════════
 function handleDropAdmin(e) {
   e.preventDefault();
-  var file = e.dataTransfer.files[0];
-  if (file) handleFileAdmin(file);
+  if (e.dataTransfer.files.length) handleFilesAdmin(e.dataTransfer.files);
 }
 
 function extractDateFromFilename(name) {
@@ -1978,7 +2190,7 @@ function handleFileAdmin(file) {
       }
       if (!entries || !entries.length) throw new Error('Aucune donnée valide');
       // Vérifier doublons avant merge
-      var existingLog = (gData && gData.importsLog) || (loadResults()||{}).importsLog || [];
+      var existingLog = (gData && gData.importsLog) ? gData.importsLog : [];
       var weekKeys = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
       var dupeByLabel = fileLabel && existingLog.some(function(l){ return l.label === fileLabel; });
       var dupeByWeek  = weekKeys.some(function(wk){ return existingLog.some(function(l){ return l.week === wk; }); });
@@ -2007,7 +2219,24 @@ function handleFileAdmin(file) {
       }
       var data = mergeCSVEntries(entries, fileLabel);
       saveResults(data);
-      gData = buildGData(data);
+      var newGData = buildGData(data);
+      // Ne pas écraser gData si on a déjà plus de semaines en mémoire
+      var currentWeeks = gData ? Object.keys(
+        gData.participants.reduce(function(acc,p){
+          ['T1','T2','T3','T4'].forEach(function(q){
+            if(p.quarters&&p.quarters[q]) p.quarters[q].weeks.forEach(function(w){acc[w.date]=1;});
+          }); return acc;
+        }, {})
+      ).length : 0;
+      var newWeeks = newGData ? Object.keys(
+        newGData.participants.reduce(function(acc,p){
+          ['T1','T2','T3','T4'].forEach(function(q){
+            if(p.quarters&&p.quarters[q]) p.quarters[q].weeks.forEach(function(w){acc[w.date]=1;});
+          }); return acc;
+        }, {})
+      ).length : 0;
+      if (!gData || newWeeks >= currentWeeks) gData = newGData;
+      else { console.log('[GAB Quiz] Fetch ignoré — gData plus récent ('+currentWeeks+' sem > '+newWeeks+' sem)'); }
       // S'assurer que importsLog est bien dans gData depuis data
       if (!gData.importsLog || !gData.importsLog.length) gData.importsLog = data.importsLog || [];
       var status = document.getElementById('importAdminStatus');
@@ -2032,6 +2261,379 @@ function handleFileAdmin(file) {
   };
   reader.readAsArrayBuffer(file);
 }
+
+// ══ IMPORT MULTIPLE ════════════════════════════════════════
+function handleFilesAdmin(files) {
+  if (!files || !files.length) return;
+  var fileArr = Array.from(files);
+  // FIX v0.31 : trier les fichiers par date extraite du nom (ordre chronologique)
+  // afin que les NF soient correctement déduits lors d'un import multiple
+  fileArr.sort(function(a, b) {
+    var da = extractDateFromFilename(a.name) || '';
+    var db = extractDateFromFilename(b.name) || '';
+    var pa = da.split('/'), pb = db.split('/');
+    if (pa.length === 3 && pb.length === 3) {
+      return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+    }
+    return a.name.localeCompare(b.name);
+  });
+  var status  = document.getElementById('importAdminStatus');
+  if (status) { status.style.display = 'block'; status.textContent = '⏳ Traitement de ' + fileArr.length + ' fichier(s)...'; }
+
+  var processed = 0, totalEntries = 0, errors = [];
+
+  function processNext(idx) {
+    if (idx >= fileArr.length) {
+      // Tous traités → push GitHub
+      saveResults(loadResults()); // s'assurer que LS est à jour
+      gData = buildGData(loadResults());
+      try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+      var summary = '✅ ' + processed + ' fichier(s) importé(s) — ' + totalEntries + ' participations';
+      if (errors.length) summary += ' — ⚠️ ' + errors.length + ' erreur(s): ' + errors.join(', ');
+      if (status) status.textContent = summary;
+      // Forcer re-render complet sans changer d'onglet
+      if (document.getElementById('mainWrap').style.display !== 'none') {
+        buildQSelector(); renderClassement(curQ); renderHistory();
+        if (admin) { renderAdmin(); renderStats(); }
+      } else {
+        showMain();
+      }
+      // Auto-push GitHub
+      var cfg = loadGithubConfig();
+      if (cfg && cfg.token) {
+        setTimeout(function(){ ghStatus('', true); pushToGithub(); }, 400);
+      }
+      return;
+    }
+    var file = fileArr[idx];
+    var fileLabel = extractDateFromFilename(file.name) || file.name.replace(/\.[^.]+$/, '');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var entries = [];
+        if (file.name.match(/\.csv$/i)) {
+          var text = new TextDecoder('utf-8').decode(e.target.result);
+          entries = parseCSV(text);
+        } else {
+          var wb = XLSX.read(e.target.result, {type:'array'});
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          entries = XLSX.utils.sheet_to_json(ws, {raw:false});
+        }
+        if (!entries || !entries.length) { errors.push(file.name + ' (vide)'); }
+        else {
+          var merged = mergeCSVEntries(entries, fileLabel);
+          saveResults(merged);
+          totalEntries += entries.length;
+          processed++;
+          if (status) status.textContent = '⏳ ' + (idx+1) + '/' + fileArr.length + ' — ' + file.name;
+        }
+      } catch(err) { errors.push(file.name + ' (' + err.message + ')'); }
+      processNext(idx + 1);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  processNext(0);
+}
+
+  // ══ AJOUT MANUEL PARTICIPANT ══════════════════════════════
+  function addParticipantManual() {
+    var prenom = document.getElementById('addPartPrenom').value.trim();
+    var nom    = document.getElementById('addPartNom').value.trim().toUpperCase();
+    var week   = document.getElementById('addPartWeek').value.trim();
+    var scoreRaw = document.getElementById('addPartScore').value.trim().toUpperCase();
+    var statusEl = document.getElementById('addPartStatus');
+
+    // Validation
+    if (!prenom || !nom || !week || !scoreRaw) {
+      statusEl.textContent = '❌ Tous les champs sont requis.';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    // Valider format date jj/mm/aaaa
+    var dateParts = week.split('/');
+    if (dateParts.length !== 3 || dateParts[0].length < 1 || dateParts[1].length < 1 || dateParts[2].length !== 4) {
+      statusEl.textContent = '❌ Format date invalide (jj/mm/aaaa).';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    var score = scoreRaw === 'NF' ? 'NF' : parseInt(scoreRaw, 10);
+    if (scoreRaw !== 'NF' && (isNaN(score) || score < 0 || score > 10)) {
+      statusEl.textContent = '❌ Score invalide (0-10 ou NF).';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    // Normaliser prénom
+    prenom = prenom.replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+                   .replace(/\B\w/g, function(c){ return c.toLowerCase(); });
+
+    var data = loadResults();
+    if (!data) { statusEl.textContent = '❌ Aucun résultat chargé.'; statusEl.style.display='block'; return; }
+
+    // Trouver ou créer le participant
+    var p = data.participants.find(function(x){ return matchId(x, {nom:nom, prenom:prenom}); });
+    if (!p) {
+      p = {nom: nom, prenom: prenom, scores: {}};
+      data.participants.push(p);
+    }
+    p.scores[week] = score;
+
+    // Mettre à jour importsLog si semaine nouvelle
+    if (!data.importsLog) data.importsLog = [];
+    var alreadyLog = data.importsLog.some(function(l){ return l.week === week; });
+    if (!alreadyLog) {
+      data.importsLog.push({week: week, importedAt: new Date().toISOString(), count: 1, label: week});
+    }
+
+    saveResults(data);
+    gData = buildGData(data);
+    try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+    statusEl.textContent = '✅ ' + prenom + ' ' + nom + ' — semaine ' + week + ' ajouté(e).';
+    statusEl.style.color = 'var(--success)';
+    statusEl.style.display = 'block';
+
+    // Reset champs
+    document.getElementById('addPartPrenom').value = '';
+    document.getElementById('addPartNom').value = '';
+    document.getElementById('addPartWeek').value = '';
+    document.getElementById('addPartScore').value = '';
+
+    buildQSelector();
+    renderClassement(curQ);
+    renderAdmin();
+    populateWeekDelSelect();
+
+    // Auto-push GitHub
+    var cfg = loadGithubConfig();
+    if (cfg && cfg.token) {
+      setTimeout(function(){ pushToGithub(); }, 400);
+    }
+  }
+
+  // ══ SUPPRESSION SEMAINE ════════════════════════════════════
+  function populateWeekDelSelect() {
+    var sel = document.getElementById('weekDelSelect');
+    if (!sel) return;
+    var raw = loadResults();
+    var weeks = [];
+    if (raw && raw.importsLog && raw.importsLog.length) {
+      raw.importsLog.forEach(function(l){ if (weeks.indexOf(l.week) < 0) weeks.push(l.week); });
+    } else if (gData && gData.importsLog) {
+      gData.importsLog.forEach(function(l){ if (weeks.indexOf(l.week) < 0) weeks.push(l.week); });
+    }
+    weeks.sort(function(a,b){
+      var pa=a.split('/'), pb=b.split('/');
+      return new Date(pa[2],pa[1]-1,pa[0]) - new Date(pb[2],pb[1]-1,pb[0]);
+    });
+    sel.innerHTML = '<option value="">— Choisir une semaine —</option>';
+    weeks.forEach(function(w){
+      sel.innerHTML += '<option value="'+w+'">Semaine du '+w+'</option>';
+    });
+  }
+
+  function deleteWeek() {
+    var sel    = document.getElementById('weekDelSelect');
+    var status = document.getElementById('weekDelStatus');
+    var week   = sel ? sel.value : '';
+    if (!week) { weekDelStatus('⚠️ Sélectionne une semaine', false); return; }
+    if (!confirm('Supprimer toutes les données de la semaine du ' + week + ' ? Cette action re-poussera le JSON vers GitHub.')) return;
+
+    var raw = loadResults() || {};
+    if (!raw.participants) { weekDelStatus('❌ Aucune donnée locale', false); return; }
+
+    // Supprimer le score de cette semaine pour chaque participant
+    raw.participants.forEach(function(p){
+      if (p.scores && p.scores[week] !== undefined) delete p.scores[week];
+    });
+
+    // Supprimer les entrées importsLog pour cette semaine
+    if (raw.importsLog) {
+      raw.importsLog = raw.importsLog.filter(function(l){ return l.week !== week; });
+    }
+
+    // Sauvegarder localement
+    saveResults(raw);
+    gData = buildGData(raw);
+    try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+    // Re-pousser vers GitHub
+    var cfg = loadGithubConfig();
+    if (!cfg.token) { weekDelStatus('✅ Supprimé localement (pas de token pour push)', true); renderAdmin(); return; }
+
+    weekDelStatus('⏳ Push en cours...', true);
+    var _params    = loadParams();
+    var _blacklist = loadBlacklist();
+    var _managers  = loadManagers();
+    var data = {
+      version: '0.26',
+      annee:   new Date().getFullYear(),
+      participants: raw.participants,
+      config: Object.assign({}, raw.config || {}, {
+        seuilZero: _params.seuilZero, seuilDisq: _params.seuilDisq,
+        exceptSeuilZero: _params.exceptSeuilZero, exceptSeuilDisq: _params.exceptSeuilDisq,
+        blacklist: _blacklist, managers: _managers
+      }),
+      importsLog: raw.importsLog || []
+    };
+
+    var url     = 'https://api.github.com/repos/' + cfg.repo.replace(/\/+$/,'') + '/contents/' + cfg.file;
+    var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    fetch(url, { headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'} })
+      .then(function(r){ return r.json(); })
+      .then(function(existing){
+        var body = { message:'GAB Quiz — suppression semaine '+week, content:content };
+        if (existing.sha) body.sha = existing.sha;
+        return fetch(url, { method:'PUT', headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'}, body:JSON.stringify(body) });
+      })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(){
+        weekDelStatus('✅ Semaine '+week+' supprimée — purge cache...', true);
+        fetch('https://purge.jsdelivr.net/gh/Lemtosh/GAB.@main/resultats.json')
+          .catch(function(){})
+          .finally(function(){
+            weekDelStatus('✅ Semaine '+week+' supprimée et JSON mis à jour', true);
+            setTimeout(fetchFromGithub, 1500);
+            renderAdmin(); renderClassement(curQ); renderHistory();
+          });
+      })
+      .catch(function(e){ weekDelStatus('❌ '+e.message, false); });
+  }
+
+  function weekDelStatus(msg, ok) {
+    var el = document.getElementById('weekDelStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  }
+
+
+  // ══ RAFRAÎCHIR ═════════════════════════════════════════════
+  function refreshData() {
+    var icon  = document.getElementById('refreshIcon');
+    var label = document.getElementById('refreshLabel');
+    if (icon)  { icon.style.transform='rotate(360deg)'; setTimeout(function(){ icon.style.transition='none'; icon.style.transform='rotate(0deg)'; setTimeout(function(){ icon.style.transition='transform 0.7s ease'; },50); },750); }
+    if (label) { label.textContent='Chargement…'; }
+    fetchFromGithub();
+  }
+
+// ══ RESET JSON ════════════════════════════════════
+function openResetModal() {
+  // reset état
+  ['chkScores','chkConfig','chkManagers','chkBlacklist'].forEach(function(id){
+    document.getElementById(id).checked = false;
+  });
+  document.getElementById('resetStep1').style.display = 'block';
+  document.getElementById('resetStep2').style.display = 'none';
+  document.getElementById('resetErr').style.display = 'none';
+  document.getElementById('resetErr').textContent = '';
+  document.getElementById('resetModal').classList.add('open');
+}
+
+function closeResetModal() {
+  document.getElementById('resetModal').classList.remove('open');
+}
+
+function toggleResetCheck(id) {
+  var cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+}
+
+function resetSelectAll() {
+  ['chkScores','chkConfig','chkManagers','chkBlacklist'].forEach(function(id){
+    document.getElementById(id).checked = true;
+  });
+}
+
+function resetStep2() {
+  var selected = [];
+  if (document.getElementById('chkScores').checked)    selected.push('Scores & imports (participants, importsLog)');
+  if (document.getElementById('chkConfig').checked)    selected.push('Configuration (seuilZero, seuilDisq, exceptions)');
+  if (document.getElementById('chkManagers').checked)  selected.push('Managers');
+  if (document.getElementById('chkBlacklist').checked) selected.push('Blacklist');
+  if (!selected.length) {
+    var e = document.getElementById('resetErr');
+    e.textContent = 'Sélectionne au moins un élément.';
+    e.style.display = 'block';
+    return;
+  }
+  document.getElementById('resetStep2Desc').innerHTML =
+    'Les éléments suivants seront remis à zéro&nbsp;:<br><strong>' + selected.join('<br>') + '</strong>';
+  document.getElementById('resetStep1').style.display = 'none';
+  document.getElementById('resetStep2').style.display = 'block';
+  document.getElementById('resetStatus').style.display = 'none';
+}
+
+function resetBackStep1() {
+  document.getElementById('resetStep1').style.display = 'block';
+  document.getElementById('resetStep2').style.display = 'none';
+}
+
+async function executeReset() {
+  var btn = document.getElementById('resetConfirmBtn');
+  var statusEl = document.getElementById('resetStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Reset en cours...';
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Mise à jour du JSON...';
+
+  // Charger le JSON actuel
+  var data = loadResults();
+  if (!data) data = { annee: new Date().getFullYear(), generated:'', participants:[], importsLog:[], config:{} };
+  if (!data.config) data.config = {};
+
+  // Appliquer les resets sélectionnés
+  if (document.getElementById('chkScores').checked) {
+    data.participants = [];
+    data.importsLog   = [];
+  }
+  if (document.getElementById('chkConfig').checked) {
+    data.config.seuilZero      = 6;
+    data.config.seuilDisq      = 10;
+    data.config.exceptSeuilZero = [];
+    data.config.exceptSeuilDisq = [];
+  }
+  if (document.getElementById('chkManagers').checked)  data.config.managers  = [];
+  if (document.getElementById('chkBlacklist').checked) data.config.blacklist = [];
+
+  data.generated = new Date().toISOString();
+  saveResults(data);
+  gData = buildGData(data);
+  try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+  // Push GitHub
+  var cfg = loadGithubConfig();
+  if (!cfg || !cfg.token) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '⚠️ Aucun token GitHub configuré — reset appliqué en local uniquement.';
+    btn.disabled = false; btn.textContent = 'Confirmer le reset';
+    setTimeout(function(){ closeResetModal(); showMain(); }, 2000);
+    return;
+  }
+
+  try {
+    var url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + cfg.file;
+    var getResp = await fetch(url, { headers:{ 'Authorization':'token '+cfg.token, 'Accept':'application/vnd.github.v3+json' }});
+    var fileMeta = await getResp.json();
+    var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    var putResp = await fetch(url, {
+      method:'PUT',
+      headers:{ 'Authorization':'token '+cfg.token, 'Content-Type':'application/json', 'Accept':'application/vnd.github.v3+json' },
+      body: JSON.stringify({ message:'reset JSON v0.32 - ' + new Date().toISOString(), content: newContent, sha: fileMeta.sha })
+    });
+    if (putResp.ok) {
+      statusEl.style.color = 'var(--success)';
+      statusEl.textContent = '✅ Reset effectué et poussé sur GitHub.';
+      setTimeout(function(){ closeResetModal(); showMain(); renderAdmin(); renderParamTags(); renderBlacklistTags(); renderManagersTags(); }, 1500);
+    } else {
+      var err = await putResp.json();
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = '❌ Erreur GitHub : ' + (err.message || putResp.status);
+    }
+  } catch(ex) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '❌ Erreur réseau : ' + ex.message;
+  }
+  btn.disabled = false; btn.textContent = 'Confirmer le reset';
+}
 </script>
 
 <!-- INFO POPUP — style GAB_SGP -->
@@ -2053,6 +2655,60 @@ function handleFileAdmin(file) {
     </div>
     <div class="ccFooter">
       <button type="button" class="ccPrimary" onclick="document.getElementById('infoPopup').style.display='none';">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET JSON MODAL -->
+<div class="modal-ov" id="resetModal" onclick="if(event.target===this)closeResetModal()">
+  <div class="modal-box" style="max-width:420px;">
+    <!-- STEP 1 : sélection -->
+    <div id="resetStep1">
+      <h2 style="color:var(--danger)">⚠️ Reset JSON</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px;">Sélectionne les éléments à remettre à zéro. L'opération sera poussée sur GitHub.</p>
+      <button class="reset-select-all" onclick="resetSelectAll()">Tout sélectionner</button>
+      <div class="reset-check-list">
+        <div class="reset-check-item" onclick="toggleResetCheck('chkScores')">
+          <input type="checkbox" id="chkScores" onclick="event.stopPropagation();"/>
+          <label for="chkScores">Scores &amp; imports
+            <span class="reset-sub">participants, importsLog</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkConfig')">
+          <input type="checkbox" id="chkConfig" onclick="event.stopPropagation();"/>
+          <label for="chkConfig">Configuration
+            <span class="reset-sub">seuilZero, seuilDisq, exceptions</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkManagers')">
+          <input type="checkbox" id="chkManagers" onclick="event.stopPropagation();"/>
+          <label for="chkManagers">Managers
+            <span class="reset-sub">liste des managers</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkBlacklist')">
+          <input type="checkbox" id="chkBlacklist" onclick="event.stopPropagation();"/>
+          <label for="chkBlacklist">Blacklist
+            <span class="reset-sub">participants exclus</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-err" id="resetErr"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-sm" style="flex:1;" onclick="closeResetModal()">Annuler</button>
+        <button class="btn-danger" style="margin-top:0;flex:1;" onclick="resetStep2()">Continuer →</button>
+      </div>
+    </div>
+    <!-- STEP 2 : confirmation -->
+    <div id="resetStep2" style="display:none;">
+      <h2 style="color:var(--danger)">⚠️ Confirmation finale</h2>
+      <p id="resetStep2Desc" style="font-size:13px;color:var(--muted);line-height:1.6;"></p>
+      <p style="font-size:13px;font-weight:700;margin-top:12px;">Cette action est irréversible. Les données seront écrasées sur GitHub.</p>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn-sm" style="flex:1;" onclick="resetBackStep1()">← Retour</button>
+        <button class="btn-danger" style="margin-top:0;flex:1;" id="resetConfirmBtn" onclick="executeReset()">Confirmer le reset</button>
+      </div>
+      <div id="resetStatus" style="font-size:12px;margin-top:10px;display:none;"></div>
     </div>
   </div>
 </div>
