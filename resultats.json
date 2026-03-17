@@ -1,7 +1,260 @@
 {
   "version": "0.25",
   "annee": 2026,
-  "participants": [],
+  "participants": [
+    {
+      "nom": "ALFA",
+      "prenom": "Edwige",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "ALI BEY",
+      "prenom": "Eline",
+      "scores": {
+        "28/01/2026": 4
+      }
+    },
+    {
+      "nom": "AMADOR",
+      "prenom": "Nina",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "ARNAUDO",
+      "prenom": "Coraline",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "AUDIBERT",
+      "prenom": "Thomas",
+      "scores": {
+        "28/01/2026": 7
+      }
+    },
+    {
+      "nom": "BALLOUARD",
+      "prenom": "Alexandre",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "BOUILLARD",
+      "prenom": "Karine",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "BRIEND",
+      "prenom": "Sami",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "BRIGNOU",
+      "prenom": "Marielou",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "BUIX",
+      "prenom": "Lisa",
+      "scores": {
+        "28/01/2026": 5
+      }
+    },
+    {
+      "nom": "CHANEAC",
+      "prenom": "Cécile",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "CHATELET",
+      "prenom": "Andreas",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "CLARETON",
+      "prenom": "Mathieu",
+      "scores": {
+        "28/01/2026": 7
+      }
+    },
+    {
+      "nom": "COSTE",
+      "prenom": "Killian",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "DEJEAN",
+      "prenom": "Kevin",
+      "scores": {
+        "28/01/2026": 5
+      }
+    },
+    {
+      "nom": "EHLERINGER",
+      "prenom": "Lou",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "FERNANDES",
+      "prenom": "Joao",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "FERREIRA",
+      "prenom": "Manuela",
+      "scores": {
+        "28/01/2026": 3
+      }
+    },
+    {
+      "nom": "FISCHER",
+      "prenom": "Elodie",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "FONTEIX",
+      "prenom": "Benjamin",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "FRONTINI",
+      "prenom": "Léa",
+      "scores": {
+        "28/01/2026": 5
+      }
+    },
+    {
+      "nom": "GARBACIAK",
+      "prenom": "Camille",
+      "scores": {
+        "28/01/2026": 10
+      }
+    },
+    {
+      "nom": "GARRIGUES",
+      "prenom": "Céline",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "KOENIG",
+      "prenom": "Noémie",
+      "scores": {
+        "28/01/2026": 6
+      }
+    },
+    {
+      "nom": "LAENCINA",
+      "prenom": "Loris",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "LATOUR",
+      "prenom": "Anaëlle",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "LEYDIER",
+      "prenom": "Perrine",
+      "scores": {
+        "28/01/2026": 5
+      }
+    },
+    {
+      "nom": "LINSOLAS",
+      "prenom": "Andy",
+      "scores": {
+        "28/01/2026": 10
+      }
+    },
+    {
+      "nom": "MAUBON",
+      "prenom": "Julien",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "MORTIER",
+      "prenom": "Maxence",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "NOURI",
+      "prenom": "Hamza",
+      "scores": {
+        "28/01/2026": 7
+      }
+    },
+    {
+      "nom": "PASSET",
+      "prenom": "Angel",
+      "scores": {
+        "28/01/2026": 8
+      }
+    },
+    {
+      "nom": "PORCHE",
+      "prenom": "Romain",
+      "scores": {
+        "28/01/2026": 9
+      }
+    },
+    {
+      "nom": "TARDIEU",
+      "prenom": "Paul",
+      "scores": {
+        "28/01/2026": 10
+      }
+    },
+    {
+      "nom": "THEVENET",
+      "prenom": "Lou anne",
+      "scores": {
+        "28/01/2026": 7
+      }
+    },
+    {
+      "nom": "VERRYKEN",
+      "prenom": "Laura",
+      "scores": {
+        "28/01/2026": 8
+      }
+    }
+  ],
   "config": {
     "seuilZero": 6,
     "seuilDisq": 10,
@@ -10,6 +263,30 @@
     "blacklist": [],
     "managers": []
   },
-  "importsLog": [],
-  "generated": "2026-03-17T22:10:22.453Z"
+  "importsLog": [
+    {
+      "week": "07/01/2026",
+      "importedAt": "2026-03-17T22:14:28.112Z",
+      "count": 29,
+      "label": "07/01/2026"
+    },
+    {
+      "week": "14/01/2026",
+      "importedAt": "2026-03-17T22:14:28.113Z",
+      "count": 38,
+      "label": "14/01/2026"
+    },
+    {
+      "week": "21/01/2026",
+      "importedAt": "2026-03-17T22:14:28.113Z",
+      "count": 39,
+      "label": "21/01/2026"
+    },
+    {
+      "week": "28/01/2026",
+      "importedAt": "2026-03-17T22:14:28.114Z",
+      "count": 36,
+      "label": "28/01/2026"
+    }
+  ]
 }
