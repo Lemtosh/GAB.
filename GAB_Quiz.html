@@ -890,11 +890,24 @@ function mergeCSVEntries(entries, fileLabel) {
 
   // Marquer NF pour les participants connus absents cette semaine
   data.participants.forEach(function(p){
+    // BUG4 FIX : calculer la date de 1ère apparition réelle du participant
+    var firstDate = null;
+    Object.keys(p.scores).forEach(function(dateStr){
+      var parts = dateStr.split('/');
+      if (parts.length === 3) {
+        var d = new Date(parts[2], parts[1]-1, parts[0]);
+        if (!firstDate || d < firstDate) firstDate = d;
+      }
+    });
     importedWeeks.forEach(function(wk){
       if (p.scores[wk] === undefined) {
-        // Seulement si ce participant a au moins un score (évite NF rétroactif pour nouveaux)
         var hasAnyScore = Object.keys(p.scores).length > 0;
-        if (hasAnyScore) p.scores[wk] = 'NF';
+        if (hasAnyScore && firstDate) {
+          var parts = wk.split('/');
+          var wkDate = new Date(parts[2], parts[1]-1, parts[0]);
+          // Ne pas mettre NF sur une semaine antérieure à la 1ère apparition
+          if (wkDate >= firstDate) p.scores[wk] = 'NF';
+        }
       }
     });
   });
