@@ -1,6 +1,7 @@
 {
+  "version": "0.25",
   "annee": 2026,
-  "generated": "2026-03-17T21:30:55.812576Z",
+  "participants": [],
   "config": {
     "seuilZero": 6,
     "seuilDisq": 10,
@@ -9,6 +10,6 @@
     "blacklist": [],
     "managers": []
   },
-  "participants": [],
-  "importsLog": []
+  "importsLog": [],
+  "generated": "2026-03-17T21:55:35.757Z"
 }
