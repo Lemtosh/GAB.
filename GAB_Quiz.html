@@ -841,12 +841,35 @@ function fmtDate(d) {
 
 // Fusionner les entrées CSV dans le JSON résultats existant
 function mergeCSVEntries(entries, fileLabel) {
-  var data = loadResults();
-  if (!data) data = {annee: new Date().getFullYear(), generated:'', participants:[]};
-  // Sanitize : ne garder que nom, prenom, scores (ignorer champs pré-calculés legacy)
-  data.participants = data.participants.map(function(p){
-    return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
-  });
+  var data;
+  if (gData) {
+    // Reconstruire data depuis gData (source de vérité GitHub)
+    var rawParticipants = gData.participants.map(function(p) {
+      var scores = {};
+      ['T1','T2','T3','T4'].forEach(function(q) {
+        if (p.quarters && p.quarters[q] && p.quarters[q].weeks) {
+          p.quarters[q].weeks.forEach(function(w) {
+            scores[w.date] = (w.score === 'absent') ? 'NF' : w.score;
+          });
+        }
+      });
+      return {nom: p.nom, prenom: p.prenom, scores: scores};
+    });
+    data = {
+      annee: (gData.config && gData.config.annee) ? gData.config.annee : new Date().getFullYear(),
+      generated: '',
+      participants: rawParticipants,
+      importsLog: gData.importsLog || [],
+      config: gData.config || null
+    };
+  } else {
+    data = loadResults();
+    if (!data) data = {annee: new Date().getFullYear(), generated:'', participants:[]};
+    // Sanitize : ne garder que nom, prenom, scores (ignorer champs pré-calculés legacy)
+    data.participants = data.participants.map(function(p){
+      return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
+    });
+  }
 
   // Identifier la semaine importée
   var weeks = {};
@@ -2301,7 +2324,8 @@ function handleFilesAdmin(files) {
       // Auto-push GitHub
       var cfg = loadGithubConfig();
       if (cfg && cfg.token) {
-        setTimeout(function(){ ghStatus('', true); pushToGithub(); }, 400);
+        saveResults(loadResults());
+          setTimeout(function(){ ghStatus('', true); pushToGithub(); }, 1500);
       }
       return;
     }
@@ -2403,7 +2427,7 @@ function handleFilesAdmin(files) {
     // Auto-push GitHub
     var cfg = loadGithubConfig();
     if (cfg && cfg.token) {
-      setTimeout(function(){ pushToGithub(); }, 400);
+      setTimeout(function(){ pushToGithub(); }, 1500);
     }
   }
 
