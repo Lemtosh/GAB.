@@ -2347,6 +2347,7 @@ function handleFilesAdmin(files) {
         else {
           var merged = mergeCSVEntries(entries, fileLabel);
           saveResults(merged);
+          gData = buildGData(merged); // BUG3 FIX : mettre à jour gData entre chaque fichier
           totalEntries += entries.length;
           processed++;
           if (status) status.textContent = '⏳ ' + (idx+1) + '/' + fileArr.length + ' — ' + file.name;
