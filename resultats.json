@@ -738,8 +738,19 @@
     "seuilDisq": 10,
     "exceptSeuilZero": [],
     "exceptSeuilDisq": [],
-    "blacklist": [],
-    "managers": []
+    "blacklist": [
+      "Maëlys BARON",
+      "Charlotte ROY"
+    ],
+    "managers": [
+      "Elsa MARCHISET",
+      "Priscillia PAULY",
+      "Marielou BRIGNOU",
+      "Andy CANALI",
+      "Lucas MARTINEZ",
+      "Paul TARDIEU",
+      "Camille BLANCHET"
+    ]
   },
   "importsLog": [
     {
