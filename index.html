@@ -2377,7 +2377,39 @@ a.topNavBtn:focus {
 
     /* Canvas frise : toujours pleine largeur de la card */
     #canvasAuto, #canvasMoto { display:block; width:100% !important; max-width:100%; }
-  </style>
+  
+  /* ── Chrono rapide & Encart Rapidité Quiz ── */
+  .chronoRapide {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+    vertical-align: middle;
+  }
+  .fastestEncart {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .fastestLine   { font-size: 13px; }
+  .fastestLabel  { font-weight: 600; color: #a78bfa; }
+  .fastestTime   { font-weight: 700; color: #a78bfa; }
+
+</style>
 </head>
 <body>
 <div class="app">
@@ -2855,7 +2887,7 @@ a.topNavBtn:focus {
 </div>
 <div aria-live="polite" class="tooltip" id="crmTooltip" role="dialog"></div>
 <script>
-    const LOCAL_VERSION = "1.4";
+    const LOCAL_VERSION = "1.4.01";
     const VERSION_URL = "https://gist.githubusercontent.com/Lemtosh/ac7fc859fe26f28a17f86fa73c4a4e95/raw/version.json";
     const CHANGELOG_URL = "https://raw.githubusercontent.com/Lemtosh/GAB./refs/heads/main/CHANGELOG.md";
   const CHANGELOG_INLINE = `# Changelog — GAB. Guide Antécédents Bonus-Malus
@@ -6951,8 +6983,13 @@ window.closeMenu  = function() {};
     { id:'quiz_perfect3', label:'Série Parfaite',    desc:'3 scores de 10/10 consécutifs au quiz',          img:'badges/quiz_perfect3.png' },
     { id:'quiz_perfect5', label:'Maître du Quiz',    desc:'5 scores de 10/10 consécutifs au quiz',          img:'badges/quiz_perfect5.png' },
     { id:'quiz_assidu',   label:'Assidu',            desc:'Aucune absence sur un trimestre entier du quiz', img:'badges/quiz_assidu.png' }
-  ];
+  ,
 
+    /* ── Quiz Rapidité ── */
+    { id:'quiz_fastest_1', label:'⚡ Premier Éclair',    desc:'Avoir été le plus rapide de la semaine au Quiz au moins 1 fois',  img:'badges/badge_fastest_1.png' },
+    { id:'quiz_fastest_2', label:'⚡⚡ Double Éclair',   desc:'Avoir été le plus rapide de la semaine au Quiz au moins 2 fois',  img:'badges/badge_fastest_2.png' },
+    { id:'quiz_fastest_3', label:'⚡⚡⚡ Triple Éclair', desc:'Avoir été le plus rapide de la semaine au Quiz au moins 3 fois',  img:'badges/badge_fastest_3.png' }
+  ];
 
   /* ── Progression par badge (pour affichage compteur) ── */
   var BADGE_PROGRESS = {
@@ -7099,7 +7136,22 @@ function clearQuizDot() {
   if (dot) dot.style.display = 'none';
 }
 
-function checkBadgesQuiz() {
+  /* ── Helpers Quiz Temps (utilisés aussi dans GABQuiz) ── */
+  function _getScore(val) {
+    if (val === null || val === undefined) return null;
+    return (typeof val === 'object') ? val.score : val;
+  }
+  function _getTemps(val) {
+    if (val === null || val === undefined || typeof val !== 'object') return null;
+    return (val.temps !== undefined) ? val.temps : null;
+  }
+  function _formatTemps(s) {
+    if (s === null || s === undefined) return null;
+    var min = Math.floor(s / 60), sec = s % 60;
+    return (min > 0) ? (min + ' min ' + sec + ' sec') : (sec + ' sec');
+  }
+
+  function checkBadgesQuiz() {
     try {
       var uidRaw = localStorage.getItem('gabQuiz_v2_id');
       // v1.3.33 : fallback sur gabUserId si pas de gabQuiz_v2_id
@@ -7117,7 +7169,10 @@ function checkBadgesQuiz() {
         });
         if (!me || !me.scores) return;
         var scoreEntries = Object.keys(me.scores).map(function(d){
-          return { date: d, score: me.scores[d] };
+          var raw = me.scores[d];
+          var sc  = (raw !== null && typeof raw === 'object') ? raw.score : raw;
+          var tm  = (raw !== null && typeof raw === 'object') ? (raw.temps !== undefined ? raw.temps : null) : null;
+          return { date: d, score: sc, temps: tm };
         }).filter(function(e){ return typeof e.score === 'number'; })
           .sort(function(a, b){
             var pa=a.date.split('/'), pb=b.date.split('/');
@@ -7162,7 +7217,18 @@ function checkBadgesQuiz() {
           store[c.id] = { unlocked: true, unlockedAt: new Date().toISOString() };
           fresh.push(def);
         });
-        _saveBadgeStore(store);
+        /* ── Badges Rapidité Quiz (⚡) ── */
+        var _fastestCount = parseInt(localStorage.getItem('gabQuizFastestCount') || '0', 10);
+        [{id:'quiz_fastest_1',n:1},{id:'quiz_fastest_2',n:2},{id:'quiz_fastest_3',n:3}]
+        .forEach(function(c){
+          if (_fastestCount < c.n) return;
+          if (store[c.id] && store[c.id].unlocked) return;
+          var def = BADGE_DEFINITIONS.find(function(d){ return d.id === c.id; });
+          if (!def) return;
+          store[c.id] = { unlocked: true, unlockedAt: new Date().toISOString() };
+          fresh.push(def);
+        });
+                _saveBadgeStore(store);
         if (fresh.length) _showBadgeToast(fresh);
       }).catch(function(){});
     } catch(e) {}

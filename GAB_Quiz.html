@@ -240,6 +240,38 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 .btn-danger:hover { filter:brightness(1.1); }
 .reset-select-all { font-size:12px; font-weight:600; color:var(--accent);
   background:none; border:none; cursor:pointer; padding:0; margin-bottom:4px; text-decoration:underline; }
+
+  /* ── Chrono rapide & Encart Rapidité Quiz ── */
+  .chronoRapide {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+    vertical-align: middle;
+  }
+  .fastestEncart {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .fastestLine  { font-size: 13px; }
+  .fastestLabel { font-weight: 600; color: #a78bfa; }
+  .fastestTime  { font-weight: 700; color: #a78bfa; }
+
 </style>
 </head>
 <body>
@@ -270,15 +302,16 @@ tr.row-disq .r-score{color:var(--danger)!important;}
     <span>Infos</span>
   </button>
 
-  <div class="topNavSep"></div>
-
-  <span id="versionBadge"></span>
-
   <!-- Rafraîchir -->
   <button class="topNavBtn" id="btnRefresh" type="button" onclick="refreshData()" title="Recharger les résultats depuis GitHub">
     <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.7s ease"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
     <span id="refreshLabel">Rafraîchir</span>
   </button>
+
+  <div class="topNavSep"></div>
+
+  <!-- Dernière semaine importée -->
+  <span id="lastWeekBadge" style="display:none;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;padding:3px 10px;background:var(--al);border-radius:999px;border:1px solid var(--border)"></span>
 
   <div class="topNavSpacer"></div>
 
@@ -359,6 +392,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
   <div class="tab-content active" id="tab-classement">
     <div class="q-selector" id="qSelector"></div>
     <div id="podiumWrap"></div>
+    <div id="fastestEncartWrap" class="fastestEncart" style="display:none;"></div>
     <div class="rank-wrap">
       <table class="rank-table">
         <thead>
@@ -417,8 +451,10 @@ tr.row-disq .r-score{color:var(--danger)!important;}
           <input class="modal-inp" type="text" id="addPartNom" placeholder="ex: DUPONT">
         </div>
         <div>
-          <label class="modal-lbl">Semaine (jj/mm/aaaa)</label>
-          <input class="modal-inp" type="text" id="addPartWeek" placeholder="ex: 18/03/2026">
+          <label class="modal-lbl">Semaine</label>
+          <select class="modal-inp" id="addPartWeek" style="cursor:pointer">
+            <option value="">— Choisir une semaine —</option>
+          </select>
         </div>
         <div>
           <label class="modal-lbl">Score (1-10, NF ou EX)</label>
@@ -591,7 +627,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.03'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.06'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -622,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var _lbl = document.getElementById('menuDarkLabel');
     if (_lbl) _lbl.textContent = 'Mode clair';
   }
-  document.getElementById('versionBadge').textContent = local_version;
+  // versionBadge supprimé v1.05
   var ivl = document.getElementById('infoVersionLineQuiz');
   if (ivl) ivl.textContent = 'GAB · Quiz Classements — ' + local_version;
 
@@ -724,6 +760,7 @@ function showMain() {
   renderHistory();
   if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderStats(); renderManagersTags(); }
   if (admin || isManager()) renderEquipe();
+  updateLastWeekBadge();
 }
 
 // ══ DARK MODE ═════════════════════════════════════
@@ -782,6 +819,7 @@ function parseCSV(text) {
   var prenomIdx = headers.findIndex(function(h){ return h === 'Prénom'; });
   var dateIdx   = headers.findIndex(function(h){ return h.indexOf('Date de début') >= 0; });
   var scoreIdx  = headers.findIndex(function(h){ return h.indexOf('Score') >= 0; });
+  var tempsIdx  = headers.findIndex(function(h){ return h.indexOf('Temps de réponse au questionnaire') >= 0; });
   if (nomIdx<0 || prenomIdx<0 || dateIdx<0 || scoreIdx<0) return null;
 
   var entries = [];
@@ -801,7 +839,9 @@ function parseCSV(text) {
     var d = new Date(dateParts[2], dateParts[1]-1, dateParts[0]);
     var wednesday = getWednesday(d);
     var weekKey = fmtDate(wednesday);
-    entries.push({nom:nom, prenom:prenom, weekKey:weekKey, score:score});
+    var tempsRaw = (tempsIdx >= 0) ? (cols[tempsIdx]||'').replace(/^"|"$/g,'').trim() : '';
+    var temps    = (tempsRaw !== '' && !isNaN(parseInt(tempsRaw,10))) ? parseInt(tempsRaw,10) : null;
+    entries.push({nom:nom, prenom:prenom, weekKey:weekKey, score:score, temps:temps});
   }
   return entries;
 }
@@ -867,7 +907,7 @@ function mergeCSVEntries(entries, fileLabel) {
       p = {nom:e.nom, prenom:e.prenom, scores:{}};
       data.participants.push(p);
     }
-    if (p.scores[e.weekKey] !== 'EX') p.scores[e.weekKey] = e.score; // EX FIX
+    if (p.scores[e.weekKey] !== 'EX') p.scores[e.weekKey] = { score: e.score, temps: (e.temps !== undefined ? e.temps : null) }; // EX FIX
   });
 
   // Marquer NF pour les participants connus absents cette semaine
@@ -971,8 +1011,14 @@ function buildGData(data) {
         if (parts.length<3) return;
         var month = parseInt(parts[1],10);
         if (months.indexOf(month)<0) return;
-        if (p.scores[dateStr] === 'EX') return; // EX FIX : semaine exemptée, ignorée
-        weeks.push({date:dateStr, score: p.scores[dateStr]==='NF' ? 'absent' : p.scores[dateStr]});
+        var _rawSc = p.scores[dateStr];
+        var _scVal = (_rawSc !== null && typeof _rawSc === 'object') ? _rawSc.score : _rawSc;
+        var _tmVal = (_rawSc !== null && typeof _rawSc === 'object') ? (_rawSc.temps !== undefined ? _rawSc.temps : null) : null;
+        if (_scVal === 'EX') {
+          weeks.push({date:dateStr, score:'EX', temps:null}); // EX FIX
+          return;
+        }
+        weeks.push({date:dateStr, score: _scVal==='NF' ? 'absent' : _scVal, temps:_tmVal});
       });
       // Trier par date
       weeks.sort(function(a,b){
@@ -982,9 +1028,10 @@ function buildGData(data) {
       });
       var nums = weeks.filter(function(w){ return typeof w.score==='number'; });
       var nNF  = weeks.filter(function(w){ return w.score==='absent'; }).length;
+      var nEX  = weeks.filter(function(w){ return w.score==='EX'; }).length; // EX FIX
       var moy  = nums.length ? Math.round(nums.reduce(function(s,w){return s+w.score;},0)/nums.length*100)/100 : null;
       var active = weeks.length > 0;
-      qData[q] = {moyenne:moy, nbQuiz:nums.length, nbNonFait:nNF, weeks:weeks, active:active};
+      qData[q] = {moyenne:moy, nbQuiz:nums.length, nbNonFait:nNF, nbEX:nEX, weeks:weeks, active:active};
     });
     participants.push({nom:p.nom, prenom:p.prenom, quarters:qData});
   });
@@ -1019,6 +1066,69 @@ function switchTab(tab) {
   });
 }
 
+// ══ LAST WEEK BADGE ════════════════════════════════
+function updateLastWeekBadge() {
+  var el = document.getElementById('lastWeekBadge');
+  if (!el) return;
+  if (!gData || !gData.importsLog || !gData.importsLog.length) { el.style.display='none'; return; }
+  var latest = gData.importsLog.slice().sort(function(a,b){
+    var parse = function(l){ var w=l.week||l.label||''; var p=w.split('/'); return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(0); };
+    return parse(b)-parse(a);
+  })[0];
+  var wk = latest.week || latest.label || '';
+  el.textContent = '📅 Dernière semaine : ' + wk;
+  el.style.display = 'inline-block';
+}
+
+// ══ MANAGER TEAM CONFIG ════════════════════════════
+var LS_MANAGER_TEAM = 'gabQuiz_v2_managerTeam';
+function loadManagerTeam() {
+  try { var s=localStorage.getItem(LS_MANAGER_TEAM); if(s!==null) return JSON.parse(s); } catch(e){}
+  return null;
+}
+function saveManagerTeam(list) { localStorage.setItem(LS_MANAGER_TEAM, JSON.stringify(list)); }
+
+function openTeamConfig() {
+  if (!gData) return;
+  var blacklist = loadBlacklist();
+  var allPs = gData.participants.filter(function(p){ return !isBlacklisted(p,blacklist); })
+    .sort(function(a,b){ return a.nom.localeCompare(b.nom); });
+  var current = loadManagerTeam() || [];
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.52);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
+  var checkboxes = allPs.map(function(p){
+    var key = p.prenom+'|'+p.nom;
+    return '<label style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600">'+
+      '<input type="checkbox" data-key="'+key+'"'+(current.indexOf(key)!==-1?' checked':'')+' style="width:15px;height:15px;accent-color:var(--accent);flex-shrink:0">'+
+      capFull(p.prenom)+' '+p.nom+'</label>';
+  }).join('');
+  modal.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(460px,calc(100vw - 32px));box-shadow:0 16px 48px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:12px;max-height:90vh">'+
+    '<h2 style="font-size:16px;font-weight:700;margin:0">👥 Configurer mon équipe</h2>'+
+    '<p style="font-size:13px;color:var(--muted);margin:0;line-height:1.5">Sélectionne les membres de ton équipe. Sauvegardé sur cet appareil uniquement.</p>'+
+    '<label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer">'+
+      '<input type="checkbox" id="teamSelectAll" style="accent-color:var(--accent);width:14px;height:14px"> Sélectionner tout le monde</label>'+
+    '<div id="teamCheckList" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;min-height:0">'+checkboxes+'</div>'+
+    '<div style="display:flex;gap:8px;margin-top:4px;flex-shrink:0">'+
+      '<button id="teamCancelBtn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer">Annuler</button>'+
+      '<button id="teamSaveBtn" style="flex:2;padding:10px;font-size:13px;font-weight:700;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer">✅ Enregistrer</button>'+
+    '</div></div>';
+  document.body.appendChild(modal);
+  var sa = document.getElementById('teamSelectAll');
+  sa.checked = allPs.length>0 && allPs.every(function(p){ return current.indexOf(p.prenom+'|'+p.nom)!==-1; });
+  sa.addEventListener('change', function(){ modal.querySelectorAll('#teamCheckList input').forEach(function(cb){cb.checked=this.checked;},this); });
+  modal.querySelectorAll('#teamCheckList input').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var all=modal.querySelectorAll('#teamCheckList input'), ch=modal.querySelectorAll('#teamCheckList input:checked');
+      document.getElementById('teamSelectAll').checked = all.length===ch.length;
+    });
+  });
+  document.getElementById('teamCancelBtn').addEventListener('click', function(){ modal.remove(); });
+  document.getElementById('teamSaveBtn').addEventListener('click', function(){
+    var sel=[]; modal.querySelectorAll('#teamCheckList input:checked').forEach(function(cb){sel.push(cb.dataset.key);}); 
+    saveManagerTeam(sel); modal.remove(); renderEquipe();
+  });
+}
+
 // ══ QUARTER SELECTOR ══════════════════════════════
 function buildQSelector() {
   var wrap   = document.getElementById('qSelector');
@@ -1040,6 +1150,53 @@ function buildQSelector() {
 }
 
 // ══ CLASSEMENT ════════════════════════════════════
+/* ── Helpers Temps Quiz ── */
+function _formatTemps(s) {
+  if (s === null || s === undefined) return null;
+  var min = Math.floor(s / 60), sec = s % 60;
+  return (min > 0) ? (min + ' min ' + sec + ' sec') : (sec + ' sec');
+}
+
+function _renderFastestEncart(allPs, q) {
+  var wrap = document.getElementById('fastestEncartWrap');
+  if (!wrap) return;
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curQIdx = Math.floor(now.getMonth() / 3);
+
+  function avgTemps(p, filterFn) {
+    var times = p.quarters[q].weeks
+      .filter(function(w){ return filterFn(w.date) && w.temps !== null && w.temps !== undefined; })
+      .map(function(w){ return w.temps; });
+    return times.length ? Math.round(times.reduce(function(a,b){ return a+b; },0) / times.length) : null;
+  }
+  function isInQuarter(dateStr) {
+    var parts = dateStr.split('/');
+    if (parts.length < 3) return false;
+    var m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+    return y === curYear && Math.floor((m-1)/3) === curQIdx;
+  }
+  function isInYear(dateStr) {
+    var parts = dateStr.split('/');
+    return parts.length >= 3 && parseInt(parts[2],10) === curYear;
+  }
+
+  var qTimes = allPs.map(function(p){ return {p:p, avg:avgTemps(p,isInQuarter)}; }).filter(function(x){ return x.avg !== null; });
+  var yTimes = allPs.map(function(p){ return {p:p, avg:avgTemps(p,isInYear)}; }).filter(function(x){ return x.avg !== null; });
+  var minQ = qTimes.length ? Math.min.apply(null, qTimes.map(function(x){ return x.avg; })) : null;
+  var minY = yTimes.length ? Math.min.apply(null, yTimes.map(function(x){ return x.avg; })) : null;
+  var fastQ = qTimes.filter(function(x){ return x.avg === minQ; });
+  var fastY = yTimes.filter(function(x){ return x.avg === minY; });
+
+  if (!fastQ.length && !fastY.length) { wrap.style.display='none'; return; }
+  function names(arr) { return arr.map(function(x){ return '<strong>' + capFull(x.p.prenom) + ' ' + x.p.nom + '</strong>'; }).join(', '); }
+  var html = '';
+  if (fastQ.length) html += '<div class="fastestLine">⏱️ <span class="fastestLabel">Plus rapide du trimestre</span> — ' + names(fastQ) + ' — <span class="fastestTime">' + _formatTemps(minQ) + ' moy.</span></div>';
+  if (fastY.length)  html += '<div class="fastestLine">⏱️ <span class="fastestLabel">Plus rapide de l&#39;année</span> — '    + names(fastY) + ' — <span class="fastestTime">' + _formatTemps(minY) + ' moy.</span></div>';
+  wrap.innerHTML = html;
+  wrap.style.display = 'flex';
+}
+
 function renderClassement(q) {
   if (!gData) return;
   var params    = loadParams();
@@ -1073,6 +1230,40 @@ function renderClassement(q) {
   disq.sort(function(a,b){ return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0); });
 
   renderPodium(normal, q);
+
+  /* ── Plus rapide de la semaine (chrono violet) ── */
+  var _lastWeekKey = null;
+  if (gData.qCols && gData.qCols[q] && gData.qCols[q].weeks && gData.qCols[q].weeks.length) {
+    _lastWeekKey = gData.qCols[q].weeks[gData.qCols[q].weeks.length - 1];
+  }
+  var _minTimeWeek = null;
+  if (_lastWeekKey) {
+    allPs.forEach(function(p){
+      var w = p.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+      if (w && w.temps !== null && w.temps !== undefined) {
+        if (_minTimeWeek === null || w.temps < _minTimeWeek) _minTimeWeek = w.temps;
+      }
+    });
+  }
+
+  /* ── Encart plus rapide trimestre / année ── */
+  _renderFastestEncart(allPs, q);
+
+  /* ── Écriture gabQuizFastestCount si je suis le plus rapide ── */
+  if (uid && _lastWeekKey && _minTimeWeek !== null) {
+    var _meP = allPs.find(function(p){ return matchId(p, uid); });
+    if (_meP) {
+      var _meW = _meP.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+      if (_meW && _meW.temps !== null && _meW.temps === _minTimeWeek) {
+        var _prevFastest = parseInt(localStorage.getItem('gabQuizFastestCount') || '0', 10);
+        var _fastestDoneKey = 'gabQuizFastestDone_' + _lastWeekKey;
+        if (!localStorage.getItem(_fastestDoneKey)) {
+          localStorage.setItem('gabQuizFastestCount', String(_prevFastest + 1));
+          localStorage.setItem(_fastestDoneKey, '1');
+        }
+      }
+    }
+  }
 
   // Masquer colonne NF pour utilisateurs standard
   var _isManager = isManager();
@@ -1108,11 +1299,23 @@ function renderClassement(q) {
     rank = displayRank;
     var med  = '';
     var isMe = uid && matchId(p, uid);
+    // Couleur score selon rang global (champion=vert, 1er=or, 2ème=argent, 3ème=bronze)
+    var scoreColor = 'var(--accent)';
+    var globalRank = rankOffset + (displayRank - rankOffset); // rang réel dans le classement
+    // rankOffset = nb groupes podium+champion déjà affichés
+    if (rank === 2) scoreColor = '#f59e0b';       // 1er du podium = doré
+    else if (rank === 3) scoreColor = '#94a3b8';  // 2ème = argent
+    else if (rank === 4) scoreColor = '#b87333';  // 3ème = bronze
     var tr   = document.createElement('tr');
     tr.innerHTML =
       '<td>' + (med ? '<span class="r-med">'+med+'</span>' : '<span class="r-num">'+rank+'</span>') + '</td>' +
-      '<td class="r-name">' + capFull(p.prenom) + ' ' + p.nom + (isMe ? '<span class="tag-me">Moi</span>' : '') + '</td>' +
-      '<td class="r-score">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
+      '<td class="r-name">' + capFull(p.prenom) + ' ' + p.nom + (isMe ? '<span class="tag-me">Moi</span>' : '') + (function(){
+        if (!_lastWeekKey || _minTimeWeek === null) return '';
+        var _w = p.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+        if (!_w || _w.temps === null || _w.temps !== _minTimeWeek) return '';
+        return '<span class="chronoRapide" title="Plus rapide de la semaine">🏎️ ' + _formatTemps(_w.temps) + '</span>';
+      })() + '</td>' +
+      '<td class="r-score" style="color:'+scoreColor+'">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
       '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
       '<td class="r-nf-cell" style="color:var(--danger);display:' + (showNF ? '' : 'none') + '">' + (p.quarters[q].nbNonFait || 0) + '</td>';
     tbody.appendChild(tr);
@@ -1146,97 +1349,105 @@ function renderPodium(ps, q) {
   var wrap = document.getElementById('podiumWrap');
   if (!ps.length) { wrap.innerHTML=''; return; }
 
-  // Grouper par rang (ex-aequo ensemble)
-  var groups = [];
-  var curRank = 0, prevMoy = null;
+  // Grouper par rang (ex-aequo)
+  var groups = [], curRank=0, prevMoy=null;
   ps.forEach(function(p){
     var moy = p.quarters[q].moyenne;
-    if (moy !== prevMoy) { curRank++; prevMoy = moy; groups.push({rank:curRank, moy:moy, people:[]}); }
+    if (moy !== prevMoy) { curRank++; prevMoy=moy; groups.push({rank:curRank, moy:moy, people:[]}); }
     groups[groups.length-1].people.push(p);
   });
 
-  var gChamp = groups.find(function(g){ return g.rank===1; }); // Champion hors classement
-  var g1     = groups.find(function(g){ return g.rank===2; }); // 🥇 1er du podium
-  var g2     = groups.find(function(g){ return g.rank===3; }); // 🥈 2ème du podium
-  var g3     = groups.find(function(g){ return g.rank===4; }); // 🥉 3ème du podium
+  var gChamp = groups.find(function(g){ return g.rank===1; });
+  var g1     = groups.find(function(g){ return g.rank===2; });
+  var g2     = groups.find(function(g){ return g.rank===3; });
+  var g3     = groups.find(function(g){ return g.rank===4; });
+
+  // ── Calcul dynamique selon nb de personnes ──
+  function slotCfg(n, baseAvSz, baseFs, baseNameFs) {
+    // Réduire proportionnellement selon le nombre d'ex-æquo
+    var factor = n <= 1 ? 1 : n === 2 ? 0.82 : n === 3 ? 0.68 : n >= 4 ? 0.55 : 0.55;
+    var avSz   = Math.round(baseAvSz * factor);
+    var avFs   = Math.round(baseFs * factor);
+    var nameFs = Math.max(8, Math.round(baseNameFs * factor));
+    var slotW  = n <= 1 ? 110 : n === 2 ? 190 : n === 3 ? 260 : 100 + n * 72;
+    return { avSz: avSz+'px', avFs: avFs+'px', nameFs: nameFs+'px', slotW: slotW+'px' };
+  }
 
   var html = '';
 
-  // ── Champion
+  // ── Champion du trimestre ──
   if (gChamp) {
+    var n = gChamp.people.length;
+    var cfg = slotCfg(n, 60, 18, 12);
     var champAv = gChamp.people.map(function(p){
       var isMe = uid && matchId(p, uid);
-      return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px">' +
-        '<div class="podium-avatar" style="background:#f59e0b;width:56px;height:56px;font-size:17px">' +
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px">' +
+        '<div class="podium-avatar" style="background:#2ecc71;width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+';box-shadow:0 0 18px rgba(46,204,113,.4)">' +
           (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
         '</div>' +
-        '<div style="text-align:center">' +
-          '<span style="font-size:12px;font-weight:700">'+capFull(p.prenom)+'</span><br>' +
-          '<span style="font-weight:400;color:var(--muted);font-size:10px">'+p.nom+'</span>' +
-          (isMe ? '<span class="tag-me" style="font-size:9px;margin-left:3px">Moi</span>' : '') +
+        '<div style="text-align:center;line-height:1.3">' +
+          '<span style="font-size:'+cfg.nameFs+';font-weight:700;display:block">'+capFull(p.prenom)+'</span>' +
+          '<span style="font-size:9px;font-weight:400;color:var(--muted)">'+p.nom+'</span>' +
+          (isMe?'<span class="tag-me" style="font-size:8px;margin-left:2px">Moi</span>':'') +
         '</div>' +
-        '</div>';
-    }).join('');
-    html += '<div style="text-align:center;padding:20px 8px 12px;border-bottom:1px solid var(--border);margin-bottom:16px">' +
-      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#f59e0b;margin-bottom:10px">👑 Champion du trimestre</div>' +
-      '<div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">'+champAv+'</div>' +
-      '<div style="font-size:24px;font-weight:900;color:#f59e0b;margin-top:8px">'+gChamp.moy.toFixed(2)+
-        ' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
       '</div>';
+    }).join('');
+    html += '<div style="text-align:center;padding:20px 8px 16px;border-bottom:1px solid var(--border);margin-bottom:20px">' +
+      '<div style="font-size:40px;line-height:1;margin-bottom:4px">👑</div>' +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#2ecc71;margin-bottom:14px">Champion du trimestre</div>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+champAv+'</div>' +
+      '<div style="font-size:24px;font-weight:900;color:#2ecc71;margin-top:10px">'+gChamp.moy.toFixed(2)+
+        ' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
+    '</div>';
   }
 
-  // ── Podium 1er/2ème/3ème
-  // Couleurs et tailles par rang
+  // ── Podium 🥇🥈🥉 — hauteur de barre FIXE, slot dynamique ──
   var rankCfg = {
-    '1er':  {color:'#94a3b8', avSz:'46px', avFs:'15px', barH:70,  icon:'🥇', rankCls:'rank-1'},
-    '2ème': {color:'#b87333', avSz:'42px', avFs:'14px', barH:50,  icon:'🥈', rankCls:'rank-2'},
-    '3ème': {color:'#6b7280', avSz:'38px', avFs:'13px', barH:36,  icon:'🥉', rankCls:'rank-3'},
+    '1': { color:'#f59e0b', baseAvSz:50, baseAvFs:16, barH:76, emoji:'🥇', rankCls:'rank-1' },
+    '2': { color:'#94a3b8', baseAvSz:44, baseAvFs:14, barH:54, emoji:'🥈', rankCls:'rank-2' },
+    '3': { color:'#b87333', baseAvSz:40, baseAvFs:13, barH:38, emoji:'🥉', rankCls:'rank-3' },
   };
 
-  var podiumLevels = [
-    {grp:g1, label:'1er'},
-    {grp:g2, label:'2ème'},
-    {grp:g3, label:'3ème'},
+  var levels = [
+    {grp:g1, rk:'1'}, {grp:g2, rk:'2'}, {grp:g3, rk:'3'}
   ].filter(function(x){ return x.grp; });
 
-  if (podiumLevels.length) {
+  if (levels.length) {
     // Ordre affichage : 2ème | 1er | 3ème
     var display = [];
-    var lv1 = podiumLevels.find(function(x){return x.label==='1er';});
-    var lv2 = podiumLevels.find(function(x){return x.label==='2ème';});
-    var lv3 = podiumLevels.find(function(x){return x.label==='3ème';});
+    var lv1=levels.find(function(x){return x.rk==='1';}),
+        lv2=levels.find(function(x){return x.rk==='2';}),
+        lv3=levels.find(function(x){return x.rk==='3';});
     if (lv2) display.push(lv2);
     if (lv1) display.push(lv1);
     if (lv3) display.push(lv3);
 
-    html += '<div class="podium">';
+    html += '<div class="podium" style="align-items:flex-end">';
     display.forEach(function(item){
-      var cfg = rankCfg[item.label];
-      var isExAequo = item.grp.people.length > 1;
+      var rc  = rankCfg[item.rk];
+      var n   = item.grp.people.length;
+      var cfg = slotCfg(n, rc.baseAvSz, rc.baseAvFs, 12);
 
-      // Avatars
       var avHtml = item.grp.people.map(function(p){
-        return '<div class="podium-avatar" style="background:'+cfg.color+';width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+'">' +
-          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
-        '</div>';
+        return '<div class="podium-avatar" style="background:'+rc.color+';width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+';flex-shrink:0">'+
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'')+'</div>';
       }).join('');
 
-      // Noms — un bloc par personne, empilés verticalement
+      // Noms en ligne compacte, taille réduite selon nb
       var namesHtml = item.grp.people.map(function(p){
         var isMe = uid && matchId(p, uid);
-        return '<div>' +
-          '<span class="p-prenom">'+capFull(p.prenom)+(isMe?'<span class="tag-me p-me">Moi</span>':'')+'</span>' +
-          '<span class="p-nom">'+p.nom+'</span>' +
-        '</div>';
-      }).join('');
+        return '<span style="white-space:nowrap;font-size:'+cfg.nameFs+';font-weight:600">'+
+          capFull(p.prenom).charAt(0)+'. '+p.nom+
+          (isMe?' <span class="tag-me" style="font-size:8px">Moi</span>':'')+'</span>';
+      }).join('<span style="color:var(--border);margin:0 3px">·</span>');
 
-      html += '<div class="podium-slot '+cfg.rankCls+'">' +
-        '<div class="podium-rank-lbl">'+cfg.icon+' '+item.label+'</div>' +
-        '<div class="podium-avatars">'+avHtml+'</div>' +
-        (isExAequo ? '<div class="podium-exaequo">ex æquo</div>' : '') +
-        '<div class="podium-names">'+namesHtml+'</div>' +
-        '<div class="podium-score">'+item.grp.moy.toFixed(2)+'</div>' +
-        '<div class="podium-bar" style="height:'+cfg.barH+'px"></div>' +
+      html += '<div class="podium-slot '+rc.rankCls+'" style="width:'+cfg.slotW+';min-width:90px;max-width:340px;align-items:center">' +
+        '<div style="font-size:28px;line-height:1;margin-bottom:6px">'+rc.emoji+'</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">'+avHtml+'</div>' +
+        (n>1?'<div style="font-size:9px;color:var(--muted);font-style:italic;margin-bottom:4px">ex æquo</div>':'') +
+        '<div style="text-align:center;line-height:1.5;margin-bottom:4px;padding:0 4px">'+namesHtml+'</div>' +
+        '<div class="podium-score" style="color:'+rc.color+';font-size:18px">'+item.grp.moy.toFixed(2)+'</div>' +
+        '<div class="podium-bar" style="height:'+rc.barH+'px;width:100%"></div>' +
       '</div>';
     });
     html += '</div>';
@@ -1244,6 +1455,8 @@ function renderPodium(ps, q) {
 
   wrap.innerHTML = html;
 }
+
+
 
 
 
@@ -1301,6 +1514,7 @@ function renderHistory() {
     var chips=qd.weeks.map(function(w){
       if(w.score===null) return '';
       if(w.score==='absent') return '<div class="wchip absent"><div class="wdate">'+w.date+'</div><div class="wval" style="color:var(--danger);font-size:12px;font-weight:600">NF</div></div>';
+      if(w.score==='EX') return '<div class="wchip" style="opacity:.6;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:12px">🛡️ EX</div></div>'; // EX FIX
       if(w.score==='EX') return '<div class="wchip" style="opacity:.55;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:11px">&#x1F6E1;&#xFE0F; EX</div></div>'; // EX FIX
       var col=w.score>=8?'var(--success)':w.score>=5?'var(--accent)':'var(--danger)';
       return '<div class="wchip"><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
@@ -1420,6 +1634,7 @@ function renderAdmin() {
   }
   wrap.innerHTML=html;
   populateWeekDelSelect();
+  populateWeekSelect();
 }
 
 // ══ IDENTITY MODAL ═════════════════════════════════
@@ -2013,31 +2228,68 @@ function renderEquipe() {
   var wrap = document.getElementById('equipeWrap');
   if (!wrap || !gData) return;
 
-  var QS = ['T1','T2','T3','T4'];
   var blacklist = loadBlacklist();
-  var params    = loadParams();
+  var team      = loadManagerTeam(); // null = pas encore configuré
+  var allPsFull = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
 
-  // Cartes résumé rapide
-  var allPs = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
+  // Manager non-admin : gestion config équipe
+  if (!admin) {
+    if (team === null) {
+      // 1ère visite : inviter à configurer
+      wrap.innerHTML = '<div style="text-align:center;padding:48px 20px">' +
+        '<div style="font-size:44px;margin-bottom:16px">👥</div>' +
+        '<h2 style="font-size:17px;font-weight:700;margin-bottom:8px">Configure ton équipe</h2>' +
+        '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Sélectionne les membres de ton équipe pour accéder à leurs résultats.<br>Cette configuration est sauvegardée sur cet appareil.</p>' +
+        '<button onclick="openTeamConfig()" style="padding:10px 28px;font-size:14px;font-weight:700;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer">Configurer mon équipe</button>' +
+      '</div>';
+      return;
+    }
+    // Déjà configuré mais liste vide → inviter à reconfigurer
+    if (team.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:48px 20px">' +
+        '<div style="font-size:44px;margin-bottom:16px">👥</div>' +
+        '<h2 style="font-size:17px;font-weight:700;margin-bottom:8px">Aucun membre dans ton équipe</h2>' +
+        '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Tu n&#39;as sélectionné aucun membre. Reconfigure ton équipe.</p>' +
+        '<button onclick="openTeamConfig()" style="padding:10px 28px;font-size:14px;font-weight:700;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer">Configurer mon équipe</button>' +
+      '</div>';
+      return;
+    }
+  }
 
-  var html = '<div class="admin-banner" style="margin-bottom:16px;">' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
-    'Vue Équipe — résultats complets de tous les participants.' +
-    '</div>';
+  // Filtrer selon équipe
+  var displayPs;
+  if (admin) {
+    displayPs = allPsFull;
+  } else {
+    displayPs = allPsFull.filter(function(p){
+      return team.indexOf(p.prenom+'|'+p.nom) !== -1;
+    });
+    if (displayPs.length === 0) displayPs = allPsFull; // fallback sécurité
+  }
 
-  // Sélecteur trimestre pour la vue équipe
-  html += '<div class="q-selector" id="equipeQSelector">';
+  var params  = loadParams();
   var qLabels = {T1:'T1 · Jan–Mar', T2:'T2 · Avr–Juin', T3:'T3 · Jul–Sep', T4:'T4 · Oct–Déc', Annee:'Année'};
+
+  var html = '<div class="admin-banner" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+    '<span style="display:flex;align-items:center;gap:8px">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+      (admin ? 'Vue Équipe — tous les participants (' + displayPs.length + ').' : 'Mon équipe — ' + displayPs.length + ' membre' + (displayPs.length>1?'s':'') + '.') +
+    '</span>' +
+    (!admin ? '<button onclick="openTeamConfig()" style="padding:5px 14px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;white-space:nowrap">✏️ Modifier équipe</button>' : '') +
+  '</div>';
+
+  html += '<div class="q-selector" id="equipeQSelector">';
   ['T1','T2','T3','T4','Annee'].forEach(function(q){
-    var isCur = q === 'T1';
-    html += '<button class="q-btn'+(isCur?' active':'')+'" onclick="renderEquipeTable(&apos;'+q+'&apos;)" id="equipeQ'+q+'">'+qLabels[q]+'</button>';
+    html += '<button class="q-btn'+(q==='T1'?' active':'')+'" onclick="renderEquipeTable(this.dataset.q,window._equipePs)" data-q="'+q+'" id="equipeQ'+q+'">'+qLabels[q]+'</button>';
   });
   html += '</div><div id="equipeTableWrap"></div>';
+
   wrap.innerHTML = html;
-  renderEquipeTable('T1');
+  window._equipePs = displayPs;
+  renderEquipeTable('T1', displayPs);
 }
 
-function renderEquipeTable(q) {
+function renderEquipeTable(q, filteredPs) {
   // Mettre à jour boutons
   ['T1','T2','T3','T4','Annee'].forEach(function(qt){
     var btn = document.getElementById('equipeQ'+qt);
@@ -2047,7 +2299,7 @@ function renderEquipeTable(q) {
   var blacklist = loadBlacklist();
   var params    = loadParams();
   var QS        = ['T1','T2','T3','T4'];
-  var allPs     = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
+  var allPs     = filteredPs || (gData ? gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); }) : []);
 
   var rows = allPs.map(function(p){
     var totalNF = 0, totalQuiz = 0, allScores = [];
@@ -2348,7 +2600,23 @@ function handleFilesAdmin(files) {
 }
 
   // ══ AJOUT MANUEL PARTICIPANT ══════════════════════════════
-  function addParticipantManual() {
+  function populateWeekSelect() {
+  var sel = document.getElementById('addPartWeek');
+  if (!sel || !gData) return;
+  var weekSet = {};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    if (gData.qCols && gData.qCols[q] && gData.qCols[q].weeks)
+      gData.qCols[q].weeks.forEach(function(w){ weekSet[w]=true; });
+  });
+  var weeks = Object.keys(weekSet).sort(function(a,b){
+    var pa=a.split('/'), pb=b.split('/');
+    return new Date(pb[2],pb[1]-1,pb[0])-new Date(pa[2],pa[1]-1,pa[0]);
+  });
+  sel.innerHTML = '<option value="">— Choisir une semaine —</option>';
+  weeks.forEach(function(w){ sel.innerHTML += '<option value="'+w+'">'+w+'</option>'; });
+}
+
+function addParticipantManual() {
     var prenom = document.getElementById('addPartPrenom').value.trim();
     var nom    = document.getElementById('addPartNom').value.trim().toUpperCase();
     var week   = document.getElementById('addPartWeek').value.trim();
@@ -2360,10 +2628,10 @@ function handleFilesAdmin(files) {
       statusEl.textContent = '❌ Tous les champs sont requis.';
       statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
     }
-    // Valider format date jj/mm/aaaa
+    // Valider sélection semaine
     var dateParts = week.split('/');
-    if (dateParts.length !== 3 || dateParts[0].length < 1 || dateParts[1].length < 1 || dateParts[2].length !== 4) {
-      statusEl.textContent = '❌ Format date invalide (jj/mm/aaaa).';
+    if (dateParts.length !== 3) {
+      statusEl.textContent = '❌ Sélectionne une semaine dans la liste.';
       statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
     }
     var score = scoreRaw === 'NF' ? 'NF' : scoreRaw === 'EX' ? 'EX' : parseInt(scoreRaw, 10); // EX FIX
