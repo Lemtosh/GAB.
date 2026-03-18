@@ -98,6 +98,11 @@ a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgb
 .r-score{font-weight:700;color:var(--accent);font-size:15px;}
 .r-nf-cell{font-size:12px;color:var(--muted);}
 .tag-me{display:inline-block;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+.btn-histo-proxy{background:none;border:none;cursor:pointer;font-size:14px;padding:0 3px;vertical-align:middle;opacity:.6;transition:opacity .2s,transform .4s;}
+.btn-histo-proxy:hover{opacity:1;transform:rotate(180deg);}
+.proxy-banner{display:flex;align-items:center;gap:10px;background:rgba(17,169,166,.12);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px;font-weight:600;color:var(--accent);}
+.proxy-banner button{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.proxy-banner button:hover{opacity:.85;}
 
 /* HISTORY */
 .id-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;}
@@ -627,7 +632,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.07'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.08'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -648,6 +653,7 @@ var curQ   = 'T1';
 var uid    = null;   // {nom, prenom} — stocké localStorage
 var admin  = false;
 var manager = false;
+var proxyUid = null; // admin proxy : participant consulté à la place de l'utilisateur connecté
 var modalAllowClose = false;
 
 // ══ BOOT ═════════════════════════════════════════
@@ -761,6 +767,7 @@ function showMain() {
   if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderStats(); renderManagersTags(); }
   if (admin || isManager()) renderEquipe();
   updateLastWeekBadge();
+
 }
 
 // ══ DARK MODE ═════════════════════════════════════
@@ -1075,6 +1082,7 @@ function buildGData(data) {
 
 // ══ TABS ══════════════════════════════════════════
 function switchTab(tab) {
+  if (tab !== 'historique' && proxyUid) { proxyUid = null; }
   document.querySelectorAll('.tab-btn').forEach(function(b){
     b.classList.toggle('active', b.dataset.tab === tab);
   });
@@ -1357,6 +1365,7 @@ function renderClassement(q) {
       tbody.appendChild(tr);
     });
   }
+
 }
 
 // ══ PODIUM (multi-ex-aequo) ═══════════════════════
@@ -1478,16 +1487,32 @@ function renderPodium(ps, q) {
 
 
 // ══ HISTORY ════════════════════════════════════════
+function viewParticipantHistory(prenom, nom) {
+  proxyUid = { prenom: prenom, nom: nom };
+  switchTab('historique');
+  renderHistory();
+}
+
+function resetProxy() {
+  proxyUid = null;
+  switchTab('statistiques');
+}
+
 function renderHistory() {
   var wrap = document.getElementById('histWrap');
   if (!gData || !uid) {
     wrap.innerHTML = '<div class="empty"><p>Identifie-toi pour voir ton historique.</p></div>';
     return;
   }
-  var me = gData.participants.find(function(p){ return matchId(p, uid); });
+  var effectiveUid = (admin && proxyUid) ? proxyUid : uid;
+  var me = gData.participants.find(function(p){ return matchId(p, effectiveUid); });
   if (!me) {
-    wrap.innerHTML = '<div class="empty"><p>Aucun résultat trouvé pour <strong>'+capFull(uid.prenom)+' '+uid.nom+'</strong>.<br>Vérifie ton prénom et nom.</p></div>';
+    wrap.innerHTML = '<div class="empty"><p>Aucun résultat trouvé pour <strong>'+capFull(effectiveUid.prenom)+' '+effectiveUid.nom+'</strong>.<br>Vérifie ton prénom et nom.</p></div>';
     return;
+  }
+  var proxyBanner = '';
+  if (admin && proxyUid) {
+    proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour aux statistiques</button></div>';
   }
 
   var QS = ['T1','T2','T3','T4'];
@@ -1539,7 +1564,7 @@ function renderHistory() {
           ' <span style="font-size:11px;color:var(--muted)">('+qd.nbQuiz+' quiz'+(qd.nbNonFait?' · '+qd.nbNonFait+' NF':'')+')</span></div>' +
           '<div class="week-grid">'+chips+'</div></div>';
   });
-  wrap.innerHTML = html;
+  wrap.innerHTML = proxyBanner + html;
 }
 
 function statCard(lbl,val,sub,danger){
@@ -1650,6 +1675,18 @@ function renderAdmin() {
   wrap.innerHTML=html;
   populateWeekDelSelect();
   populateWeekSelect();
+  // Listener proxy admin sur le tableau stats
+  if (admin) {
+    var _sw = document.getElementById('statsWrap');
+    if (_sw && !_sw._proxyInit) {
+      _sw._proxyInit = true;
+      _sw.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-histo-proxy');
+        if (!btn) return;
+        viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
+      });
+    }
+  }
 }
 
 // ══ IDENTITY MODAL ═════════════════════════════════
@@ -2157,7 +2194,7 @@ function renderStats() {
     };
     var disqBadge = r.isDisq ? '<span class="tag-disq">DISQUALIFIÉ</span>' : '';
     html += '<tr>' +
-      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + '</td>' +
+      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + (admin ? ' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'" title="Voir historique">⏱️</button>' : '') + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T1)+'" id="sc-T1">' + r.nfByQ.T1 + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T2)+'" id="sc-T2">' + r.nfByQ.T2 + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T3)+'" id="sc-T3">' + r.nfByQ.T3 + '</td>' +
