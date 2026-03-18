@@ -421,8 +421,8 @@ tr.row-disq .r-score{color:var(--danger)!important;}
           <input class="modal-inp" type="text" id="addPartWeek" placeholder="ex: 18/03/2026">
         </div>
         <div>
-          <label class="modal-lbl">Score (1-10 ou NF)</label>
-          <input class="modal-inp" type="text" id="addPartScore" placeholder="ex: 8 ou NF">
+          <label class="modal-lbl">Score (1-10, NF ou EX)</label>
+          <input class="modal-inp" type="text" id="addPartScore" placeholder="ex: 8, NF ou EX">
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
@@ -591,7 +591,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.0'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.03'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -606,6 +606,7 @@ var LS_GITHUB    = 'gabQuiz_v2_github';    // config GitHub
 var LS_MANAGERS  = 'gabQuiz_v2_managers';  // liste des managers
 
 // ══ STATE ════════════════════════════════════════
+var rawData = null; // JSON brut GitHub — jamais transformé
 var gData  = null;
 var curQ   = 'T1';
 var uid    = null;   // {nom, prenom} — stocké localStorage
@@ -842,36 +843,17 @@ function fmtDate(d) {
 // Fusionner les entrées CSV dans le JSON résultats existant
 function mergeCSVEntries(entries, fileLabel) {
   var data;
-  if (gData) {
-    // Reconstruire data depuis gData (source de vérité GitHub)
-    var rawParticipants = gData.participants.map(function(p) {
-      var scores = {};
-      ['T1','T2','T3','T4'].forEach(function(q) {
-        if (p.quarters && p.quarters[q] && p.quarters[q].weeks) {
-          p.quarters[q].weeks.forEach(function(w) {
-            scores[w.date] = (w.score === 'absent') ? 'NF' : w.score;
-          });
-        }
-      });
-      return {nom: p.nom, prenom: p.prenom, scores: scores};
-    });
-    data = {
-      annee: (gData.config && gData.config.annee) ? gData.config.annee : new Date().getFullYear(),
-      generated: '',
-      participants: rawParticipants,
-      importsLog: gData.importsLog || [],
-      config: gData.config || null
-    };
+  // rawData FIX : toujours repartir du JSON brut GitHub — jamais de gData transformé
+  if (rawData) {
+    data = JSON.parse(JSON.stringify(rawData));
+    data.participants = data.participants.map(function(p){ return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}}; });
   } else {
     data = loadResults();
-    if (!data) data = {annee: new Date().getFullYear(), generated:'', participants:[]};
-    // Sanitize : ne garder que nom, prenom, scores (ignorer champs pré-calculés legacy)
-    data.participants = data.participants.map(function(p){
-      return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
-    });
+    if (!data) data = { annee: new Date().getFullYear(), generated: '', participants: [] };
+    data.participants = data.participants.map(function(p){ return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}}; });
   }
 
-  // Identifier la semaine importée
+    // Identifier la semaine importée
   var weeks = {};
   entries.forEach(function(e){ weeks[e.weekKey]=true; });
   var importedWeeks = Object.keys(weeks);
@@ -885,12 +867,12 @@ function mergeCSVEntries(entries, fileLabel) {
       p = {nom:e.nom, prenom:e.prenom, scores:{}};
       data.participants.push(p);
     }
-    p.scores[e.weekKey] = e.score;
+    if (p.scores[e.weekKey] !== 'EX') p.scores[e.weekKey] = e.score; // EX FIX
   });
 
   // Marquer NF pour les participants connus absents cette semaine
   data.participants.forEach(function(p){
-    // BUG4 FIX : calculer la date de 1ère apparition réelle du participant
+    // BUG4 FIX : ne pas mettre NF avant la 1ère apparition du participant
     var firstDate = null;
     Object.keys(p.scores).forEach(function(dateStr){
       var parts = dateStr.split('/');
@@ -905,8 +887,7 @@ function mergeCSVEntries(entries, fileLabel) {
         if (hasAnyScore && firstDate) {
           var parts = wk.split('/');
           var wkDate = new Date(parts[2], parts[1]-1, parts[0]);
-          // Ne pas mettre NF sur une semaine antérieure à la 1ère apparition
-          if (wkDate >= firstDate) p.scores[wk] = 'NF';
+          if (wkDate >= firstDate) p.scores[wk] = 'NF'; // pas de NF rétroactif
         }
       }
     });
@@ -990,6 +971,7 @@ function buildGData(data) {
         if (parts.length<3) return;
         var month = parseInt(parts[1],10);
         if (months.indexOf(month)<0) return;
+        if (p.scores[dateStr] === 'EX') return; // EX FIX : semaine exemptée, ignorée
         weeks.push({date:dateStr, score: p.scores[dateStr]==='NF' ? 'absent' : p.scores[dateStr]});
       });
       // Trier par date
@@ -1319,6 +1301,7 @@ function renderHistory() {
     var chips=qd.weeks.map(function(w){
       if(w.score===null) return '';
       if(w.score==='absent') return '<div class="wchip absent"><div class="wdate">'+w.date+'</div><div class="wval" style="color:var(--danger);font-size:12px;font-weight:600">NF</div></div>';
+      if(w.score==='EX') return '<div class="wchip" style="opacity:.55;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:11px">&#x1F6E1;&#xFE0F; EX</div></div>'; // EX FIX
       var col=w.score>=8?'var(--success)':w.score>=5?'var(--accent)':'var(--danger)';
       return '<div class="wchip"><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
     }).join('');
@@ -1726,6 +1709,7 @@ function fetchFromGithub() {
         localStorage.setItem(LS_MANAGERS,  JSON.stringify(data.config.managers  || []));
       } catch(e){}
       saveResults(data);
+      rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
       var newGData = buildGData(data);
       // Ne pas écraser gData si on a déjà plus de semaines en mémoire
       var currentWeeks = gData ? Object.keys(
@@ -1787,12 +1771,12 @@ function testGithubConnection() {
 function pushToGithub() {
   var cfg = loadGithubConfig();
   if (!cfg.token) { ghStatus('❌ Token manquant', false); return; }
-  // Utiliser gData en priorité (contient importsLog à jour), fallback localStorage
-  var raw = loadResults() || {};
+  // rawData FIX : utiliser rawData (JSON brut) si disponible, sinon fallback localStorage
+  var raw = rawData ? JSON.parse(JSON.stringify(rawData)) : (loadResults() || {});
   var _params    = loadParams();
   var _blacklist = loadBlacklist();
   var _managers  = loadManagers();
-  var _cfg = Object.assign({}, (gData && gData.config) || raw.config || {}, {
+  var _cfg = Object.assign({}, (raw && raw.config) ? raw.config : (gData && gData.config) ? gData.config : {}, {
     seuilZero:       _params.seuilZero,
     seuilDisq:       _params.seuilDisq,
     exceptSeuilZero: _params.exceptSeuilZero,
@@ -1803,22 +1787,10 @@ function pushToGithub() {
   var data = {
     version: '0.25',
     annee:   new Date().getFullYear(),
-    participants: (gData ? gData.participants.map(function(p){
-      var scores = {};
-      // Trier les semaines par date chronologique
-      var allWeeks = [];
-      ['T1','T2','T3','T4'].forEach(function(q){
-        if (p.quarters && p.quarters[q]) {
-          p.quarters[q].weeks.forEach(function(w){ allWeeks.push(w); });
-        }
-      });
-      allWeeks.sort(function(a,b){
-        var pa=a.date.split('/'), pb=b.date.split('/');
-        return new Date(pa[2],pa[1]-1,pa[0]) - new Date(pb[2],pb[1]-1,pb[0]);
-      });
-      allWeeks.forEach(function(w){ scores[w.date] = w.score === 'absent' ? 'NF' : w.score; });
-      return {nom:p.nom, prenom:p.prenom, scores:scores};
-    }).sort(function(a,b){ return a.nom.localeCompare(b.nom); }) : raw.participants) || [],
+    // rawData FIX : raw contient déjà les scores bruts
+    participants: (raw.participants || []).map(function(p){
+      return { nom: p.nom, prenom: p.prenom, scores: p.scores };
+    }).sort(function(a,b){ return a.nom.localeCompare(b.nom); }),
     config: _cfg,
     importsLog: (gData && gData.importsLog && gData.importsLog.length)
                   ? gData.importsLog
@@ -2255,6 +2227,7 @@ function handleFileAdmin(file) {
       }
       var data = mergeCSVEntries(entries, fileLabel);
       saveResults(data);
+      rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
       var newGData = buildGData(data);
       // Ne pas écraser gData si on a déjà plus de semaines en mémoire
       var currentWeeks = gData ? Object.keys(
@@ -2360,7 +2333,8 @@ function handleFilesAdmin(files) {
         else {
           var merged = mergeCSVEntries(entries, fileLabel);
           saveResults(merged);
-          gData = buildGData(merged); // BUG3 FIX : mettre à jour gData entre chaque fichier
+          rawData = JSON.parse(JSON.stringify(merged)); // rawData FIX : tenir rawData à jour
+          gData = buildGData(merged); // BUG3 FIX : tenir gData à jour entre fichiers
           totalEntries += entries.length;
           processed++;
           if (status) status.textContent = '⏳ ' + (idx+1) + '/' + fileArr.length + ' — ' + file.name;
@@ -2392,8 +2366,8 @@ function handleFilesAdmin(files) {
       statusEl.textContent = '❌ Format date invalide (jj/mm/aaaa).';
       statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
     }
-    var score = scoreRaw === 'NF' ? 'NF' : parseInt(scoreRaw, 10);
-    if (scoreRaw !== 'NF' && (isNaN(score) || score < 0 || score > 10)) {
+    var score = scoreRaw === 'NF' ? 'NF' : scoreRaw === 'EX' ? 'EX' : parseInt(scoreRaw, 10); // EX FIX
+    if (scoreRaw !== 'NF' && scoreRaw !== 'EX' && (isNaN(score) || score < 0 || score > 10)) { // EX FIX
       statusEl.textContent = '❌ Score invalide (0-10 ou NF).';
       statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
     }
@@ -2410,6 +2384,7 @@ function handleFilesAdmin(files) {
       p = {nom: nom, prenom: prenom, scores: {}};
       data.participants.push(p);
     }
+    if (p.scores[week] === 'EX' && score !== 'EX') { statusEl.textContent = 'Semaine exemptée (EX) — modifie le JSON directement.'; statusEl.style.display='block'; statusEl.style.color='var(--danger)'; return; } // EX FIX
     p.scores[week] = score;
 
     // Mettre à jour importsLog si semaine nouvelle
@@ -2420,6 +2395,7 @@ function handleFilesAdmin(files) {
     }
 
     saveResults(data);
+    rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
     gData = buildGData(data);
     try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
 
