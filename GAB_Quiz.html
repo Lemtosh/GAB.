@@ -627,7 +627,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.06'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.07'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -820,6 +820,15 @@ function parseCSV(text) {
   var dateIdx   = headers.findIndex(function(h){ return h.indexOf('Date de début') >= 0; });
   var scoreIdx  = headers.findIndex(function(h){ return h.indexOf('Score') >= 0; });
   var tempsIdx  = headers.findIndex(function(h){ return h.indexOf('Temps de réponse au questionnaire') >= 0; });
+  var timerPageIdxs = [];
+  for (var _tp = 1; _tp <= 11; _tp++) {
+    var _tpIdx = headers.findIndex(function(h){ return h === 'Timer page ' + _tp + ' (en secondes)'; }.bind(null, _tp));
+    // closure-safe
+    (function(n){
+      var idx2 = headers.findIndex(function(h){ return h === ('Timer page ' + n + ' (en secondes)'); });
+      if (idx2 >= 0) timerPageIdxs.push(idx2);
+    })(_tp);
+  }
   if (nomIdx<0 || prenomIdx<0 || dateIdx<0 || scoreIdx<0) return null;
 
   var entries = [];
@@ -841,6 +850,14 @@ function parseCSV(text) {
     var weekKey = fmtDate(wednesday);
     var tempsRaw = (tempsIdx >= 0) ? (cols[tempsIdx]||'').replace(/^"|"$/g,'').trim() : '';
     var temps    = (tempsRaw !== '' && !isNaN(parseInt(tempsRaw,10))) ? parseInt(tempsRaw,10) : null;
+    // Invalider le temps si au moins un timer page = 0 (questionnaire non complété)
+    if (temps !== null && timerPageIdxs.length > 0) {
+      var hasZeroTimer = timerPageIdxs.some(function(ti){
+        var tv = (cols[ti]||'').replace(/^"|"$/g,'').trim();
+        return tv !== '' && parseInt(tv,10) === 0;
+      });
+      if (hasZeroTimer) temps = null;
+    }
     entries.push({nom:nom, prenom:prenom, weekKey:weekKey, score:score, temps:temps});
   }
   return entries;
@@ -1313,7 +1330,7 @@ function renderClassement(q) {
         if (!_lastWeekKey || _minTimeWeek === null) return '';
         var _w = p.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
         if (!_w || _w.temps === null || _w.temps !== _minTimeWeek) return '';
-        return '<span class="chronoRapide" title="Plus rapide de la semaine">🏎️ ' + _formatTemps(_w.temps) + '</span>';
+        return '<span class="chronoRapide" title="Plus rapide de la semaine">⏱️ ' + _formatTemps(_w.temps) + '</span>';
       })() + '</td>' +
       '<td class="r-score" style="color:'+scoreColor+'">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
       '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
