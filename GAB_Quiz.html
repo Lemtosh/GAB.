@@ -632,7 +632,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.08'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.09'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1495,7 +1495,8 @@ function viewParticipantHistory(prenom, nom) {
 
 function resetProxy() {
   proxyUid = null;
-  switchTab('statistiques');
+  switchTab('stats');
+  renderStats();
 }
 
 function renderHistory() {
@@ -1564,7 +1565,8 @@ function renderHistory() {
           ' <span style="font-size:11px;color:var(--muted)">('+qd.nbQuiz+' quiz'+(qd.nbNonFait?' · '+qd.nbNonFait+' NF':'')+')</span></div>' +
           '<div class="week-grid">'+chips+'</div></div>';
   });
-  wrap.innerHTML = proxyBanner + html;
+  var glossaire = '<div style="margin-top:16px;padding:10px 14px;background:var(--al);border-radius:8px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;">' + '<span><strong style="color:var(--danger)">NF</strong> = Non fait</span>' + '<span><strong style="color:var(--accent)">EX</strong> = Excusé</span>' + '</div>';
+  wrap.innerHTML = proxyBanner + html + glossaire;
 }
 
 function statCard(lbl,val,sub,danger){
