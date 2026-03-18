@@ -1308,7 +1308,7 @@ function renderClassement(q) {
 
   // Rang affiché : 4 groupes exclus → le tableau commence à la 4ème place visible
   // On recalcule le vrai rang en comptant les ex-æquo
-  var rankOffset = top4Moys.length; // nombre de groupes dans le podium+champion
+  var rankOffset = 3; // Champion hors classement + podium 3 places → tableau commence à 4
   var rank = 0, prev = null, displayRank = rankOffset;
   tablePs.forEach(function(p, i){
     var moy = p.quarters[q].moyenne;
@@ -1320,9 +1320,7 @@ function renderClassement(q) {
     var scoreColor = 'var(--accent)';
     var globalRank = rankOffset + (displayRank - rankOffset); // rang réel dans le classement
     // rankOffset = nb groupes podium+champion déjà affichés
-    if (rank === 2) scoreColor = '#f59e0b';       // 1er du podium = doré
-    else if (rank === 3) scoreColor = '#94a3b8';  // 2ème = argent
-    else if (rank === 4) scoreColor = '#b87333';  // 3ème = bronze
+    // Pas de couleur spéciale dans le tableau (podium géré séparément)
     var tr   = document.createElement('tr');
     tr.innerHTML =
       '<td>' + (med ? '<span class="r-med">'+med+'</span>' : '<span class="r-num">'+rank+'</span>') + '</td>' +
