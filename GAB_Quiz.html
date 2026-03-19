@@ -98,8 +98,8 @@ a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgb
 .r-score{font-weight:700;color:var(--accent);font-size:15px;}
 .r-nf-cell{font-size:12px;color:var(--muted);}
 .tag-me{display:inline-block;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
-.btn-histo-proxy{background:none;border:none;cursor:pointer;font-size:14px;padding:0 3px;vertical-align:middle;opacity:.6;transition:opacity .2s,transform .4s;}
-.btn-histo-proxy:hover{opacity:1;transform:rotate(180deg);}
+.btn-histo-proxy{display:inline-block;font-size:10px;font-weight:700;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 7px;margin-left:6px;vertical-align:middle;cursor:pointer;transition:background .14s,color .14s;}
+.btn-histo-proxy:hover{background:var(--accent);color:#fff;}
 .proxy-banner{display:flex;align-items:center;gap:10px;background:rgba(17,169,166,.12);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px;font-weight:600;color:var(--accent);}
 .proxy-banner button{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 .proxy-banner button:hover{opacity:.85;}
@@ -632,7 +632,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.09'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.10'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1495,8 +1495,8 @@ function viewParticipantHistory(prenom, nom) {
 
 function resetProxy() {
   proxyUid = null;
-  switchTab('stats');
-  renderStats();
+  switchTab('historique');
+  renderHistory();
 }
 
 function renderHistory() {
@@ -1513,7 +1513,7 @@ function renderHistory() {
   }
   var proxyBanner = '';
   if (admin && proxyUid) {
-    proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour aux statistiques</button></div>';
+    proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour à mon historique</button></div>';
   }
 
   var QS = ['T1','T2','T3','T4'];
@@ -1683,6 +1683,15 @@ function renderAdmin() {
     if (_sw && !_sw._proxyInit) {
       _sw._proxyInit = true;
       _sw.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-histo-proxy');
+        if (!btn) return;
+        viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
+      });
+    }
+    var _ew = document.getElementById('equipeWrap');
+    if (_ew && !_ew._proxyInit) {
+      _ew._proxyInit = true;
+      _ew.addEventListener('click', function(e) {
         var btn = e.target.closest('.btn-histo-proxy');
         if (!btn) return;
         viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
@@ -2196,7 +2205,7 @@ function renderStats() {
     };
     var disqBadge = r.isDisq ? '<span class="tag-disq">DISQUALIFIÉ</span>' : '';
     html += '<tr>' +
-      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + (admin ? ' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'" title="Voir historique">⏱️</button>' : '') + '</td>' +
+      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + (admin ? ' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'" >Historique</button>' : '') + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T1)+'" id="sc-T1">' + r.nfByQ.T1 + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T2)+'" id="sc-T2">' + r.nfByQ.T2 + '</td>' +
       '<td class="nf-cell '+nfClass(r.nfByQ.T3)+'" id="sc-T3">' + r.nfByQ.T3 + '</td>' +
@@ -2394,7 +2403,7 @@ function renderEquipeTable(q, filteredPs) {
     var meTag = isMe ? '<span class="tag-me">Moi</span>' : '';
     if (q === 'Annee') {
       return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
-        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+'</td>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+(admin||manager?' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'">Historique</button>':'')+'</td>' +
         ['T1','T2','T3','T4'].map(function(qt){
           var m = r.p.quarters[qt] && r.p.quarters[qt].moyenne;
           return '<td class="r-score" style="font-size:13px">'+(m!==null&&m!==undefined?m.toFixed(2):'—')+'</td>';
@@ -2408,7 +2417,7 @@ function renderEquipeTable(q, filteredPs) {
       var nfQ = qd ? qd.nbNonFait : 0;
       var nfQClass = nfQ >= params.seuilDisq ? 'nf-danger' : nfQ >= params.seuilZero ? 'nf-warn' : 'nf-ok';
       return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
-        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+'</td>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+(admin||manager?' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'">Historique</button>':'')+'</td>' +
         '<td class="r-score">'+(moy!==null&&moy!==undefined?moy.toFixed(2):'—')+'</td>' +
         '<td>'+(qd?qd.nbQuiz:0)+'</td>' +
         '<td class="nf-cell '+nfQClass+'">'+nfQ+'</td>' +
