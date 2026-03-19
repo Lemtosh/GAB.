@@ -632,7 +632,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.11'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.12'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1505,14 +1505,14 @@ function renderHistory() {
     wrap.innerHTML = '<div class="empty"><p>Identifie-toi pour voir ton historique.</p></div>';
     return;
   }
-  var effectiveUid = (admin && proxyUid) ? proxyUid : uid;
+  var effectiveUid = ((admin || manager) && proxyUid) ? proxyUid : uid;
   var me = gData.participants.find(function(p){ return matchId(p, effectiveUid); });
   if (!me) {
     wrap.innerHTML = '<div class="empty"><p>Aucun résultat trouvé pour <strong>'+capFull(effectiveUid.prenom)+' '+effectiveUid.nom+'</strong>.<br>Vérifie ton prénom et nom.</p></div>';
     return;
   }
   var proxyBanner = '';
-  if (admin && proxyUid) {
+  if ((admin || manager) && proxyUid) {
     proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour à mon historique</button></div>';
   }
 
