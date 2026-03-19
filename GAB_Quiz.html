@@ -100,8 +100,17 @@ a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgb
 .tag-me{display:inline-block;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
 .btn-histo-proxy{display:inline-block;font-size:10px;font-weight:700;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 7px;margin-left:6px;vertical-align:middle;cursor:pointer;transition:background .14s,color .14s;}
 .btn-histo-proxy:hover{background:var(--accent);color:#fff;}
+.hist-edit-on .wchip{cursor:pointer;transition:outline .12s,opacity .12s;}
+.hist-edit-on .wchip:hover{opacity:.8;}
+.wchip.wchip-sel{outline:2px solid var(--accent)!important;outline-offset:2px;opacity:1!important;background:rgba(99,102,241,.13)!important;}
+#histEditBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:10px;background:var(--card);border:1px solid var(--accent);border-radius:8px;}
+.btn-edit-tog{font-size:11px;font-weight:700;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:5px;padding:3px 10px;cursor:pointer;transition:background .13s,color .13s;white-space:nowrap;}
+.btn-edit-tog:hover,.btn-edit-tog.active{background:var(--accent);color:#fff;}
+#exApplyBtn{font-size:11px;font-weight:700;border:none;background:var(--accent);color:#fff;border-radius:5px;padding:3px 12px;cursor:pointer;transition:opacity .13s;}
+#exApplyBtn:disabled{opacity:.4;cursor:default;}
+#exConfirmModal .ex-modal-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 26px;max-width:420px;width:90%;}
 .proxy-banner{display:flex;align-items:center;gap:10px;background:rgba(17,169,166,.12);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px;font-weight:600;color:var(--accent);}
-.proxy-banner button{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.proxy-banner button{margin-left:0;box-sizing:border-box;padding:6px 14px!important;line-height:1.4;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 .proxy-banner button:hover{opacity:.85;}
 
 /* HISTORY */
@@ -632,7 +641,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.13'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.14'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -653,7 +662,9 @@ var curQ   = 'T1';
 var uid    = null;   // {nom, prenom} — stocké localStorage
 var admin  = false;
 var manager = false;
-var proxyUid = null; // admin proxy : participant consulté à la place de l'utilisateur connecté
+var proxyUid = null;
+var histEditMode = false;
+var histSelected = {}; // admin proxy : participant consulté à la place de l'utilisateur connecté
 var modalAllowClose = false;
 
 // ══ BOOT ═════════════════════════════════════════
@@ -1493,6 +1504,64 @@ function viewParticipantHistory(prenom, nom) {
   renderHistory();
 }
 
+
+// ══ EX EDIT MODE — v1.14 ═══════════════════════════════════════════════
+function toggleHistEditMode() {
+  histEditMode = !histEditMode;
+  histSelected = {};
+  renderHistory();
+}
+
+function toggleHistChip(wkey) {
+  if (histSelected[wkey]) { delete histSelected[wkey]; } else { histSelected[wkey] = true; }
+  var el = document.querySelector('.wchip[data-wkey="' + wkey + '"]');
+  if (el) el.classList.toggle('wchip-sel', !!histSelected[wkey]);
+  var n = Object.keys(histSelected).length;
+  var btn = document.getElementById('exApplyBtn');
+  if (btn) { btn.disabled = !n; btn.textContent = '\u{1F6E1}\uFE0F Appliquer EX (' + n + ')'; }
+}
+
+function showExConfirm() {
+  var sel = Object.keys(histSelected);
+  if (!sel.length) return;
+  var eUid = proxyUid;
+  var toEX = [], toNF = [];
+  sel.forEach(function(wk) {
+    var rawP = rawData && rawData.participants.find(function(p){ return matchId(p, eUid); });
+    (rawP && rawP.scores[wk] === 'EX' ? toNF : toEX).push(wk);
+  });
+  var name = capFull(eUid.prenom) + ' ' + eUid.nom;
+  var lines = '';
+  if (toEX.length) lines += '<p>\u2705 <strong>' + toEX.length + ' date(s) \u2192 EX</strong><br><span style="font-size:11px;color:var(--muted)">' + toEX.join(' \u00B7 ') + '</span></p>';
+  if (toNF.length) lines += '<p>\u274C <strong>' + toNF.length + ' EX retir\u00E9(s) \u2192 NF</strong><br><span style="font-size:11px;color:var(--muted)">' + toNF.join(' \u00B7 ') + '</span></p>';
+  document.getElementById('exConfirmBody').innerHTML =
+    '<p>Modifications pour <strong>' + name + '</strong>&nbsp;:</p>' + lines +
+    '<p style="font-size:11px;color:var(--muted);margin-top:10px">Ces changements seront pouss\u00E9s sur GitHub.</p>';
+  document.getElementById('exConfirmModal').classList.add('open');
+}
+
+function closeExConfirm() {
+  document.getElementById('exConfirmModal').classList.remove('open');
+}
+
+function applyExToggle() {
+  var sel = Object.keys(histSelected);
+  if (!sel.length || !proxyUid || !rawData) { closeExConfirm(); return; }
+  var rawP = rawData.participants.find(function(p){ return matchId(p, proxyUid); });
+  if (!rawP) { closeExConfirm(); return; }
+  sel.forEach(function(wk) {
+    if (rawP.scores[wk] === 'EX') { delete rawP.scores[wk]; }
+    else { rawP.scores[wk] = 'EX'; }
+  });
+  gData = buildGData(rawData);
+  saveResults(rawData);
+  histEditMode = false; histSelected = {};
+  closeExConfirm();
+  renderHistory();
+  if (admin) { renderStats(); renderAdmin(); }
+  pushToGithub();
+}
+
 function resetProxy() {
   proxyUid = null;
   switchTab('historique');
@@ -1513,7 +1582,12 @@ function renderHistory() {
   }
   var proxyBanner = '';
   if ((admin || manager) && proxyUid) {
-    proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour à mon historique</button></div>';
+    proxyBanner =
+      '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span>' +
+      (admin ? '<button onclick="toggleHistEditMode()" style="margin-left:auto;margin-right:6px;opacity:'+(histEditMode?'.65':'1')+'">'+(histEditMode?'✕ Quitter édition':'✏️ Éditer EX')+'</button>' : '') +
+      '<button onclick="resetProxy()" style="'+(admin?'':'margin-left:auto')+'">' + '← Retour à mon historique</button>' +
+      '</div>' +
+      (admin && histEditMode ? '<div id="histEditBar"><span style="font-size:12px;color:var(--muted)">Cliquez sur les semaines à modifier</span><button id="exApplyBtn" disabled onclick="showExConfirm()">🛡️ Appliquer EX (0)</button></div>' : '');
   }
 
   var QS = ['T1','T2','T3','T4'];
@@ -1552,13 +1626,14 @@ function renderHistory() {
   QS.forEach(function(q){
     var qd=me.quarters[q];
     if(!qd.active) return;
+    var _ea=function(d){var a=admin&&proxyUid?' data-wkey="'+d+'"':'';if(admin&&proxyUid&&histEditMode)a+=' onclick="toggleHistChip(this.dataset.wkey)"';return a;};
+    var _ec=function(d){return admin&&proxyUid&&histEditMode&&histSelected[d]?' wchip-sel':'';};
     var chips=qd.weeks.map(function(w){
       if(w.score===null) return '';
-      if(w.score==='absent') return '<div class="wchip absent"><div class="wdate">'+w.date+'</div><div class="wval" style="color:var(--danger);font-size:12px;font-weight:600">NF</div></div>';
-      if(w.score==='EX') return '<div class="wchip" style="opacity:.6;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:12px">🛡️ EX</div></div>'; // EX FIX
-      if(w.score==='EX') return '<div class="wchip" style="opacity:.55;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:11px">&#x1F6E1;&#xFE0F; EX</div></div>'; // EX FIX
+      if(w.score==='absent') return '<div class="wchip absent'+_ec(w.date)+'"'+_ea(w.date)+'><div class="wdate">'+w.date+'</div><div class="wval" style="color:var(--danger);font-size:12px;font-weight:600">NF</div></div>';
+      if(w.score==='EX') return '<div class="wchip'+_ec(w.date)+'" style="opacity:.6;border-style:dashed"'+_ea(w.date)+'><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:12px">🛡️ EX</div></div>';
       var col=w.score>=8?'var(--success)':w.score>=5?'var(--accent)':'var(--danger)';
-      return '<div class="wchip"><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
+      return '<div class="wchip'+_ec(w.date)+'"'+_ea(w.date)+'><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
     }).join('');
     html+='<div class="hist-q"><div class="hist-q-title"><span class="q-badge">'+q+'</span> '+qLabels[q]+
           (qd.moyenne!==null?' — <strong>'+qd.moyenne.toFixed(2)+'/10</strong>':'')+
@@ -1567,6 +1642,8 @@ function renderHistory() {
   });
   var glossaire = '<div style="margin-top:16px;padding:10px 14px;background:var(--al);border-radius:8px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;">' + '<span><strong style="color:var(--danger)">NF</strong> = Non fait</span>' + '<span><strong style="color:var(--accent)">EX</strong> = Excusé</span>' + '</div>';
   wrap.innerHTML = proxyBanner + html + glossaire;
+  if (admin && proxyUid && histEditMode) wrap.classList.add('hist-edit-on');
+  else wrap.classList.remove('hist-edit-on');
 }
 
 function statCard(lbl,val,sub,danger){
@@ -1977,14 +2054,12 @@ function fetchFromGithub() {
         localStorage.setItem(LS_BLACKLIST, JSON.stringify(data.config.blacklist || []));
         localStorage.setItem(LS_MANAGERS,  JSON.stringify(data.config.managers  || []));
       } catch(e){}
-      // Recalculer manager après mise à jour LS_MANAGERS
       if (!admin && uid) manager = isManager();
-      // Purge des clés LS potentiellement périmées (évite données fantômes sur autre navigateur)
       try { localStorage.removeItem(LS_DATA); } catch(e){}
       saveResults(data);
       rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
       var newGData = buildGData(data);
-      // GitHub = seule source de vérité — toujours utiliser les données fraîches
+      // GitHub = seule source de vérité
       gData = newGData;
       try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
       console.log('[GAB Quiz] Résultats chargés depuis GitHub ✅');
@@ -2330,7 +2405,6 @@ function renderEquipe() {
   wrap.innerHTML = html;
   window._equipePs = displayPs;
   renderEquipeTable('T1', displayPs);
-  // Listener proxy — installé ici pour admin ET manager
   var _ew = document.getElementById('equipeWrap');
   if (_ew && !_ew._proxyInit) {
     _ew._proxyInit = true;
@@ -2534,7 +2608,7 @@ function handleFileAdmin(file) {
       saveResults(data);
       rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
       var newGData = buildGData(data);
-      // Import admin = toujours prioritaire sur les données en mémoire
+      // Import admin = toujours prioritaire
       gData = newGData;
       // S'assurer que importsLog est bien dans gData depuis data
       if (!gData.importsLog || !gData.importsLog.length) gData.importsLog = data.importsLog || [];
@@ -3029,6 +3103,18 @@ async function executeReset() {
         <button class="btn-danger" style="margin-top:0;flex:1;" id="resetConfirmBtn" onclick="executeReset()">Confirmer le reset</button>
       </div>
       <div id="resetStatus" style="font-size:12px;margin-top:10px;display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EX CONFIRM MODAL -->
+<div class="modal-ov" id="exConfirmModal">
+  <div class="ex-modal-box">
+    <div style="font-size:15px;font-weight:700;margin-bottom:14px">🛡️ Confirmer la modification EX</div>
+    <div id="exConfirmBody" style="font-size:13px;line-height:1.6"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+      <button class="q-btn" onclick="closeExConfirm()">Annuler</button>
+      <button class="btn-primary" style="width:auto;padding:8px 20px" onclick="applyExToggle()">✅ Confirmer &amp; Push</button>
     </div>
   </div>
 </div>
