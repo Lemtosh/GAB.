@@ -1,0 +1,3033 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GAB · Quiz Classements</title>
+<!-- SheetJS retiré : import CSV natif -->
+<style>
+:root{--accent:#11a9a6;--al:rgba(17,169,166,.12);--bg:#f0f2f5;--card:#ffffff;--text:#111;--muted:#555;--border:#c2c8d4;--border2:#d6dae4;--gold:#f59e0b;--silver:#94a3b8;--bronze:#b87333;--danger:#e53e3e;--success:#38a169;}
+body.dark{--bg:#181c26;--card:#1e2433;--text:#e8eaed;--muted:#a6adb7;--border:#2b313a;--border2:#232a33;--gold:#f59e0b;--silver:#94a3b8;--bronze:#b87333;--danger:#d63a3a;--success:#38a169;--accent:#11a9a6;--al:rgba(17,169,166,.12);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
+
+/* TOP NAV BAR — style GAB */
+#topNavBar{position:fixed;top:0;left:0;right:0;height:46px;background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 2px 14px rgba(0,0,0,.10);display:flex;align-items:center;padding:0 10px;gap:4px;z-index:9999;}
+body .main, body .upload-outer, body .user-wait{padding-top:46px!important;}
+.topNavSep{width:1px;height:20px;background:var(--border);margin:0 4px;flex-shrink:0;}
+.topNavBtn{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;text-decoration:none!important;transition:background .14s,color .14s,border-color .14s,box-shadow .14s;flex-shrink:0;line-height:1;}
+.topNavBtn:hover{background:rgba(17,169,166,.12);color:var(--accent);border-color:rgba(17,169,166,.45);box-shadow:0 1px 5px rgba(17,169,166,.10);}
+a.topNavBtn,a.topNavBtn:link,a.topNavBtn:visited{color:var(--text)!important;background:rgba(255,255,255,.06)!important;border-color:var(--border)!important;}
+a.topNavBtn:hover,a.topNavBtn:focus{color:var(--accent)!important;background:rgba(17,169,166,.12)!important;border-color:rgba(17,169,166,.45)!important;}
+.topNavBtn svg{flex-shrink:0;}
+.topNavBrand{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;color:var(--accent);padding:4px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0;}
+.topNavBrand svg{width:16px;height:16px;}
+#versionBadge{font-size:10px;font-weight:600;background:rgba(17,169,166,.12);color:var(--accent);border-radius:999px;padding:2px 8px;letter-spacing:.04em;}
+.topNavSpacer{flex:1;}
+.id-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:4px 10px;}
+.id-pill svg{width:13px;height:13px;color:var(--accent);}
+
+/* UPLOAD — admin only overlay */
+.upload-outer{max-width:540px;margin:60px auto;padding:0 20px;text-align:center;}
+.upload-zone{border:2px dashed var(--border2);border-radius:16px;padding:48px 32px;cursor:pointer;transition:border-color .2s,background .2s;background:var(--card);}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--al);}
+.upload-zone svg{width:44px;height:44px;color:var(--accent);margin-bottom:16px;}
+.upload-zone h2{font-size:18px;font-weight:700;margin-bottom:8px;}
+.upload-zone p{font-size:13px;color:var(--muted);line-height:1.6;}
+.upload-zone input{display:none;}
+.upload-error{color:var(--danger);font-size:13px;margin-top:12px;display:none;}
+/* user waiting screen */
+.user-wait{max-width:420px;margin:80px auto;padding:24px;text-align:center;}
+.user-wait-icon{width:56px;height:56px;background:var(--al);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.user-wait-icon svg{width:28px;height:28px;color:var(--accent);}
+.user-wait h2{font-size:18px;font-weight:700;margin-bottom:8px;}
+.user-wait p{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* MAIN */
+.main{max-width:960px;margin:0 auto;padding:20px;display:none;}
+.file-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:16px;font-size:13px;}
+.file-bar-left{display:flex;align-items:center;gap:8px;color:var(--muted);}
+.file-bar-left strong{color:var(--text);}
+.file-bar svg{width:14px;height:14px;color:var(--accent);}
+.btn-sm{padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;transition:background .15s;}
+.btn-sm:hover{background:var(--al);border-color:var(--accent);color:var(--accent);}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-top:10px;padding:4px;margin-bottom:20px;}
+.tab-btn{flex:1;padding:8px 10px;font-size:13px;font-weight:600;border-radius:7px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.tab-btn:hover{background:var(--al);color:var(--accent);}
+.tab-btn.active{background:var(--accent);color:#fff;}
+.tab-btn svg{width:14px;height:14px;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* QUARTER SELECTOR */
+.q-selector{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.q-btn{padding:6px 18px;font-size:13px;font-weight:600;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s;}
+.q-btn:hover{border-color:var(--accent);color:var(--accent);}
+.q-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.now-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;margin-left:4px;vertical-align:middle;opacity:.7;}
+
+/* PODIUM */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:20px;margin-bottom:28px;padding:24px 0 0;flex-wrap:wrap;}
+.podium-slot{display:flex;flex-direction:column;align-items:center;}
+.podium-rank-lbl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;letter-spacing:.02em;}
+.podium-avatars{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;}
+.podium-avatar{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,.18);}
+.podium-names{text-align:center;line-height:1.5;max-width:140px;margin-bottom:6px;}
+.podium-names .p-prenom{font-size:12px;font-weight:700;display:block;}
+.podium-names .p-nom{font-weight:400;font-size:10px;color:var(--muted);display:block;}
+.podium-names .p-me{font-size:9px;margin-left:3px;}
+.podium-exaequo{font-size:10px;color:var(--muted);font-style:italic;margin-bottom:2px;text-align:center;}
+.podium-score{font-size:22px;font-weight:900;color:var(--accent);margin-bottom:8px;}
+.podium-bar{width:90px;border-radius:8px 8px 0 0;border:1px solid var(--border);}
+.podium-slot.rank-1 .podium-bar{background:linear-gradient(180deg,rgba(245,158,11,.3),rgba(245,158,11,.07));border-color:rgba(245,158,11,.35);}
+.podium-slot.rank-2 .podium-bar{background:linear-gradient(180deg,rgba(148,163,184,.3),rgba(148,163,184,.07));border-color:rgba(148,163,184,.35);}
+.podium-slot.rank-3 .podium-bar{background:linear-gradient(180deg,rgba(184,115,51,.3),rgba(184,115,51,.07));border-color:rgba(184,115,51,.35);}
+
+/* TABLE */
+.rank-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.rank-table{width:100%;border-collapse:collapse;}
+.rank-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:9px 16px;text-align:left;background:var(--bg);border-bottom:1px solid var(--border);}
+.rank-table td{padding:10px 16px;font-size:13px;border-bottom:1px solid var(--border);}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table tbody tr:hover td{background:var(--al);}
+.r-med{font-size:16px;}
+.r-num{font-weight:700;color:var(--muted);font-size:12px;}
+.r-name{font-weight:600;}
+.r-score{font-weight:700;color:var(--accent);font-size:15px;}
+.r-nf-cell{font-size:12px;color:var(--muted);}
+.tag-me{display:inline-block;font-size:10px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+.btn-histo-proxy{display:inline-block;font-size:10px;font-weight:700;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 7px;margin-left:6px;vertical-align:middle;cursor:pointer;transition:background .14s,color .14s;}
+.btn-histo-proxy:hover{background:var(--accent);color:#fff;}
+.proxy-banner{display:flex;align-items:center;gap:10px;background:rgba(17,169,166,.12);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:14px;font-weight:600;color:var(--accent);}
+.proxy-banner button{margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.proxy-banner button:hover{opacity:.85;}
+
+/* HISTORY */
+.id-bar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;}
+.id-name{font-size:15px;font-weight:700;}
+.id-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.stat-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.stat-val{font-size:24px;font-weight:800;color:var(--accent);}
+.stat-val.danger{color:var(--danger);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.hist-q{margin-bottom:24px;}
+.hist-q-title{font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.q-badge{background:var(--al);color:var(--accent);border-radius:6px;padding:2px 8px;font-size:11px;}
+.week-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.wchip{display:flex;flex-direction:column;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:66px;}
+.wchip .wdate{font-size:10px;color:var(--muted);margin-bottom:4px;}
+.wchip .wval{font-size:16px;font-weight:800;}
+.wchip.absent{border-color:rgba(229,62,62,.3);}
+
+/* ADMIN */
+.admin-banner{background:rgba(17,169,166,.1);border:1px solid rgba(17,169,166,.3);border-radius:10px;padding:11px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;font-size:13px;}
+.admin-banner svg{width:16px;height:16px;color:var(--accent);flex-shrink:0;}
+.section-ttl{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:2px solid var(--accent);}
+.absent-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.absent-chip{display:flex;align-items:center;gap:6px;background:rgba(229,62,62,.08);border:1px solid rgba(229,62,62,.25);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--danger);}
+.absent-cnt{background:var(--danger);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.admin-section{margin-bottom:28px;}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;z-index:10010;background:rgba(0,0,0,.52);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+.modal-ov.open{display:flex;}
+.modal-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:min(400px,calc(100vw - 32px));box-shadow:0 16px 48px rgba(0,0,0,.25);}
+.modal-box h2{font-size:17px;font-weight:700;margin-bottom:6px;}
+.modal-box p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.modal-field{margin-bottom:14px;}
+.modal-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:block;}
+.modal-inp{width:100%;padding:10px 12px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;}
+.modal-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(17,169,166,.15);}
+.modal-err{font-size:12px;color:var(--danger);margin-top:8px;display:none;line-height:1.5;}
+.btn-primary{width:100%;padding:11px;font-size:14px;font-weight:700;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s;}
+.btn-primary:hover{filter:brightness(1.08);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty svg{width:36px;height:36px;margin-bottom:10px;opacity:.3;}
+.empty p{font-size:13px;}
+
+@media(max-width:580px){
+  .topbar{padding:0 12px;}
+  .rank-table th:nth-child(4),.rank-table td:nth-child(4){display:none;}
+  .rank-table th:nth-child(5),.rank-table td:nth-child(5){display:none;}
+}
+
+/* INFO POPUP — style GAB_SGP */
+#infoPopup{display:none;position:fixed;inset:0;z-index:10020;align-items:center;justify-content:center;background:rgba(0,0,0,0.48);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);}
+#infoBox{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:22px 24px 20px;min-width:280px;max-width:360px;width:calc(100% - 40px);box-shadow:0 12px 40px rgba(0,0,0,0.22);position:relative;animation:ccIn 0.28s cubic-bezier(.34,1.56,.64,1);}
+#infoBox h3{margin:0 0 18px;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
+@keyframes ccIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.ccFooter{display:flex;justify-content:flex-end;margin-top:14px;}
+.ccPrimary{background:var(--accent);color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:filter .15s;}
+.ccPrimary:hover{filter:brightness(1.08);}
+
+/* ── DISQUALIFICATION ── */
+.tag-disq{display:inline-block;font-size:10px;font-weight:700;background:var(--danger);color:#fff;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:middle;letter-spacing:.04em;}
+tr.row-disq td{opacity:.6;}
+tr.row-disq .r-score{color:var(--danger)!important;}
+.disq-sep{width:100%;border:none;border-top:2px dashed var(--danger);opacity:.25;margin:4px 0;}
+
+/* ── ADMIN PARAM CARDS ── */
+.param-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:16px;}
+.param-card .param-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.param-card .param-row:last-child{margin-bottom:0;}
+.param-lbl{font-size:13px;font-weight:600;flex:1;min-width:200px;}
+.param-inp{width:70px;padding:6px 10px;font-size:14px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;text-align:center;transition:border-color .15s;}
+.param-inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(17,169,166,.15);}
+.param-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-top:4px;}
+.param-save-btn{padding:6px 16px;font-size:12px;font-weight:700;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;transition:filter .15s;white-space:nowrap;}
+.param-save-btn:hover{filter:brightness(1.08);}
+.param-saved{font-size:11px;color:var(--success);margin-left:8px;display:none;}
+
+/* ── EXCEPTIONS & LISTE NOIRE TAGS ── */
+.tag-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.tag-item{display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;}
+.tag-item .tag-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;transition:color .15s;}
+.tag-item .tag-del:hover{color:var(--danger);}
+.tag-add-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.tag-add-inp{flex:1;min-width:160px;padding:7px 12px;font-size:13px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;}
+.tag-add-inp:focus{border-color:var(--accent);}
+.tag-add-btn{padding:7px 14px;font-size:12px;font-weight:700;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer;}
+
+/* ── LISTE NOIRE (participants supprimés) ── */
+.tag-item.blacklisted{background:rgba(229,62,62,.08);border-color:rgba(229,62,62,.3);color:var(--danger);}
+
+/* ── STATS TAB ── */
+.stats-table{width:100%;border-collapse:collapse;}
+.stats-table th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:9px 12px;text-align:center;background:var(--bg);border-bottom:1px solid var(--border);}
+.stats-table th:first-child{text-align:left;}
+.stats-table td{padding:9px 12px;font-size:13px;border-bottom:1px solid var(--border);text-align:center;}
+.stats-table td:first-child{text-align:left;font-weight:600;}
+.stats-table tr:last-child td{border-bottom:none;}
+.stats-table tbody tr:hover td{background:var(--al);}
+.nf-cell{font-weight:700;}
+.nf-ok{color:var(--muted);}
+.nf-warn{color:#f59e0b;}
+.nf-danger{color:var(--danger);}
+.stats-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.stats-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.stats-filter label{font-size:12px;font-weight:600;color:var(--muted);}
+
+/* ── CHAMPION ── */
+.champion-wrap{text-align:center;padding:20px 16px 16px;margin-bottom:4px;position:relative;}
+.champion-crown{font-size:28px;line-height:1;margin-bottom:6px;}
+.champion-name{font-size:15px;font-weight:800;color:var(--text);margin-top:8px;}
+.champion-score{font-size:22px;font-weight:900;color:#f59e0b;margin-top:2px;}
+
+  .week-del-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+  .week-del-select { flex:1; min-width:160px; padding:7px 12px; font-size:13px; border-radius:8px;
+    border:1px solid var(--border); background:var(--bg); color:var(--text); outline:none; }
+  .week-del-select:focus { border-color:var(--accent); }
+  .week-del-btn { padding:7px 14px; font-size:12px; font-weight:700; border-radius:8px; border:none;
+    background:var(--danger); color:#fff; cursor:pointer; transition:filter .15s; white-space:nowrap; }
+  .week-del-btn:hover { filter:brightness(1.1); }
+  .week-del-status { font-size:12px; margin-top:6px; display:none; }
+
+/* ── RESET JSON MODAL ── */
+.reset-check-list { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.reset-check-item { display:flex; align-items:center; gap:10px; background:var(--bg);
+  border:1px solid var(--border); border-radius:8px; padding:10px 14px; cursor:pointer;
+  transition:border-color .15s, background .15s; }
+.reset-check-item:hover { border-color:var(--accent); background:var(--al); }
+.reset-check-item input[type=checkbox] { width:16px; height:16px; accent-color:var(--danger); cursor:pointer; flex-shrink:0; }
+.reset-check-item label { font-size:13px; font-weight:600; cursor:pointer; flex:1; }
+.reset-check-item .reset-sub { font-size:11px; color:var(--muted); margin-top:2px; display:block; }
+.reset-confirm-step { display:none; }
+.reset-confirm-step.active { display:block; }
+.btn-danger { padding:10px; font-size:14px; font-weight:700; border-radius:10px;
+  border:none; background:var(--danger); color:#fff; cursor:pointer; width:100%;
+  transition:filter .15s; margin-top:8px; }
+.btn-danger:hover { filter:brightness(1.1); }
+.reset-select-all { font-size:12px; font-weight:600; color:var(--accent);
+  background:none; border:none; cursor:pointer; padding:0; margin-bottom:4px; text-decoration:underline; }
+
+  /* ── Chrono rapide & Encart Rapidité Quiz ── */
+  .chronoRapide {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 8px;
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 99px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+    vertical-align: middle;
+  }
+  .fastestEncart {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .fastestLine  { font-size: 13px; }
+  .fastestLabel { font-weight: 600; color: #a78bfa; }
+  .fastestTime  { font-weight: 700; color: #a78bfa; }
+
+</style>
+</head>
+<body>
+<div id="modalBg" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:10009;"></div>
+
+<!-- TOP NAV BAR — style GAB_SGP, tous boutons à gauche -->
+<nav id="topNavBar" role="navigation" aria-label="Menu principal">
+
+  <!-- Retour GAB -->
+  <a class="topNavBtn" href="https://lemtosh.github.io/GAB./" id="linkGAB">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <span>Retour GAB</span>
+  </a>
+
+  <div class="topNavSep"></div>
+
+  <!-- Mode sombre / clair -->
+  <button class="topNavBtn" id="menuItemDarkMode" type="button" onclick="toggleDark()">
+    <span id="menuDarkIcon" style="display:inline-flex;align-items:center;flex-shrink:0;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </span>
+    <span id="menuDarkLabel">Mode sombre</span>
+  </button>
+
+  <!-- Informations -->
+  <button class="topNavBtn" id="menuItemInfo" type="button" onclick="document.getElementById('infoPopup').style.display='flex'">
+    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Infos</span>
+  </button>
+
+  <!-- Rafraîchir -->
+  <button class="topNavBtn" id="btnRefresh" type="button" onclick="refreshData()" title="Recharger les résultats depuis GitHub">
+    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform 0.7s ease"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+    <span id="refreshLabel">Rafraîchir</span>
+  </button>
+
+  <div class="topNavSep"></div>
+
+  <!-- Dernière semaine importée -->
+  <span id="lastWeekBadge" style="display:none;font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;padding:3px 10px;background:var(--al);border-radius:999px;border:1px solid var(--border)"></span>
+
+  <div class="topNavSpacer"></div>
+
+  <!-- Identité utilisateur (pill à droite) -->
+  <div class="id-pill" id="idPill" style="display:none;cursor:pointer" onclick="openChangeIdentity()" title="Changer d&#39;identit&#233;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span id="idPillTxt"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="margin-left:3px;opacity:.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  </div>
+
+</nav>
+
+<!-- ADMIN UPLOAD -->
+<div id="uploadWrap" style="display:none">
+  <div class="upload-outer">
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/>
+      </svg>
+      <div style="margin-bottom:16px;">
+            <button class="topNavBtn" id="btnCancelUpload" style="display:none" onclick="cancelUpload()">
+              ← Retour aux résultats
+            </button>
+          </div>
+          <h2>Importer un export MIA</h2>
+      <p>Glisse le fichier Excel ici ou clique pour sélectionner<br>
+      <span style="color:var(--accent);font-weight:600">QUIZZ_MIA_semaine.csv</span></p>
+      <input type="file" id="fileInput" accept=".csv" onchange="handleFile(this.files[0])">
+    </div>
+    <div class="upload-error" id="uploadErr"></div>
+  </div>
+</div>
+
+<!-- USER WAITING SCREEN -->
+<div id="userWait" style="display:none">
+  <div class="user-wait">
+    <div class="user-wait-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+    </div>
+    <h2>Résultats à venir</h2>
+    <p>L'administrateur n'a pas encore publié les résultats de cette semaine.<br>Reviens plus tard !</p>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main" id="mainWrap" style="display:none">
+
+  <div id="importCount" style="display:none;font-size:12px;color:var(--success);margin-top:6px;padding:6px 16px;background:rgba(56,161,105,.08);border-radius:8px;border:1px solid rgba(56,161,105,.2);"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="classement" onclick="switchTab('classement')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      Classement
+    </button>
+    <button class="tab-btn" data-tab="historique" onclick="switchTab('historique')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Mon historique
+    </button>
+    <button class="tab-btn" id="tabAdmin" data-tab="admin" style="display:none" onclick="switchTab('admin')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin
+    </button>
+    <button class="tab-btn" id="tabStats" data-tab="stats" style="display:none" onclick="switchTab('stats')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Statistiques
+    </button>
+    <button class="tab-btn" id="tabEquipe" data-tab="equipe" style="display:none" onclick="switchTab('equipe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Équipe
+    </button>
+  </div>
+
+  <!-- CLASSEMENT -->
+  <div class="tab-content active" id="tab-classement">
+    <div class="q-selector" id="qSelector"></div>
+    <div id="podiumWrap"></div>
+    <div id="fastestEncartWrap" class="fastestEncart" style="display:none;"></div>
+    <div class="rank-wrap">
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Participant</th>
+            <th>Moyenne</th>
+            <th>Quiz faits</th>
+            <th style="color:var(--danger)" id="thNonFaits">Non faits</th>
+          </tr>
+        </thead>
+        <tbody id="rankBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="tab-content" id="tab-historique">
+    <div id="histWrap"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="tab-content" id="tab-admin">
+    <div class="admin-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Vue administrateur — accès complet, suivi des absences et paramètres du quiz.
+    </div>
+
+    <!-- Zone import rapide pour admin -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">⬆️ Importer un export MIA</span></div>
+      <div class="upload-zone" id="dropZoneAdmin" onclick="document.getElementById('fileInputAdmin').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="this.classList.remove('drag-over');handleDropAdmin(event)"
+           style="margin-top:12px;padding:20px;min-height:80px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:28px;height:28px;opacity:.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p style="margin:6px 0 0;font-size:13px;color:var(--muted)">Glisse le fichier Excel ici ou clique pour sélectionner</p>
+        <p id="dropZoneAdminFile" style="margin:4px 0 0;font-size:12px;font-weight:700;color:var(--accent)"></p>
+      </div>
+      <input type="file" id="fileInputAdmin" accept=".xlsx,.xls,.csv" style="display:none" multiple onchange="handleFilesAdmin(this.files)">
+      <div id="importAdminStatus" style="margin-top:8px;font-size:13px;display:none"></div>
+    </div>
+
+    <!-- AJOUTER UN PARTICIPANT MANUELLEMENT -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">➕ Ajouter un participant manuellement</span></div>
+      <div class="param-desc">Permet d'ajouter un score pour un participant (dérogation, rattrapage, etc.) sur une semaine existante ou nouvelle.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+        <div>
+          <label class="modal-lbl">Prénom</label>
+          <input class="modal-inp" type="text" id="addPartPrenom" placeholder="ex: Marie">
+        </div>
+        <div>
+          <label class="modal-lbl">Nom</label>
+          <input class="modal-inp" type="text" id="addPartNom" placeholder="ex: DUPONT">
+        </div>
+        <div>
+          <label class="modal-lbl">Semaine</label>
+          <select class="modal-inp" id="addPartWeek" style="cursor:pointer">
+            <option value="">— Choisir une semaine —</option>
+          </select>
+        </div>
+        <div>
+          <label class="modal-lbl">Score (1-10, NF ou EX)</label>
+          <input class="modal-inp" type="text" id="addPartScore" placeholder="ex: 8, NF ou EX">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <button class="param-save-btn" onclick="addParticipantManual()">Ajouter</button>
+        <span id="addPartStatus" style="font-size:12px;display:none"></span>
+      </div>
+    </div>
+
+    <!-- SUPPRIMER UNE SEMAINE -->
+    <div class="param-card" style="margin-bottom:16px">
+      <div class="param-row"><span class="param-lbl">Supprimer une semaine importée</span></div>
+      <div class="param-desc">Supprime toutes les données d'une semaine du JSON (scores + entrée importsLog) et re-pousse vers GitHub.</div>
+      <div class="week-del-row">
+        <select class="week-del-select" id="weekDelSelect"><option value="">— Choisir une semaine —</option></select>
+        <button class="week-del-btn" onclick="deleteWeek()">Supprimer</button>
+      </div>
+      <div class="week-del-status" id="weekDelStatus"></div>
+    </div>
+
+    <!-- PARAMÈTRES ADMIN -->
+    <div class="admin-section">
+      <div class="section-ttl">⚙️ Paramètres du quiz</div>
+
+      <!-- Seuil Non Fait → 0 pts -->
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">📉 Seuil "Non fait" → 0 pt</span>
+          <input class="param-inp" type="number" id="paramSeuilZero" min="1" max="52" value="6">
+          <button class="param-save-btn" onclick="saveParam('seuilZero')">Sauvegarder</button>
+          <span class="param-saved" id="savedSeuilZero">✅ Sauvegardé</span>
+        </div>
+        <div class="param-desc">À partir de ce nombre de "Non fait" cumulés sur l'année, les prochains quiz non faits seront comptés 0 pt (au lieu d'être ignorés).<br>Par défaut : 6.</div>
+        <div style="margin-top:12px;">
+          <div class="section-ttl" style="font-size:11px;margin-bottom:6px;">Exceptions — ces participants ne sont PAS concernés par cette règle</div>
+          <div class="tag-list" id="exceptSeuilZeroList"></div>
+          <div class="tag-add-row">
+            <input class="tag-add-inp" type="text" id="exceptSeuilZeroInp" placeholder="Prénom NOM">
+            <button class="tag-add-btn" onclick="addException('seuilZero')">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seuil Disqualification -->
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">🚫 Seuil disqualification (année)</span>
+          <input class="param-inp" type="number" id="paramSeuilDisq" min="1" max="52" value="10">
+          <button class="param-save-btn" onclick="saveParam('seuilDisq')">Sauvegarder</button>
+          <span class="param-saved" id="savedSeuilDisq">✅ Sauvegardé</span>
+        </div>
+        <div class="param-desc">Si un participant atteint ce nombre de "Non fait" sur l'année entière, il est disqualifié : son score reste visible mais il apparaît en bas du classement avec un badge DISQUALIFIÉ.<br>Par défaut : 10.</div>
+        <div style="margin-top:12px;">
+          <div class="section-ttl" style="font-size:11px;margin-bottom:6px;">Exceptions — ces participants ne peuvent PAS être disqualifiés</div>
+          <div class="tag-list" id="exceptSeuilDisqList"></div>
+          <div class="tag-add-row">
+            <input class="tag-add-inp" type="text" id="exceptSeuilDisqInp" placeholder="Prénom NOM">
+            <button class="tag-add-btn" onclick="addException('seuilDisq')">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste noire participants -->
+            <!-- MANAGERS -->
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">👔 Managers (accès étendu)</span>
+        </div>
+        <div class="param-desc">Ces participants ont un accès étendu : ils voient les résultats, moyennes trimestrielles/annuelles et les non-faits de tous les participants.</div>
+        <div style="margin-top:12px;">
+          <div class="tag-list" id="managersList"></div>
+          <div class="tag-add-row">
+            <input class="tag-add-inp" type="text" id="managersInp" placeholder="Prénom NOM">
+            <button class="tag-add-btn" onclick="addManager()">+ Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">🗑️ Participants supprimés</span>
+        </div>
+        <div class="param-desc">Ces participants sont définitivement exclus de l'application (collaborateurs ayant quitté l'entreprise). Même s'ils réapparaissent dans un futur export Excel, ils seront automatiquement ignorés.</div>
+        <div style="margin-top:12px;">
+          <div class="tag-list" id="blacklistList"></div>
+          <div class="tag-add-row">
+            <input class="tag-add-inp" type="text" id="blacklistInp" placeholder="Prénom NOM">
+            <button class="tag-add-btn" style="background:var(--danger);" onclick="addBlacklist()">+ Exclure</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <!-- RESET JSON -->
+    <div class="param-card" style="border-color:rgba(229,62,62,.3);margin-bottom:16px;">
+      <div class="param-row"><span class="param-lbl" style="color:var(--danger)">⚠️ Reset JSON</span></div>
+      <div class="param-desc">Remet à zéro les éléments sélectionnés dans le JSON et pousse sur GitHub.</div>
+      <button class="param-save-btn" style="background:var(--danger);margin-top:12px;" onclick="openResetModal()">Ouvrir le reset</button>
+    </div>
+    <!-- GITHUB CONFIG -->
+      <div class="param-card">
+        <div class="param-row">
+          <span class="param-lbl">🐙 Connexion GitHub</span>
+        </div>
+        <div class="param-desc">Le token permet de synchroniser les résultats sur GitHub, rendant les données accessibles à tous les utilisateurs sans nouvel import.</div>
+        <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <label class="modal-lbl">Token GitHub (Personal Access Token)</label>
+            <div style="display:flex;gap:8px;margin-top:4px;">
+              <input class="modal-inp" type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx" style="flex:1;font-family:monospace;font-size:12px;">
+              <button class="topNavBtn" onclick="toggleGhToken()" id="ghTokenEye" type="button">👁</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <label class="modal-lbl">Repo</label>
+              <input class="modal-inp" type="text" id="ghRepo" value="Lemtosh/GAB." placeholder="user/repo">
+            </div>
+            <div>
+              <label class="modal-lbl">Fichier JSON</label>
+              <input class="modal-inp" type="text" id="ghFile" value="resultats.json" placeholder="resultats.json">
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button class="param-save-btn" onclick="saveGithubConfig()">💾 Sauvegarder</button>
+            <button class="param-save-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);" onclick="testGithubConnection()">🔌 Tester</button>
+            <button class="param-save-btn" onclick="pushToGithub()">⬆️ Push résultats</button>
+            <span class="param-saved" id="savedGithub">✅ Sauvegardé</span>
+            <span id="ghStatus" style="font-size:12px;"></span>
+          </div>
+        </div>
+      </div>
+
+    <!-- DONNÉES QUIZ (absences, etc.) -->
+    <div id="adminWrap"></div>
+  </div>
+</div>
+
+  <!-- STATS -->
+  <div class="tab-content" id="tab-stats">
+    <div id="statsWrap"></div>
+  </div>
+
+  <!-- EQUIPE -->
+  <div class="tab-content" id="tab-equipe">
+    <div id="equipeWrap"></div>
+  </div>
+
+<!-- IDENTITY MODAL -->
+<div class="modal-ov" id="identModal">
+  <div class="modal-box">
+    <h2>👋 Qui es-tu ?</h2>
+    <p id="modalDesc">Renseigne ton prénom et ton nom tels qu'ils apparaissent dans les résultats du quiz.</p>
+    <div class="modal-field">
+      <label class="modal-lbl" for="inpPrenom">Prénom</label>
+      <input class="modal-inp" id="inpPrenom" type="text" placeholder="ex : Marie" autocomplete="given-name">
+    </div>
+    <div class="modal-field">
+      <label class="modal-lbl" for="inpNom">Nom</label>
+      <input class="modal-inp" id="inpNom" type="text" placeholder="ex : DUPONT" autocomplete="family-name">
+    </div>
+    <div class="modal-err" id="modalErr"></div>
+    <button class="btn-primary" id="btnConfirmId" onclick="confirmId()">Confirmer</button>
+  </div>
+</div>
+
+<script>
+// ══ VERSION ══════════════════════════════════════
+var local_version = 'v1.11'; // ← modifier ici à chaque mise à jour
+
+// ══ CONSTANTS ═════════════════════════════════════
+var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
+var ADMIN_SECRET = 'Lemtosh'; // comparaison exacte pour détecter admin
+var LS_ID        = 'gabQuiz_v2_id';
+var LS_DARK      = 'gabQuiz_v2_dark';
+var LS_DATA      = 'gabQuiz_v2_data';    // données Excel sérialisées (admin persiste)
+var LS_PARAMS    = 'gabQuiz_v2_params';  // paramètres admin
+var LS_BLACKLIST = 'gabQuiz_v2_blacklist'; // participants exclus
+var LS_RESULTS   = 'gabQuiz_v2_results';   // JSON résultats cumulés
+var LS_GITHUB    = 'gabQuiz_v2_github';    // config GitHub
+var LS_MANAGERS  = 'gabQuiz_v2_managers';  // liste des managers
+
+// ══ STATE ════════════════════════════════════════
+var rawData = null; // JSON brut GitHub — jamais transformé
+var gData  = null;
+var curQ   = 'T1';
+var uid    = null;   // {nom, prenom} — stocké localStorage
+var admin  = false;
+var manager = false;
+var proxyUid = null; // admin proxy : participant consulté à la place de l'utilisateur connecté
+var modalAllowClose = false;
+
+// ══ BOOT ═════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', function() {
+  var _isDark = localStorage.getItem(LS_DARK) === '1';
+  if (_isDark) {
+    document.body.classList.add('dark');
+    var _lbl = document.getElementById('menuDarkLabel');
+    if (_lbl) _lbl.textContent = 'Mode clair';
+  }
+  // versionBadge supprimé v1.05
+  var ivl = document.getElementById('infoVersionLineQuiz');
+  if (ivl) ivl.textContent = 'GAB · Quiz Classements — ' + local_version;
+
+  // Drag-drop on admin upload zone
+  var dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', function(){ dz.classList.remove('dragover'); });
+  dz.addEventListener('drop',      function(e){
+    e.preventDefault(); dz.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  // Restore identity
+  try { var s = localStorage.getItem(LS_ID); if (s) uid = JSON.parse(s); } catch(e){}
+  admin   = uid && uid.nom === ADMIN_SECRET;
+  manager = !admin && uid && isManager();
+
+  // v0.24 : si GitHub configuré, ne pas pré-charger le LS — la vérité vient du JSON GitHub
+  var _ghCfgBoot = loadGithubConfig();
+  if (!_ghCfgBoot || !_ghCfgBoot.repo || !_ghCfgBoot.file) {
+    // Pas de GitHub configuré : fallback localStorage normal
+    var resultsData = loadResults();
+    if (resultsData) {
+      gData = buildGData(resultsData);
+    } else {
+      var cached = localStorage.getItem(LS_DATA);
+      if (cached) { try { gData = JSON.parse(cached); } catch(e){ gData = null; } }
+    }
+  }
+
+  // Remplir les champs GitHub dès le boot (token survivra au refresh)
+  renderGithubConfig();
+  // Charger les résultats depuis GitHub si config présente
+  var _ghCfg = loadGithubConfig();
+  if (_ghCfg && _ghCfg.repo && _ghCfg.file) {
+    fetchFromGithub(); // async, fallback localStorage si échec
+  }
+  // Petit délai pour s'assurer que tout le DOM est initialisé
+  setTimeout(showProperView, 50);
+});
+
+function showProperView() {
+  if (admin) {
+    if (gData) {
+      showMain();
+    } else {
+      document.getElementById('uploadWrap').style.display  = 'block';
+      document.getElementById('mainWrap').style.display    = 'none';
+      document.getElementById('userWait').style.display    = 'none';
+    }
+    updateIdDisplay();
+    return;
+  }
+
+  // Non-admin : demander l'identité EN PREMIER si pas encore renseignée
+  if (!uid) {
+    document.getElementById('userWait').style.display    = 'none';
+    document.getElementById('uploadWrap').style.display  = 'none';
+    document.getElementById('mainWrap').style.display    = 'none';
+    // v0.33 : préremplir depuis gabUserId si disponible
+    try {
+      var _gabUid = JSON.parse(localStorage.getItem('gabUserId'));
+      if (_gabUid && _gabUid.prenom) document.getElementById('inpPrenom').value = _gabUid.prenom;
+      if (_gabUid && _gabUid.nom)    document.getElementById('inpNom').value    = _gabUid.nom;
+    } catch(e) {}
+    document.getElementById('modalBg').style.display     = 'block';
+    openModal(false); // modal obligatoire, non fermable
+    return;
+  }
+  document.getElementById('modalBg').style.display = 'none';
+
+  updateIdDisplay();
+
+  if (!gData) {
+    document.getElementById('userWait').style.display    = 'block';
+    document.getElementById('uploadWrap').style.display  = 'none';
+    document.getElementById('mainWrap').style.display    = 'none';
+  } else {
+    showMain();
+  }
+}
+
+function showMain() {
+  document.getElementById('uploadWrap').style.display  = 'none';
+  document.getElementById('userWait').style.display    = 'none';
+  document.getElementById('mainWrap').style.display    = 'block';
+  // Bouton retour toujours visible quand on est dans mainWrap
+
+  document.getElementById('tabAdmin').style.display    = admin ? 'flex' : 'none';
+  document.getElementById('tabStats').style.display    = admin ? 'flex' : 'none';
+  var _isManager = isManager();
+  document.getElementById('tabEquipe').style.display   = (admin || _isManager) ? 'flex' : 'none';
+
+  var m = new Date().getMonth() + 1;
+  curQ  = m <= 3 ? 'T1' : m <= 6 ? 'T2' : m <= 9 ? 'T3' : 'T4';
+
+  buildQSelector();
+  renderClassement(curQ);
+  renderHistory();
+  if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderStats(); renderManagersTags(); }
+  if (admin || isManager()) renderEquipe();
+  updateLastWeekBadge();
+
+}
+
+// ══ DARK MODE ═════════════════════════════════════
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  var isDark = document.body.classList.contains('dark');
+  localStorage.setItem(LS_DARK, isDark ? '1' : '0');
+  var lbl = document.getElementById('menuDarkLabel');
+  if (lbl) lbl.textContent = isDark ? 'Mode clair' : 'Mode sombre';
+}
+
+// ══ FILE UPLOAD (admin only) ══════════════════════
+function handleFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var wb = XLSX.read(new Uint8Array(e.target.result), {type:'array', raw:false});
+      var parsed = parseWB(wb);
+      if (!parsed) { showErr('Feuille 2026 introuvable dans ce fichier.'); return; }
+      gData = parsed;
+      // Persist for non-admin users on the same device/session
+      try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+      document.getElementById('fileNameTxt').textContent = file.name;
+      showMain();
+    } catch(err) { showErr('Erreur de lecture : ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showErr(msg) {
+  var el = document.getElementById('uploadErr');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+function resetFile() {
+  gData = null;
+  localStorage.removeItem(LS_DATA);
+  var ic = document.getElementById('importCount');
+  if (ic) { ic.style.display='none'; ic.textContent=''; }
+  document.getElementById('uploadWrap').style.display = 'block';
+  document.getElementById('mainWrap').style.display   = 'none';
+  document.getElementById('uploadErr').style.display  = 'none';
+  document.getElementById('fileInput').value          = '';
+}
+
+// ══ CSV IMPORT ═══════════════════════════════════
+// Parse un CSV brut MIA (séparateur ;)
+// Colonnes : Date de début ; Date de fin ; Nom ; Prénom ; Email ; Téléphone ; Identifiant ; Score total
+function parseCSV(text) {
+  var lines = text.trim().split(/\r?\n/);
+  if (lines.length < 2) return null;
+  // Détecter séparateur
+  var sep = lines[0].indexOf(';') >= 0 ? ';' : ',';
+  var headers = lines[0].split(sep).map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+  var nomIdx    = headers.findIndex(function(h){ return h === 'Nom'; });
+  var prenomIdx = headers.findIndex(function(h){ return h === 'Prénom'; });
+  var dateIdx   = headers.findIndex(function(h){ return h.indexOf('Date de début') >= 0; });
+  var scoreIdx  = headers.findIndex(function(h){ return h.indexOf('Score') >= 0; });
+  var tempsIdx  = headers.findIndex(function(h){ return h.indexOf('Temps de réponse au questionnaire') >= 0; });
+  var timerPageIdxs = [];
+  for (var _tp = 1; _tp <= 11; _tp++) {
+    var _tpIdx = headers.findIndex(function(h){ return h === 'Timer page ' + _tp + ' (en secondes)'; }.bind(null, _tp));
+    // closure-safe
+    (function(n){
+      var idx2 = headers.findIndex(function(h){ return h === ('Timer page ' + n + ' (en secondes)'); });
+      if (idx2 >= 0) timerPageIdxs.push(idx2);
+    })(_tp);
+  }
+  if (nomIdx<0 || prenomIdx<0 || dateIdx<0 || scoreIdx<0) return null;
+
+  var entries = [];
+  for (var i=1; i<lines.length; i++) {
+    var cols = splitCSVLine(lines[i], sep);
+    if (cols.length < scoreIdx+1) continue;
+    var nom    = cols[nomIdx].replace(/^"|"$/g,'').trim().toUpperCase();
+    var prenom = cols[prenomIdx].replace(/^"|"$/g,'').trim();
+    var dateRaw= cols[dateIdx].replace(/^"|"$/g,'').trim(); // "04/03/2026 08:02:26"
+    var scoreRaw = cols[scoreIdx].replace(/^"|"$/g,'').trim();
+    if (!nom || !prenom || !dateRaw || !scoreRaw) continue;
+    var score = Math.min(10, parseInt(scoreRaw, 10));
+    if (isNaN(score)) continue;
+    // Extraire la date (jj/mm/aaaa) et trouver le lundi de la semaine
+    var dateParts = dateRaw.split(' ')[0].split('/');
+    if (dateParts.length < 3) continue;
+    var d = new Date(dateParts[2], dateParts[1]-1, dateParts[0]);
+    var wednesday = getWednesday(d);
+    var weekKey = fmtDate(wednesday);
+    var tempsRaw = (tempsIdx >= 0) ? (cols[tempsIdx]||'').replace(/^"|"$/g,'').trim() : '';
+    var temps    = (tempsRaw !== '' && !isNaN(parseInt(tempsRaw,10))) ? parseInt(tempsRaw,10) : null;
+    // Invalider le temps si au moins un timer page = 0 (questionnaire non complété)
+    if (temps !== null && timerPageIdxs.length > 0) {
+      var hasZeroTimer = timerPageIdxs.some(function(ti){
+        var tv = (cols[ti]||'').replace(/^"|"$/g,'').trim();
+        return tv !== '' && parseInt(tv,10) === 0;
+      });
+      if (hasZeroTimer) temps = null;
+    }
+    entries.push({nom:nom, prenom:prenom, weekKey:weekKey, score:score, temps:temps});
+  }
+  return entries;
+}
+
+function splitCSVLine(line, sep) {
+  var result = [], cur = '', inQ = false;
+  for (var i=0; i<line.length; i++) {
+    var c = line[i];
+    if (c==='"') { inQ=!inQ; }
+    else if (c===sep && !inQ) { result.push(cur); cur=''; }
+    else { cur+=c; }
+  }
+  result.push(cur);
+  return result;
+}
+
+function getWednesday(d) {
+  // Quiz envoyé le mercredi, à faire avant le mardi soir suivant
+  // Toutes les participations mer→mar sont regroupées sous le mercredi de la semaine
+  var day = d.getDay(); // 0=dim,1=lun,2=mar,3=mer,4=jeu,5=ven,6=sam
+  var diff;
+  if (day >= 3) {
+    diff = 3 - day; // reculer au mercredi de cette semaine
+  } else {
+    // lun(1) ou mar(2) → mercredi de la semaine précédente
+    diff = 3 - day - 7;
+  }
+  var w = new Date(d);
+  w.setDate(d.getDate() + diff);
+  return w;
+}
+
+function fmtDate(d) {
+  var dd = String(d.getDate()).padStart(2,'0');
+  var mm = String(d.getMonth()+1).padStart(2,'0');
+  return dd+'/'+mm+'/'+d.getFullYear();
+}
+
+// Fusionner les entrées CSV dans le JSON résultats existant
+function mergeCSVEntries(entries, fileLabel) {
+  var data;
+  // rawData FIX : toujours repartir du JSON brut GitHub — jamais de gData transformé
+  if (rawData) {
+    data = JSON.parse(JSON.stringify(rawData));
+    data.participants = data.participants.map(function(p){ return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}}; });
+  } else {
+    data = loadResults();
+    if (!data) data = { annee: new Date().getFullYear(), generated: '', participants: [] };
+    data.participants = data.participants.map(function(p){ return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}}; });
+  }
+
+    // Identifier la semaine importée
+  var weeks = {};
+  entries.forEach(function(e){ weeks[e.weekKey]=true; });
+  var importedWeeks = Object.keys(weeks);
+
+  // Participants présents dans ce CSV
+  entries.forEach(function(e){
+    var p = data.participants.find(function(x){
+      return x.nom===e.nom && x.prenom.toLowerCase()===e.prenom.toLowerCase();
+    });
+    if (!p) {
+      p = {nom:e.nom, prenom:e.prenom, scores:{}};
+      data.participants.push(p);
+    }
+    if (p.scores[e.weekKey] !== 'EX') p.scores[e.weekKey] = { score: e.score, temps: (e.temps !== undefined ? e.temps : null) }; // EX FIX
+  });
+
+  // Marquer NF pour les participants connus absents cette semaine
+  data.participants.forEach(function(p){
+    // BUG4 FIX : ne pas mettre NF avant la 1ère apparition du participant
+    var firstDate = null;
+    Object.keys(p.scores).forEach(function(dateStr){
+      var parts = dateStr.split('/');
+      if (parts.length === 3) {
+        var d = new Date(parts[2], parts[1]-1, parts[0]);
+        if (!firstDate || d < firstDate) firstDate = d;
+      }
+    });
+    importedWeeks.forEach(function(wk){
+      if (p.scores[wk] === undefined) {
+        var hasAnyScore = Object.keys(p.scores).length > 0;
+        if (hasAnyScore && firstDate) {
+          var parts = wk.split('/');
+          var wkDate = new Date(parts[2], parts[1]-1, parts[0]);
+          if (wkDate >= firstDate) p.scores[wk] = 'NF'; // pas de NF rétroactif
+        }
+      }
+    });
+  });
+
+  data.generated = new Date().toISOString();
+  // Enregistrer la liste des semaines importées
+  if (!data.importsLog) data.importsLog = [];
+  var importedWeeks = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
+  importedWeeks.forEach(function(wk){
+    var already = data.importsLog.some(function(l){ return l.week === wk; });
+    if (!already) data.importsLog.push({week:wk, importedAt: new Date().toISOString(), count: entries.filter(function(e){ return e.weekKey===wk; }).length, label: fileLabel || wk});
+  });
+  return data;
+}
+
+// ══ RÉSULTATS (localStorage) ══════════════════════
+function loadResults() {
+  try {
+    var s = localStorage.getItem(LS_RESULTS);
+    if (s) return JSON.parse(s);
+  } catch(e){}
+  return null;
+}
+
+function saveResults(data) {
+  localStorage.setItem(LS_RESULTS, JSON.stringify(data));
+}
+
+// ══ IMPORT CSV (admin) ════════════════════════════
+function handleFile(file) {
+  var ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var entries = parseCSV(e.target.result);
+        if (!entries || !entries.length) { showErr('CSV invalide ou aucune entrée trouvée.'); return; }
+        var merged = mergeCSVEntries(entries);
+        saveResults(merged);
+        gData = buildGData(merged);
+        try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(ex){}
+        document.getElementById('fileNameTxt').textContent = file.name;
+        document.getElementById('importCount').textContent =
+          entries.length + ' participation(s) importée(s) — semaine du ' + Object.keys(
+            entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{})).join(', ');
+        document.getElementById('importCount').style.display = 'block';
+        showMain();
+        // Auto-push vers GitHub si token configuré
+        var _cfg = loadGithubConfig();
+        if (_cfg && _cfg.token) {
+          setTimeout(function(){
+            ghStatus('', true);
+            pushToGithub();
+          }, 800);
+        }
+      } catch(err){ showErr('Erreur CSV : '+err.message); }
+    };
+    reader.readAsText(file, 'utf-8');
+  } else {
+    showErr('Format non supporté. Veuillez importer un fichier CSV (export MIA).');
+  }
+}
+
+// ══ CONVERSION JSON → gData ════════════════════════
+// Construit la structure gData utilisée par le reste de l'app
+var QS_MONTHS = {T1:[1,2,3], T2:[4,5,6], T3:[7,8,9], T4:[10,11,12]};
+
+function buildGData(data) {
+  if (!data || !data.participants) return null;
+  var participants = [];
+  // Extraire la config depuis le JSON (priorité sur localStorage)
+  var config = data.config || null;
+  data.participants.forEach(function(p){
+    var qData = {};
+    ['T1','T2','T3','T4'].forEach(function(q){
+      var months = QS_MONTHS[q];
+      var weeks = [];
+      Object.keys(p.scores).forEach(function(dateStr){
+        var parts = dateStr.split('/');
+        if (parts.length<3) return;
+        var month = parseInt(parts[1],10);
+        if (months.indexOf(month)<0) return;
+        var _rawSc = p.scores[dateStr];
+        var _scVal = (_rawSc !== null && typeof _rawSc === 'object') ? _rawSc.score : _rawSc;
+        var _tmVal = (_rawSc !== null && typeof _rawSc === 'object') ? (_rawSc.temps !== undefined ? _rawSc.temps : null) : null;
+        if (_scVal === 'EX') {
+          weeks.push({date:dateStr, score:'EX', temps:null}); // EX FIX
+          return;
+        }
+        weeks.push({date:dateStr, score: _scVal==='NF' ? 'absent' : _scVal, temps:_tmVal});
+      });
+      // Trier par date
+      weeks.sort(function(a,b){
+        var pa=a.date.split('/'), pb=b.date.split('/');
+        var da=new Date(pa[2],pa[1]-1,pa[0]), db=new Date(pb[2],pb[1]-1,pb[0]);
+        return da-db;
+      });
+      var nums = weeks.filter(function(w){ return typeof w.score==='number'; });
+      var nNF  = weeks.filter(function(w){ return w.score==='absent'; }).length;
+      var nEX  = weeks.filter(function(w){ return w.score==='EX'; }).length; // EX FIX
+      var moy  = nums.length ? Math.round(nums.reduce(function(s,w){return s+w.score;},0)/nums.length*100)/100 : null;
+      var active = weeks.length > 0;
+      qData[q] = {moyenne:moy, nbQuiz:nums.length, nbNonFait:nNF, nbEX:nEX, weeks:weeks, active:active};
+    });
+    participants.push({nom:p.nom, prenom:p.prenom, quarters:qData});
+  });
+  var importsLog = data.importsLog || [];
+
+  // Construire qCols : liste unique des semaines par trimestre
+  var qCols = {};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    var weekSet = {}, weekList = [];
+    participants.forEach(function(p){
+      if (p.quarters[q]) p.quarters[q].weeks.forEach(function(w){
+        if (!weekSet[w.date]) { weekSet[w.date]=true; weekList.push(w.date); }
+      });
+    });
+    weekList.sort(function(a,b){
+      var pa=a.split('/'), pb=b.split('/');
+      return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
+    });
+    qCols[q] = {weeks: weekList};
+  });
+
+  return {participants:participants, config:config, importsLog:importsLog, qCols:qCols};
+}
+
+// ══ TABS ══════════════════════════════════════════
+function switchTab(tab) {
+  if (tab !== 'historique' && proxyUid) { proxyUid = null; }
+  document.querySelectorAll('.tab-btn').forEach(function(b){
+    b.classList.toggle('active', b.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-content').forEach(function(c){
+    c.classList.toggle('active', c.id === 'tab-' + tab);
+  });
+}
+
+// ══ LAST WEEK BADGE ════════════════════════════════
+function updateLastWeekBadge() {
+  var el = document.getElementById('lastWeekBadge');
+  if (!el) return;
+  if (!gData || !gData.importsLog || !gData.importsLog.length) { el.style.display='none'; return; }
+  var latest = gData.importsLog.slice().sort(function(a,b){
+    var parse = function(l){ var w=l.week||l.label||''; var p=w.split('/'); return p.length===3?new Date(p[2],p[1]-1,p[0]):new Date(0); };
+    return parse(b)-parse(a);
+  })[0];
+  var wk = latest.week || latest.label || '';
+  el.textContent = '📅 Dernière semaine : ' + wk;
+  el.style.display = 'inline-block';
+}
+
+// ══ MANAGER TEAM CONFIG ════════════════════════════
+var LS_MANAGER_TEAM = 'gabQuiz_v2_managerTeam';
+function loadManagerTeam() {
+  try { var s=localStorage.getItem(LS_MANAGER_TEAM); if(s!==null) return JSON.parse(s); } catch(e){}
+  return null;
+}
+function saveManagerTeam(list) { localStorage.setItem(LS_MANAGER_TEAM, JSON.stringify(list)); }
+
+function openTeamConfig() {
+  if (!gData) return;
+  var blacklist = loadBlacklist();
+  var allPs = gData.participants.filter(function(p){ return !isBlacklisted(p,blacklist); })
+    .sort(function(a,b){ return a.nom.localeCompare(b.nom); });
+  var current = loadManagerTeam() || [];
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:10030;background:rgba(0,0,0,.52);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px';
+  var checkboxes = allPs.map(function(p){
+    var key = p.prenom+'|'+p.nom;
+    return '<label style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:13px;font-weight:600">'+
+      '<input type="checkbox" data-key="'+key+'"'+(current.indexOf(key)!==-1?' checked':'')+' style="width:15px;height:15px;accent-color:var(--accent);flex-shrink:0">'+
+      capFull(p.prenom)+' '+p.nom+'</label>';
+  }).join('');
+  modal.innerHTML = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:min(460px,calc(100vw - 32px));box-shadow:0 16px 48px rgba(0,0,0,.25);display:flex;flex-direction:column;gap:12px;max-height:90vh">'+
+    '<h2 style="font-size:16px;font-weight:700;margin:0">👥 Configurer mon équipe</h2>'+
+    '<p style="font-size:13px;color:var(--muted);margin:0;line-height:1.5">Sélectionne les membres de ton équipe. Sauvegardé sur cet appareil uniquement.</p>'+
+    '<label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer">'+
+      '<input type="checkbox" id="teamSelectAll" style="accent-color:var(--accent);width:14px;height:14px"> Sélectionner tout le monde</label>'+
+    '<div id="teamCheckList" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;min-height:0">'+checkboxes+'</div>'+
+    '<div style="display:flex;gap:8px;margin-top:4px;flex-shrink:0">'+
+      '<button id="teamCancelBtn" style="flex:1;padding:10px;font-size:13px;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer">Annuler</button>'+
+      '<button id="teamSaveBtn" style="flex:2;padding:10px;font-size:13px;font-weight:700;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer">✅ Enregistrer</button>'+
+    '</div></div>';
+  document.body.appendChild(modal);
+  var sa = document.getElementById('teamSelectAll');
+  sa.checked = allPs.length>0 && allPs.every(function(p){ return current.indexOf(p.prenom+'|'+p.nom)!==-1; });
+  sa.addEventListener('change', function(){ modal.querySelectorAll('#teamCheckList input').forEach(function(cb){cb.checked=this.checked;},this); });
+  modal.querySelectorAll('#teamCheckList input').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var all=modal.querySelectorAll('#teamCheckList input'), ch=modal.querySelectorAll('#teamCheckList input:checked');
+      document.getElementById('teamSelectAll').checked = all.length===ch.length;
+    });
+  });
+  document.getElementById('teamCancelBtn').addEventListener('click', function(){ modal.remove(); });
+  document.getElementById('teamSaveBtn').addEventListener('click', function(){
+    var sel=[]; modal.querySelectorAll('#teamCheckList input:checked').forEach(function(cb){sel.push(cb.dataset.key);}); 
+    saveManagerTeam(sel); modal.remove(); renderEquipe();
+  });
+}
+
+// ══ QUARTER SELECTOR ══════════════════════════════
+function buildQSelector() {
+  var wrap   = document.getElementById('qSelector');
+  wrap.innerHTML = '';
+  var labels = {T1:'T1 · Jan–Mar', T2:'T2 · Avr–Juin', T3:'T3 · Jul–Sep', T4:'T4 · Oct–Déc'};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    var btn    = document.createElement('button');
+    var isCur  = q === curQ;
+    btn.className = 'q-btn' + (isCur ? ' active' : '');
+    btn.innerHTML = labels[q] + (isCur ? '<span class="now-dot"></span>' : '');
+    btn.onclick = function(){
+      curQ = q;
+      document.querySelectorAll('.q-btn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderClassement(q);
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+// ══ CLASSEMENT ════════════════════════════════════
+/* ── Helpers Temps Quiz ── */
+function _formatTemps(s) {
+  if (s === null || s === undefined) return null;
+  var min = Math.floor(s / 60), sec = s % 60;
+  return (min > 0) ? (min + ' min ' + sec + ' sec') : (sec + ' sec');
+}
+
+function _renderFastestEncart(allPs, q) {
+  var wrap = document.getElementById('fastestEncartWrap');
+  if (!wrap) return;
+  var now = new Date();
+  var curYear = now.getFullYear();
+  var curQIdx = Math.floor(now.getMonth() / 3);
+
+  function avgTemps(p, filterFn) {
+    var times = p.quarters[q].weeks
+      .filter(function(w){ return filterFn(w.date) && w.temps !== null && w.temps !== undefined; })
+      .map(function(w){ return w.temps; });
+    return times.length ? Math.round(times.reduce(function(a,b){ return a+b; },0) / times.length) : null;
+  }
+  function isInQuarter(dateStr) {
+    var parts = dateStr.split('/');
+    if (parts.length < 3) return false;
+    var m = parseInt(parts[1],10), y = parseInt(parts[2],10);
+    return y === curYear && Math.floor((m-1)/3) === curQIdx;
+  }
+  function isInYear(dateStr) {
+    var parts = dateStr.split('/');
+    return parts.length >= 3 && parseInt(parts[2],10) === curYear;
+  }
+
+  var qTimes = allPs.map(function(p){ return {p:p, avg:avgTemps(p,isInQuarter)}; }).filter(function(x){ return x.avg !== null; });
+  var yTimes = allPs.map(function(p){ return {p:p, avg:avgTemps(p,isInYear)}; }).filter(function(x){ return x.avg !== null; });
+  var minQ = qTimes.length ? Math.min.apply(null, qTimes.map(function(x){ return x.avg; })) : null;
+  var minY = yTimes.length ? Math.min.apply(null, yTimes.map(function(x){ return x.avg; })) : null;
+  var fastQ = qTimes.filter(function(x){ return x.avg === minQ; });
+  var fastY = yTimes.filter(function(x){ return x.avg === minY; });
+
+  if (!fastQ.length && !fastY.length) { wrap.style.display='none'; return; }
+  function names(arr) { return arr.map(function(x){ return '<strong>' + capFull(x.p.prenom) + ' ' + x.p.nom + '</strong>'; }).join(', '); }
+  var html = '';
+  if (fastQ.length) html += '<div class="fastestLine">⏱️ <span class="fastestLabel">Plus rapide du trimestre</span> — ' + names(fastQ) + ' — <span class="fastestTime">' + _formatTemps(minQ) + ' moy.</span></div>';
+  if (fastY.length)  html += '<div class="fastestLine">⏱️ <span class="fastestLabel">Plus rapide de l&#39;année</span> — '    + names(fastY) + ' — <span class="fastestTime">' + _formatTemps(minY) + ' moy.</span></div>';
+  wrap.innerHTML = html;
+  wrap.style.display = 'flex';
+}
+
+function renderClassement(q) {
+  if (!gData) return;
+  var params    = loadParams();
+  var blacklist = loadBlacklist();
+
+  // Exclure les participants de la liste noire
+  var allPs = gData.participants.filter(function(p){
+    return p.quarters[q].active && !isBlacklisted(p, blacklist);
+  });
+
+  // Calculer le total "non fait" annuel par participant
+  function totalNFAnnuel(p) {
+    var total = 0;
+    ['T1','T2','T3','T4'].forEach(function(qt){ total += (p.quarters[qt].nbNonFait||0); });
+    return total;
+  }
+
+  // Séparer disqualifiés / non disqualifiés
+  var normal = [], disq = [];
+  allPs.forEach(function(p){
+    var nfTotal = totalNFAnnuel(p);
+    var exemptDisq = params.exceptSeuilDisq.some(function(ex){ return matchName(p, ex); });
+    if (!exemptDisq && nfTotal >= params.seuilDisq) {
+      disq.push(p);
+    } else {
+      normal.push(p);
+    }
+  });
+
+  normal.sort(function(a,b){ return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0); });
+  disq.sort(function(a,b){ return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0); });
+
+  renderPodium(normal, q);
+
+  /* ── Plus rapide de la semaine (chrono violet) ── */
+  var _lastWeekKey = null;
+  if (gData.qCols && gData.qCols[q] && gData.qCols[q].weeks && gData.qCols[q].weeks.length) {
+    _lastWeekKey = gData.qCols[q].weeks[gData.qCols[q].weeks.length - 1];
+  }
+  var _minTimeWeek = null;
+  if (_lastWeekKey) {
+    allPs.forEach(function(p){
+      var w = p.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+      if (w && w.temps !== null && w.temps !== undefined) {
+        if (_minTimeWeek === null || w.temps < _minTimeWeek) _minTimeWeek = w.temps;
+      }
+    });
+  }
+
+  /* ── Encart plus rapide trimestre / année ── */
+  _renderFastestEncart(allPs, q);
+
+  /* ── Écriture gabQuizFastestCount si je suis le plus rapide ── */
+  if (uid && _lastWeekKey && _minTimeWeek !== null) {
+    var _meP = allPs.find(function(p){ return matchId(p, uid); });
+    if (_meP) {
+      var _meW = _meP.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+      if (_meW && _meW.temps !== null && _meW.temps === _minTimeWeek) {
+        var _prevFastest = parseInt(localStorage.getItem('gabQuizFastestCount') || '0', 10);
+        var _fastestDoneKey = 'gabQuizFastestDone_' + _lastWeekKey;
+        if (!localStorage.getItem(_fastestDoneKey)) {
+          localStorage.setItem('gabQuizFastestCount', String(_prevFastest + 1));
+          localStorage.setItem(_fastestDoneKey, '1');
+        }
+      }
+    }
+  }
+
+  // Masquer colonne NF pour utilisateurs standard
+  var _isManager = isManager();
+  var showNF = admin || _isManager;
+  var thNF = document.getElementById('thNonFaits');
+  if (thNF) thNF.style.display = showNF ? '' : 'none';
+
+  var tbody = document.getElementById('rankBody');
+  tbody.innerHTML = '';
+  if (!normal.length && !disq.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty"><p>Aucune donnée pour ce trimestre.</p></div></td></tr>';
+    return;
+  }
+
+  // Exclure du tableau les personnes déjà dans le podium (top 3 groupes)
+  var podiumGroups = [];
+  var _pg = [], _pgPrev = null, _pgRank = 0;
+  normal.forEach(function(p){
+    var moy = p.quarters[q].moyenne;
+    if (moy !== _pgPrev) { _pgRank++; _pgPrev = moy; _pg.push({rank:_pgRank, moy:moy}); }
+  });
+  // Champion (rank1) + podium 1er/2ème/3ème (ranks 2/3/4) = 4 groupes exclus du tableau
+  var top4Moys = _pg.slice(0,4).map(function(g){ return g.moy; });
+  var tablePs = normal.filter(function(p){ return top4Moys.indexOf(p.quarters[q].moyenne) < 0; });
+
+  // Rang affiché : 4 groupes exclus → le tableau commence à la 4ème place visible
+  // On recalcule le vrai rang en comptant les ex-æquo
+  var rankOffset = 3; // Champion hors classement + podium 3 places → tableau commence à 4
+  var rank = 0, prev = null, displayRank = rankOffset;
+  tablePs.forEach(function(p, i){
+    var moy = p.quarters[q].moyenne;
+    if (moy !== prev) { displayRank++; prev = moy; }
+    rank = displayRank;
+    var med  = '';
+    var isMe = uid && matchId(p, uid);
+    // Couleur score selon rang global (champion=vert, 1er=or, 2ème=argent, 3ème=bronze)
+    var scoreColor = 'var(--accent)';
+    var globalRank = rankOffset + (displayRank - rankOffset); // rang réel dans le classement
+    // rankOffset = nb groupes podium+champion déjà affichés
+    // Pas de couleur spéciale dans le tableau (podium géré séparément)
+    var tr   = document.createElement('tr');
+    tr.innerHTML =
+      '<td>' + (med ? '<span class="r-med">'+med+'</span>' : '<span class="r-num">'+rank+'</span>') + '</td>' +
+      '<td class="r-name">' + capFull(p.prenom) + ' ' + p.nom + (isMe ? '<span class="tag-me">Moi</span>' : '') + (function(){
+        if (!_lastWeekKey || _minTimeWeek === null) return '';
+        var _w = p.quarters[q].weeks.find(function(x){ return x.date === _lastWeekKey; });
+        if (!_w || _w.temps === null || _w.temps !== _minTimeWeek) return '';
+        return '<span class="chronoRapide" title="Plus rapide de la semaine">⏱️ ' + _formatTemps(_w.temps) + '</span>';
+      })() + '</td>' +
+      '<td class="r-score" style="color:'+scoreColor+'">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
+      '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
+      '<td class="r-nf-cell" style="color:var(--danger);display:' + (showNF ? '' : 'none') + '">' + (p.quarters[q].nbNonFait || 0) + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  // Séparateur + disqualifiés en bas
+  if (disq.length) {
+    var sepTr = document.createElement('tr');
+    sepTr.innerHTML = '<td colspan="4"><div class="disq-sep"></div></td>';
+    tbody.appendChild(sepTr);
+    disq.forEach(function(p){
+      var moy  = p.quarters[q].moyenne;
+      var isMe = uid && matchId(p, uid);
+      var tr   = document.createElement('tr');
+      tr.className = 'row-disq';
+      tr.innerHTML =
+        '<td><span class="r-num">—</span></td>' +
+        '<td class="r-name">' + capFull(p.prenom) + ' ' + p.nom +
+          (isMe ? '<span class="tag-me">Moi</span>' : '') +
+          '<span class="tag-disq">DISQUALIFIÉ</span></td>' +
+        '<td class="r-score">' + (moy !== null ? moy.toFixed(2) : '—') + '</td>' +
+        '<td class="r-nf-cell">' + (p.quarters[q].nbQuiz || '—') + '</td>' +
+        '<td class="r-nf-cell" style="color:var(--danger);display:' + (showNF ? '' : 'none') + '">' + (p.quarters[q].nbNonFait || 0) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+}
+
+// ══ PODIUM (multi-ex-aequo) ═══════════════════════
+function renderPodium(ps, q) {
+  var wrap = document.getElementById('podiumWrap');
+  if (!ps.length) { wrap.innerHTML=''; return; }
+
+  // Grouper par rang (ex-aequo)
+  var groups = [], curRank=0, prevMoy=null;
+  ps.forEach(function(p){
+    var moy = p.quarters[q].moyenne;
+    if (moy !== prevMoy) { curRank++; prevMoy=moy; groups.push({rank:curRank, moy:moy, people:[]}); }
+    groups[groups.length-1].people.push(p);
+  });
+
+  var gChamp = groups.find(function(g){ return g.rank===1; });
+  var g1     = groups.find(function(g){ return g.rank===2; });
+  var g2     = groups.find(function(g){ return g.rank===3; });
+  var g3     = groups.find(function(g){ return g.rank===4; });
+
+  // ── Calcul dynamique selon nb de personnes ──
+  function slotCfg(n, baseAvSz, baseFs, baseNameFs) {
+    // Réduire proportionnellement selon le nombre d'ex-æquo
+    var factor = n <= 1 ? 1 : n === 2 ? 0.82 : n === 3 ? 0.68 : n >= 4 ? 0.55 : 0.55;
+    var avSz   = Math.round(baseAvSz * factor);
+    var avFs   = Math.round(baseFs * factor);
+    var nameFs = Math.max(8, Math.round(baseNameFs * factor));
+    var slotW  = n <= 1 ? 110 : n === 2 ? 190 : n === 3 ? 260 : 100 + n * 72;
+    return { avSz: avSz+'px', avFs: avFs+'px', nameFs: nameFs+'px', slotW: slotW+'px' };
+  }
+
+  var html = '';
+
+  // ── Champion du trimestre ──
+  if (gChamp) {
+    var n = gChamp.people.length;
+    var cfg = slotCfg(n, 60, 18, 12);
+    var champAv = gChamp.people.map(function(p){
+      var isMe = uid && matchId(p, uid);
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:5px">' +
+        '<div class="podium-avatar" style="background:#2ecc71;width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+';box-shadow:0 0 18px rgba(46,204,113,.4)">' +
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'') +
+        '</div>' +
+        '<div style="text-align:center;line-height:1.3">' +
+          '<span style="font-size:'+cfg.nameFs+';font-weight:700;display:block">'+capFull(p.prenom)+'</span>' +
+          '<span style="font-size:9px;font-weight:400;color:var(--muted)">'+p.nom+'</span>' +
+          (isMe?'<span class="tag-me" style="font-size:8px;margin-left:2px">Moi</span>':'') +
+        '</div>' +
+      '</div>';
+    }).join('');
+    html += '<div style="text-align:center;padding:20px 8px 16px;border-bottom:1px solid var(--border);margin-bottom:20px">' +
+      '<div style="font-size:40px;line-height:1;margin-bottom:4px">👑</div>' +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#2ecc71;margin-bottom:14px">Champion du trimestre</div>' +
+      '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'+champAv+'</div>' +
+      '<div style="font-size:24px;font-weight:900;color:#2ecc71;margin-top:10px">'+gChamp.moy.toFixed(2)+
+        ' <span style="font-size:13px;font-weight:400;color:var(--muted)">/ 10</span></div>' +
+    '</div>';
+  }
+
+  // ── Podium 🥇🥈🥉 — hauteur de barre FIXE, slot dynamique ──
+  var rankCfg = {
+    '1': { color:'#f59e0b', baseAvSz:50, baseAvFs:16, barH:76, emoji:'🥇', rankCls:'rank-1' },
+    '2': { color:'#94a3b8', baseAvSz:44, baseAvFs:14, barH:54, emoji:'🥈', rankCls:'rank-2' },
+    '3': { color:'#b87333', baseAvSz:40, baseAvFs:13, barH:38, emoji:'🥉', rankCls:'rank-3' },
+  };
+
+  var levels = [
+    {grp:g1, rk:'1'}, {grp:g2, rk:'2'}, {grp:g3, rk:'3'}
+  ].filter(function(x){ return x.grp; });
+
+  if (levels.length) {
+    // Ordre affichage : 2ème | 1er | 3ème
+    var display = [];
+    var lv1=levels.find(function(x){return x.rk==='1';}),
+        lv2=levels.find(function(x){return x.rk==='2';}),
+        lv3=levels.find(function(x){return x.rk==='3';});
+    if (lv2) display.push(lv2);
+    if (lv1) display.push(lv1);
+    if (lv3) display.push(lv3);
+
+    html += '<div class="podium" style="align-items:flex-end">';
+    display.forEach(function(item){
+      var rc  = rankCfg[item.rk];
+      var n   = item.grp.people.length;
+      var cfg = slotCfg(n, rc.baseAvSz, rc.baseAvFs, 12);
+
+      var avHtml = item.grp.people.map(function(p){
+        return '<div class="podium-avatar" style="background:'+rc.color+';width:'+cfg.avSz+';height:'+cfg.avSz+';font-size:'+cfg.avFs+';flex-shrink:0">'+
+          (p.prenom.charAt(0)||'')+(p.nom.charAt(0)||'')+'</div>';
+      }).join('');
+
+      // Noms en ligne compacte, taille réduite selon nb
+      var namesHtml = item.grp.people.map(function(p){
+        var isMe = uid && matchId(p, uid);
+        return '<span style="white-space:nowrap;font-size:'+cfg.nameFs+';font-weight:600">'+
+          capFull(p.prenom).charAt(0)+'. '+p.nom+
+          (isMe?' <span class="tag-me" style="font-size:8px">Moi</span>':'')+'</span>';
+      }).join('<span style="color:var(--border);margin:0 3px">·</span>');
+
+      html += '<div class="podium-slot '+rc.rankCls+'" style="width:'+cfg.slotW+';min-width:90px;max-width:340px;align-items:center">' +
+        '<div style="font-size:28px;line-height:1;margin-bottom:6px">'+rc.emoji+'</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">'+avHtml+'</div>' +
+        (n>1?'<div style="font-size:9px;color:var(--muted);font-style:italic;margin-bottom:4px">ex æquo</div>':'') +
+        '<div style="text-align:center;line-height:1.5;margin-bottom:4px;padding:0 4px">'+namesHtml+'</div>' +
+        '<div class="podium-score" style="color:'+rc.color+';font-size:18px">'+item.grp.moy.toFixed(2)+'</div>' +
+        '<div class="podium-bar" style="height:'+rc.barH+'px;width:100%"></div>' +
+      '</div>';
+    });
+    html += '</div>';
+  }
+
+  wrap.innerHTML = html;
+}
+
+
+
+
+
+
+
+// ══ HISTORY ════════════════════════════════════════
+function viewParticipantHistory(prenom, nom) {
+  proxyUid = { prenom: prenom, nom: nom };
+  switchTab('historique');
+  renderHistory();
+}
+
+function resetProxy() {
+  proxyUid = null;
+  switchTab('historique');
+  renderHistory();
+}
+
+function renderHistory() {
+  var wrap = document.getElementById('histWrap');
+  if (!gData || !uid) {
+    wrap.innerHTML = '<div class="empty"><p>Identifie-toi pour voir ton historique.</p></div>';
+    return;
+  }
+  var effectiveUid = (admin && proxyUid) ? proxyUid : uid;
+  var me = gData.participants.find(function(p){ return matchId(p, effectiveUid); });
+  if (!me) {
+    wrap.innerHTML = '<div class="empty"><p>Aucun résultat trouvé pour <strong>'+capFull(effectiveUid.prenom)+' '+effectiveUid.nom+'</strong>.<br>Vérifie ton prénom et nom.</p></div>';
+    return;
+  }
+  var proxyBanner = '';
+  if (admin && proxyUid) {
+    proxyBanner = '<div class="proxy-banner">👁️ Vous consultez l&#39;historique de <span style="margin-left:4px;font-weight:700">'+capFull(proxyUid.prenom)+' '+proxyUid.nom+'</span><button onclick="resetProxy()">← Retour à mon historique</button></div>';
+  }
+
+  var QS = ['T1','T2','T3','T4'];
+  var allScores=[], totalNF=0, totalQz=0;
+  QS.forEach(function(q){
+    var qd=me.quarters[q];
+    if (!qd.active) return;
+    totalNF+=qd.nbNonFait; totalQz+=qd.nbQuiz;
+    qd.weeks.forEach(function(w){ if (typeof w.score==='number') allScores.push(w.score); });
+  });
+
+  var yearMoy  = allScores.length ? (allScores.reduce(function(a,b){return a+b;},0)/allScores.length) : null;
+  var bestScore= allScores.length ? Math.max.apply(null,allScores) : null;
+
+  var sorted = gData.participants
+    .filter(function(p){ return p.quarters[curQ].active; })
+    .sort(function(a,b){ return (b.quarters[curQ].moyenne||0)-(a.quarters[curQ].moyenne||0); });
+  var myRank=null, prevM=null, rk=0;
+  sorted.forEach(function(p,i){
+    var m=p.quarters[curQ].moyenne;
+    if(m!==prevM){rk=i+1;prevM=m;}
+    if(matchId(p,uid)) myRank=rk;
+  });
+
+  var html =
+    '<div class="id-bar"><div><div class="id-name">👤 '+capFull(me.prenom)+' '+me.nom+'</div>' +
+    '<div class="id-sub">Résultats Quiz 2026</div></div></div>' +
+    '<div class="stats-row">' +
+    statCard('Moyenne annuelle', yearMoy!==null?yearMoy.toFixed(2):'—', '/10', false) +
+    statCard('Meilleur score',   bestScore!==null?bestScore:'—',        '/10', false) +
+    statCard('Rang '+curQ,       myRank!==null?'#'+myRank:'—',          me.quarters[curQ].active?('moy. '+(me.quarters[curQ].moyenne?.toFixed(2)||'—')):'Pas encore actif', false) +
+    statCard('Absences (année)', totalNF, totalQz+' quiz participés', totalNF>5) +
+    '</div>';
+
+  var qLabels={T1:'T1 · Janv – Mars',T2:'T2 · Avr – Juin',T3:'T3 · Jul – Sept',T4:'T4 · Oct – Déc'};
+  QS.forEach(function(q){
+    var qd=me.quarters[q];
+    if(!qd.active) return;
+    var chips=qd.weeks.map(function(w){
+      if(w.score===null) return '';
+      if(w.score==='absent') return '<div class="wchip absent"><div class="wdate">'+w.date+'</div><div class="wval" style="color:var(--danger);font-size:12px;font-weight:600">NF</div></div>';
+      if(w.score==='EX') return '<div class="wchip" style="opacity:.6;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:12px">🛡️ EX</div></div>'; // EX FIX
+      if(w.score==='EX') return '<div class="wchip" style="opacity:.55;border-style:dashed"><div class="wdate">'+w.date+'</div><div class="wval" style="font-size:11px">&#x1F6E1;&#xFE0F; EX</div></div>'; // EX FIX
+      var col=w.score>=8?'var(--success)':w.score>=5?'var(--accent)':'var(--danger)';
+      return '<div class="wchip"><div class="wdate">'+w.date+'</div><div class="wval" style="color:'+col+'">'+w.score+'</div></div>';
+    }).join('');
+    html+='<div class="hist-q"><div class="hist-q-title"><span class="q-badge">'+q+'</span> '+qLabels[q]+
+          (qd.moyenne!==null?' — <strong>'+qd.moyenne.toFixed(2)+'/10</strong>':'')+
+          ' <span style="font-size:11px;color:var(--muted)">('+qd.nbQuiz+' quiz'+(qd.nbNonFait?' · '+qd.nbNonFait+' NF':'')+')</span></div>' +
+          '<div class="week-grid">'+chips+'</div></div>';
+  });
+  var glossaire = '<div style="margin-top:16px;padding:10px 14px;background:var(--al);border-radius:8px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;">' + '<span><strong style="color:var(--danger)">NF</strong> = Non fait</span>' + '<span><strong style="color:var(--accent)">EX</strong> = Excusé</span>' + '</div>';
+  wrap.innerHTML = proxyBanner + html + glossaire;
+}
+
+function statCard(lbl,val,sub,danger){
+  return '<div class="stat-card"><div class="stat-lbl">'+lbl+'</div>'+
+         '<div class="stat-val'+(danger?' danger':'')+'">'+val+'</div>'+
+         '<div class="stat-sub">'+sub+'</div></div>';
+}
+
+// ══ ADMIN ══════════════════════════════════════════
+function renderAdmin() {
+  if (!admin||!gData) return;
+  var wrap=document.getElementById('adminWrap');
+  var QS=['T1','T2','T3','T4'];
+  var qLbl={T1:'T1 — Janv à Mars',T2:'T2 — Avr à Juin',T3:'T3 — Jul à Sept',T4:'T4 — Oct à Déc'};
+  var html='';
+
+  QS.forEach(function(q){
+    var active=gData.participants.filter(function(p){return p.quarters[q].active;});
+    if(!active.length) return;
+    var sorted=active.slice().sort(function(a,b){return (b.quarters[q].moyenne||0)-(a.quarters[q].moyenne||0);});
+    html+='<div class="admin-section"><div class="section-ttl">'+qLbl[q]+' — '+active.length+' participants</div>';
+    html+='<div class="rank-wrap"><table class="rank-table"><thead><tr><th>#</th><th>Participant</th><th>Moyenne</th><th>Quiz</th><th>Absences</th><th>% NF</th></tr></thead><tbody>';
+    var rk=0,pm=null;
+    sorted.forEach(function(p,i){
+      var qd=p.quarters[q];
+      var moy=qd.moyenne;
+      if(moy!==pm){rk=i+1;pm=moy;}
+      var tot=qd.nbQuiz+qd.nbNonFait;
+      var pct=tot>0?Math.round(qd.nbNonFait/tot*100):0;
+      var med=rk===1?'🥇':rk===2?'🥈':rk===3?'🥉':'<span class="r-num">'+rk+'</span>';
+      var pCol=pct>=20?'var(--danger)':pct>=10?'var(--gold)':'var(--success)';
+      html+='<tr>'+
+        '<td>'+(rk<=3?'<span class="r-med">'+med+'</span>':med)+'</td>'+
+        '<td class="r-name">'+capFull(p.prenom)+' '+p.nom+'</td>'+
+        '<td class="r-score">'+(moy!==null?moy.toFixed(2):'—')+'</td>'+
+        '<td>'+(qd.nbQuiz||'—')+'</td>'+
+        '<td>'+(qd.nbNonFait>0?'<span class="absent-chip" style="padding:2px 8px">'+qd.nbNonFait+'</span>':'<span style="color:var(--success)">✓</span>')+'</td>'+
+        '<td style="font-size:12px;color:'+pCol+'">'+pct+'%</td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+  });
+
+  // Suivi dernière semaine
+  var curActive=gData.participants.filter(function(p){return p.quarters && p.quarters[curQ] && p.quarters[curQ].active;});
+  var wks=gData.qCols[curQ].weeks;
+  html+='<div class="admin-section"><div class="section-ttl">Suivi absences — '+curQ+' en cours</div>';
+  var lastWkIdx=-1;
+  for(var wi=wks.length-1;wi>=0;wi--){
+    if(curActive.some(function(p){var w=p.quarters[curQ].weeks[wi];return w&&w.score!==null;})){lastWkIdx=wi;break;}
+  }
+  if(lastWkIdx>=0){
+    var lastLbl=wks[lastWkIdx].label;
+    var missed=curActive.filter(function(p){var w=p.quarters[curQ].weeks[lastWkIdx];return w&&w.score==='absent';});
+    var total=curActive.length;
+    html+='<p style="font-size:13px;color:var(--muted);margin-bottom:12px">Dernière semaine&nbsp;: <strong style="color:var(--text)">'+lastLbl+'</strong> — <span style="color:'+(missed.length>0?'var(--danger)':'var(--success)')+'">'+missed.length+'/'+total+' absent(s)</span></p>';
+    if(missed.length){
+      html+='<div class="absent-grid">';
+      missed.forEach(function(p){html+='<div class="absent-chip">'+capFull(p.prenom)+' '+p.nom+'</div>';});
+      html+='</div>';
+    }else{
+      html+='<p style="font-size:13px;color:var(--success);font-weight:600">✓ Tout le monde a participé !</p>';
+    }
+  }
+  // Top absentéistes
+  var absentes=curActive.filter(function(p){return p.quarters[curQ].nbNonFait>0;})
+    .sort(function(a,b){return b.quarters[curQ].nbNonFait-a.quarters[curQ].nbNonFait;});
+  html+='<div style="margin-top:20px"><div class="section-ttl">Top absentéistes '+curQ+'</div>';
+  if(!absentes.length){html+='<p style="color:var(--success);font-size:13px;font-weight:600">✓ Aucune absence ce trimestre !</p>';}
+  else{
+    html+='<div class="absent-grid">';
+    absentes.forEach(function(p){
+      html+='<div class="absent-chip">'+capFull(p.prenom)+' '+p.nom+'<span class="absent-cnt">'+p.quarters[curQ].nbNonFait+'</span></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div></div>';
+  // ── Bloc imports log
+  var imLog = (gData && gData.importsLog) ? gData.importsLog : [];
+  if (imLog.length) {
+    var logs = imLog.slice().sort(function(a,b){
+      var wa = (a.label||a.week||''), wb = (b.label||b.week||'');
+      var da = wa.split('/'), db = wb.split('/');
+      var dA = da.length===3 ? new Date(da[2],da[1]-1,da[0]) : new Date(wa);
+      var dB = db.length===3 ? new Date(db[2],db[1]-1,db[0]) : new Date(wb);
+      return dB - dA;
+    });
+    html += '<div class="param-card" style="margin-top:16px"><div class="param-row"><span class="param-lbl">Quiz importés ('+logs.length+')</span></div>';
+    html += '<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;">';
+    html += '<thead><tr>' +
+      '<th style="text-align:left;padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border)">Date du fichier</th>' +
+      '<th style="padding:6px 8px;color:var(--muted);font-weight:600;font-size:11px;border-bottom:1px solid var(--border);text-align:center">Participations</th>' +
+      '</tr></thead><tbody>';
+    logs.forEach(function(l){
+      var dateStr = '';
+      if (l.label) {
+        var m = l.label.match(/(\d{2})[\/-](\d{2})[\/-](\d{4})/);
+        if (!m) m = l.label.match(/(\d{2})(\d{2})(\d{4})/);
+        if (m) dateStr = m[1]+'/'+m[2]+'/'+m[3];
+        else dateStr = l.label;
+      } else if (l.week) { dateStr = l.week; }
+      html += '<tr>' +
+        '<td style="padding:6px 8px;font-weight:600">' + dateStr + '</td>' +
+        '<td style="padding:6px 8px;text-align:center">' + (l.count||'—') + '</td>' +
+        '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  wrap.innerHTML=html;
+  populateWeekDelSelect();
+  populateWeekSelect();
+  // Listener proxy admin sur le tableau stats
+  if (admin) {
+    var _sw = document.getElementById('statsWrap');
+    if (_sw && !_sw._proxyInit) {
+      _sw._proxyInit = true;
+      _sw.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-histo-proxy');
+        if (!btn) return;
+        viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
+      });
+    }
+    var _ew = document.getElementById('equipeWrap');
+    if (_ew && !_ew._proxyInit) {
+      _ew._proxyInit = true;
+      _ew.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-histo-proxy');
+        if (!btn) return;
+        viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
+      });
+    }
+  }
+}
+
+// ══ IDENTITY MODAL ═════════════════════════════════
+function openModal(allowClose) {
+  modalAllowClose = allowClose;
+  var modal = document.getElementById('identModal');
+  modal.classList.add('open');
+  modal.style.display = 'flex'; // forcer l'affichage indépendamment de la classe CSS
+  document.getElementById('modalErr').style.display = 'none';
+  if (uid){ document.getElementById('inpPrenom').value=uid.prenom; document.getElementById('inpNom').value=uid.nom; }
+  // Focus sur le premier champ
+  setTimeout(function(){ document.getElementById('inpPrenom').focus(); }, 100);
+}
+
+document.getElementById('identModal').addEventListener('click', function(e){
+  if (modalAllowClose && e.target === this) this.classList.remove('open');
+});
+
+function confirmId() {
+  var _prenomRaw = document.getElementById('inpPrenom').value.trim();
+  // Normaliser : chaque mot avec 1ère lettre maj (ex: "marie lou" → "Marie Lou")
+  var prenom = _prenomRaw.replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+                          .replace(/\B\w/g, function(c){ return c.toLowerCase(); });
+  var nom    = document.getElementById('inpNom').value.trim().toUpperCase();
+  var errEl  = document.getElementById('modalErr');
+  errEl.style.display='none';
+
+  if (!prenom || !nom) {
+    errEl.textContent='Merci de renseigner prénom et nom.'; errEl.style.display='block'; return;
+  }
+
+  // Admin: exact match on nom (LEMTOSH), case-sensitive via upper+compare
+  var isAdminAttempt = (nom === ADMIN_NOM);
+
+  if (!isAdminAttempt && gData) {
+    var found = gData.participants.find(function(p){ return matchId(p, {nom:nom, prenom:prenom}); });
+    // FIX v0.31 : vérifier aussi dans la liste managers (peut n'avoir aucun score)
+    var fullName = (prenom + ' ' + nom).toLowerCase();
+    var isManagerAttempt = (gData.config && gData.config.managers || []).some(function(m){
+      return m.toLowerCase() === fullName || m.toLowerCase() === (nom + ' ' + prenom).toLowerCase();
+    });
+    if (!found && !isManagerAttempt) {
+      errEl.innerHTML = 'Participant non trouvé.<br>Vérifie l\'orthographe (ex&nbsp;: <em>DUPONT</em>, <em>Marie</em>).';
+      errEl.style.display='block'; return;
+    }
+  }
+
+  uid   = {prenom:prenom, nom: isAdminAttempt ? ADMIN_SECRET : nom};
+  admin   = isAdminAttempt;
+  manager = !admin && isManager();
+  localStorage.setItem(LS_ID, JSON.stringify(uid));
+  // v0.33 : partager l'identité avec GAB pour les badges quiz
+  localStorage.setItem('gabUserId', JSON.stringify({prenom: prenom, nom: isAdminAttempt ? ADMIN_SECRET : nom}));
+  var _modal = document.getElementById('identModal');
+  _modal.classList.remove('open');
+  _modal.style.display = 'none';
+  document.getElementById('modalBg').style.display = 'none';
+  showProperView();
+}
+
+function updateIdDisplay() {
+  if (!uid) return;
+  document.getElementById('idPillTxt').textContent = capFull(uid.prenom)+' '+uid.nom;
+  document.getElementById('idPill').style.display  = 'flex';
+}
+
+// ══ HELPERS ════════════════════════════════════════
+function matchId(p, id){
+  return p.nom.toLowerCase()===id.nom.toLowerCase() && p.prenom.toLowerCase()===id.prenom.toLowerCase();
+}
+function cap(s){ return s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():''; }
+function capFull(s){ return String(s).split(/[-\s]/).map(cap).join(String(s).indexOf('-')>=0?'-':' '); }
+
+document.addEventListener('keydown', function(e){
+  if(e.key==='Enter' && document.getElementById('identModal').classList.contains('open')) confirmId();
+});
+
+// ══ PARAMS (localStorage) ══════════════════════════════════
+var DEFAULT_PARAMS = { seuilZero: 6, seuilDisq: 10, exceptSeuilZero: [], exceptSeuilDisq: [] };
+
+function loadParams() {
+  if (gData && gData.config) {
+    return {
+      seuilZero:       gData.config.seuilZero       != null ? gData.config.seuilZero       : DEFAULT_PARAMS.seuilZero,
+      seuilDisq:       gData.config.seuilDisq       != null ? gData.config.seuilDisq       : DEFAULT_PARAMS.seuilDisq,
+      exceptSeuilZero: gData.config.exceptSeuilZero || [],
+      exceptSeuilDisq: gData.config.exceptSeuilDisq || []
+    };
+  }
+  try {
+    var s = localStorage.getItem(LS_PARAMS);
+    if (s) return Object.assign({}, DEFAULT_PARAMS, JSON.parse(s));
+  } catch(e) {}
+  return Object.assign({}, DEFAULT_PARAMS);
+}
+
+function saveParam(key) {
+  var params = loadParams();
+  if (key === 'seuilZero') {
+    var v = parseInt(document.getElementById('paramSeuilZero').value, 10);
+    if (!isNaN(v) && v >= 1) { params.seuilZero = v; syncConfig({seuilZero: v}); }
+  } else if (key === 'seuilDisq') {
+    var v = parseInt(document.getElementById('paramSeuilDisq').value, 10);
+    if (!isNaN(v) && v >= 1) { params.seuilDisq = v; syncConfig({seuilDisq: v}); }
+  }
+  localStorage.setItem(LS_PARAMS, JSON.stringify(params));
+  var el = document.getElementById('saved' + key.charAt(0).toUpperCase() + key.slice(1));
+  if (el) { el.style.display = 'inline'; setTimeout(function(){ el.style.display = 'none'; }, 2000); }
+  renderClassement(curQ);
+}
+
+function addException(key) {
+  var inpId = 'except' + key.charAt(0).toUpperCase() + key.slice(1) + 'Inp';
+  var inp   = document.getElementById(inpId);
+  if (!inp || !inp.value.trim()) return;
+  var params = loadParams();
+  var field  = key === 'seuilZero' ? 'exceptSeuilZero' : 'exceptSeuilDisq';
+  var name   = inp.value.trim();
+  if (params[field].indexOf(name) < 0) params[field].push(name);
+  localStorage.setItem(LS_PARAMS, JSON.stringify(params));
+  var upd = {}; upd[field] = params[field]; syncConfig(upd);
+  inp.value = '';
+  renderParamTags();
+  renderClassement(curQ);
+}
+
+function removeException(key, name) {
+  var params = loadParams();
+  var field  = key === 'seuilZero' ? 'exceptSeuilZero' : 'exceptSeuilDisq';
+  params[field] = params[field].filter(function(n){ return n !== name; });
+  localStorage.setItem(LS_PARAMS, JSON.stringify(params));
+  var upd = {}; upd[field] = params[field]; syncConfig(upd);
+  renderParamTags();
+  renderClassement(curQ);
+}
+
+function renderParamTags() {
+  var params = loadParams();
+  // Seuil zéro exceptions
+  var listZ = document.getElementById('exceptSeuilZeroList');
+  if (listZ) {
+    listZ.innerHTML = params.exceptSeuilZero.map(function(n){
+      return '<span class="tag-item">' + n +
+        '<button class="tag-del" onclick="removeException(&apos;seuilZero&apos;,&apos;'+n+'&apos;)">×</button></span>';
+    }).join('') || '<span style="font-size:12px;color:var(--muted)">Aucune exception</span>';
+  }
+  // Seuil disq exceptions
+  var listD = document.getElementById('exceptSeuilDisqList');
+  if (listD) {
+    listD.innerHTML = params.exceptSeuilDisq.map(function(n){
+      return '<span class="tag-item">' + n +
+        '<button class="tag-del" onclick="removeException(&apos;seuilDisq&apos;,&apos;'+n+'&apos;)">×</button></span>';
+    }).join('') || '<span style="font-size:12px;color:var(--muted)">Aucune exception</span>';
+  }
+  // Sync input values
+  var inpZ = document.getElementById('paramSeuilZero');
+  var inpD = document.getElementById('paramSeuilDisq');
+  if (inpZ) inpZ.value = params.seuilZero;
+  if (inpD) inpD.value = params.seuilDisq;
+}
+
+// ══ BLACKLIST (localStorage) ═══════════════════════════════
+function loadBlacklist() {
+  if (gData && gData.config && gData.config.blacklist) return gData.config.blacklist;
+  try {
+    var s = localStorage.getItem(LS_BLACKLIST);
+    if (s) return JSON.parse(s);
+  } catch(e) {}
+  return [];
+}
+
+function addBlacklist() {
+  var inp  = document.getElementById('blacklistInp');
+  if (!inp || !inp.value.trim()) return;
+  var list = loadBlacklist();
+  var name = inp.value.trim();
+  if (list.indexOf(name) < 0) list.push(name);
+  localStorage.setItem(LS_BLACKLIST, JSON.stringify(list));
+  syncConfig({blacklist: list});
+  inp.value = '';
+  renderBlacklistTags();
+  renderClassement(curQ);
+}
+
+function removeBlacklist(name) {
+  var list = loadBlacklist().filter(function(n){ return n !== name; });
+  localStorage.setItem(LS_BLACKLIST, JSON.stringify(list));
+  syncConfig({blacklist: list});
+  renderBlacklistTags();
+  renderClassement(curQ);
+}
+
+function renderBlacklistTags() {
+  var list = loadBlacklist();
+  var el   = document.getElementById('blacklistList');
+  if (!el) return;
+  el.innerHTML = list.map(function(n){
+    return '<span class="tag-item blacklisted">' + n +
+      '<button class="tag-del" onclick="removeBlacklist(&apos;'+n+'&apos;)">×</button></span>';
+  }).join('') || '<span style="font-size:12px;color:var(--muted)">Aucun participant exclu</span>';
+}
+
+function isBlacklisted(p, list) {
+  var full = (capFull(p.prenom) + ' ' + p.nom).trim().toLowerCase();
+  return list.some(function(n){ return n.trim().toLowerCase() === full; });
+}
+
+function matchName(p, nameStr) {
+  var full = (capFull(p.prenom) + ' ' + p.nom).trim().toLowerCase();
+  return nameStr.trim().toLowerCase() === full;
+}
+
+// ══ GITHUB CONFIG ══════════════════════════════════
+function loadGithubConfig() {
+  try {
+    var s = localStorage.getItem(LS_GITHUB);
+    if (s) return JSON.parse(s);
+  } catch(e){}
+  return {token:'', repo:'Lemtosh/GAB.', file:'resultats.json'};
+}
+
+function saveGithubConfig() {
+  var cfg = {
+    token: document.getElementById('ghToken').value.trim(),
+    repo:  document.getElementById('ghRepo').value.trim(),
+    file:  document.getElementById('ghFile').value.trim()
+  };
+  localStorage.setItem(LS_GITHUB, JSON.stringify(cfg));
+  var el = document.getElementById('savedGithub');
+  el.style.display='inline';
+  setTimeout(function(){ el.style.display='none'; }, 2000);
+}
+
+function renderGithubConfig() {
+  var cfg = loadGithubConfig();
+  var tok = document.getElementById('ghToken');
+  var rep = document.getElementById('ghRepo');
+  var fil = document.getElementById('ghFile');
+  // Toujours mettre à jour si le champ existe (même hors onglet admin)
+  if (tok && !tok.value) tok.value = cfg.token || '';
+  if (rep) rep.value = cfg.repo  || 'Lemtosh/GAB.';
+  if (fil) fil.value = cfg.file  || 'resultats.json';
+}
+
+function toggleGhToken() {
+  var inp = document.getElementById('ghToken');
+  if (!inp) return;
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function ghStatus(msg, ok) {
+  var el = document.getElementById('ghStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+}
+
+// ── Fetch résultats depuis GitHub (lecture publique, pas de token nécessaire)
+function fetchFromGithub() {
+  var cfg = loadGithubConfig();
+  if (!cfg.repo || !cfg.file) return;
+  // Preview : jsDelivr (cache ~1min) + fallback raw.githubusercontent
+  // Raw GitHub = pas de cache CDN, toujours le fichier le plus récent
+  var url = 'https://raw.githubusercontent.com/' + cfg.repo + '/main/' + cfg.file;
+  fetch(url + '?nocache=' + Date.now())
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data){
+      // Sanitize : ne garder que nom, prenom, scores
+      if (data && data.participants) {
+        data.participants = data.participants.map(function(p){
+          return {nom:p.nom, prenom:p.prenom, scores:p.scores||{}};
+        });
+      }
+      // v0.25 : le JSON GitHub est la seule source de vérité
+      if (!data.importsLog) data.importsLog = [];
+      if (!data.config) data.config = {};
+      // Sync LS depuis config GitHub pour que les param-inp soient cohérents
+      try {
+        var _p = {
+          seuilZero:       data.config.seuilZero       != null ? data.config.seuilZero       : DEFAULT_PARAMS.seuilZero,
+          seuilDisq:       data.config.seuilDisq       != null ? data.config.seuilDisq       : DEFAULT_PARAMS.seuilDisq,
+          exceptSeuilZero: data.config.exceptSeuilZero || [],
+          exceptSeuilDisq: data.config.exceptSeuilDisq || []
+        };
+        localStorage.setItem(LS_PARAMS,    JSON.stringify(_p));
+        localStorage.setItem(LS_BLACKLIST, JSON.stringify(data.config.blacklist || []));
+        localStorage.setItem(LS_MANAGERS,  JSON.stringify(data.config.managers  || []));
+      } catch(e){}
+      // Purge des clés LS potentiellement périmées (évite données fantômes sur autre navigateur)
+      try { localStorage.removeItem(LS_DATA); } catch(e){}
+      saveResults(data);
+      rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
+      var newGData = buildGData(data);
+      // GitHub = seule source de vérité — toujours utiliser les données fraîches
+      gData = newGData;
+      try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+      console.log('[GAB Quiz] Résultats chargés depuis GitHub ✅');
+      var _lbl = document.getElementById('refreshLabel');
+      if (_lbl) { _lbl.textContent='✅ À jour'; setTimeout(function(){ _lbl.textContent='Rafraîchir'; }, 2500); }
+      // Re-render immédiat sans passer par showProperView (évite le flash)
+      if (document.getElementById('mainWrap').style.display !== 'none') {
+        buildQSelector();
+        renderClassement(curQ);
+        renderHistory();
+        if (admin) { renderAdmin(); renderStats(); }
+        var _isMgr = isManager();
+        if (admin || _isMgr) renderEquipe();
+      } else {
+        showProperView();
+      }
+    })
+    .catch(function(err){
+      console.warn('[GAB Quiz] GitHub fetch failed, fallback localStorage:', err.message);
+      // Fallback : données locales déjà chargées au boot
+    });
+}
+
+// ── Test connexion GitHub
+function testGithubConnection() {
+  var cfg = loadGithubConfig();
+  if (!cfg.token) { ghStatus('❌ Token manquant', false); return; }
+  ghStatus('⏳ Test en cours...', true);
+  var url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + cfg.file;
+  fetch(url, {
+    headers: {
+      'Authorization': 'token ' + cfg.token,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  })
+  .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(){ ghStatus('✅ Connexion OK', true); })
+  .catch(function(e){ ghStatus('❌ Erreur : ' + e.message, false); });
+}
+
+// ── Push résultats vers GitHub
+function pushToGithub() {
+  var cfg = loadGithubConfig();
+  if (!cfg.token) { ghStatus('❌ Token manquant', false); return; }
+  // rawData FIX : utiliser rawData (JSON brut) si disponible, sinon fallback localStorage
+  var raw = rawData ? JSON.parse(JSON.stringify(rawData)) : (loadResults() || {});
+  var _params    = loadParams();
+  var _blacklist = loadBlacklist();
+  var _managers  = loadManagers();
+  var _cfg = Object.assign({}, (raw && raw.config) ? raw.config : (gData && gData.config) ? gData.config : {}, {
+    seuilZero:       _params.seuilZero,
+    seuilDisq:       _params.seuilDisq,
+    exceptSeuilZero: _params.exceptSeuilZero,
+    exceptSeuilDisq: _params.exceptSeuilDisq,
+    blacklist:       _blacklist,
+    managers:        _managers
+  });
+  var data = {
+    version: '0.25',
+    annee:   new Date().getFullYear(),
+    // rawData FIX : raw contient déjà les scores bruts
+    participants: (raw.participants || []).map(function(p){
+      return { nom: p.nom, prenom: p.prenom, scores: p.scores };
+    }).sort(function(a,b){ return a.nom.localeCompare(b.nom); }),
+    config: _cfg,
+    importsLog: (gData && gData.importsLog && gData.importsLog.length)
+                  ? gData.importsLog
+                  : (raw.importsLog || [])
+  };
+  if (!data.participants || !data.participants.length) { ghStatus('❌ Aucun résultat à pousser', false); return; }
+
+  ghStatus('⏳ Push en cours...', true);
+  var url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + cfg.file;
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+  // D'abord récupérer le SHA du fichier existant
+  fetch(url, {
+    headers: {
+      'Authorization': 'token ' + cfg.token,
+      'Accept': 'application/vnd.github.v3+json'
+    }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(existing){
+    var sha = existing.sha || '';
+    var body = {
+      message: (function(){
+      var log = (gData && gData.importsLog) ? gData.importsLog : [];
+      if (log.length) {
+        var weeks = log.map(function(l){ return l.week || l.label || ''; })
+                       .filter(function(w){ return w; });
+        return 'GAB Quiz — import semaine' + (weeks.length > 1 ? 's' : '') + ' ' + weeks.join(', ');
+      }
+      return 'GAB Quiz — mise à jour résultats ' + new Date().toLocaleDateString('fr-FR');
+    })(),
+      content: content
+    };
+    if (sha) body.sha = sha;
+    return fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + cfg.token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(body)
+    });
+  })
+  .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(function(){
+    ghStatus('✅ Push réussi — purge cache...', true);
+    // Purger le cache jsDelivr pour que fetchFromGithub voie les nouvelles données immédiatement
+    fetch('https://purge.jsdelivr.net/gh/Lemtosh/GAB.@main/resultats.json')
+      .catch(function(){}) // silencieux si purge échoue
+      .finally(function(){
+        ghStatus('✅ Push réussi !', true);
+        setTimeout(fetchFromGithub, 1500); // refetch après purge
+      });
+  })
+  .catch(function(e){ ghStatus('❌ ' + e.message, false); });
+}
+
+// ══ STATISTIQUES ══════════════════════════════════
+function renderStats() {
+  var wrap = document.getElementById('statsWrap');
+  if (!wrap || !gData) return;
+
+  var QS = ['T1','T2','T3','T4'];
+  var params = loadParams();
+  var blacklist = loadBlacklist();
+
+  // Construire les données stats par participant
+  var rows = [];
+  gData.participants.forEach(function(p){
+    if (isBlacklisted(p, blacklist)) return;
+    var nfByQ = {};
+    var totalNF = 0, totalQuiz = 0;
+    QS.forEach(function(q){
+      var qd = p.quarters[q];
+      nfByQ[q] = qd ? qd.nbNonFait : 0;
+      totalNF  += nfByQ[q];
+      totalQuiz+= qd ? qd.nbQuiz : 0;
+    });
+    var moyAnnuelle = null;
+    var allScores = [];
+    QS.forEach(function(q){
+      var qd = p.quarters[q];
+      if (qd && qd.weeks) qd.weeks.forEach(function(w){ if(typeof w.score==='number') allScores.push(w.score); });
+    });
+    if (allScores.length) moyAnnuelle = Math.round(allScores.reduce(function(a,b){return a+b;},0)/allScores.length*100)/100;
+    var exemptDisq = params.exceptSeuilDisq.some(function(ex){ return matchName(p,ex); });
+    var isDisq = !exemptDisq && totalNF >= params.seuilDisq;
+    rows.push({p:p, nfByQ:nfByQ, totalNF:totalNF, totalQuiz:totalQuiz, moyAnnuelle:moyAnnuelle, isDisq:isDisq});
+  });
+
+  // Trier par NF total décroissant
+  rows.sort(function(a,b){ return b.totalNF - a.totalNF; });
+
+  // Cartes résumé
+  var totalParticipants = rows.length;
+  var disqCount = rows.filter(function(r){ return r.isDisq; }).length;
+  var warnCount = rows.filter(function(r){ return !r.isDisq && r.totalNF >= params.seuilZero; }).length;
+  var okCount   = totalParticipants - disqCount - warnCount;
+
+  var html = '<div class="stats-summary">' +
+    statCard('Participants', totalParticipants, 'actifs', false) +
+    statCard('En règle', okCount, 'NF < '+params.seuilZero, false) +
+    statCard('En alerte', warnCount, 'NF ≥ '+params.seuilZero, warnCount > 0) +
+    statCard('Disqualifiés', disqCount, 'NF ≥ '+params.seuilDisq, disqCount > 0) +
+    '</div>';
+
+  // Filtre trimestre
+  html += '<div class="stats-filter">' +
+    '<label>Afficher :</label>' +
+    ['T1','T2','T3','T4','Année'].map(function(q){
+      return '<button class="q-btn active" id="statsFilter'+q+'" onclick="toggleStatsCol(&apos;'+q+'&apos;)">' + q + '</button>';
+    }).join('') +
+    '</div>';
+
+  // Tableau
+  html += '<div class="rank-wrap"><table class="stats-table"><thead><tr>' +
+    '<th>Participant</th>' +
+    '<th id="sth-T1">NF T1</th>' +
+    '<th id="sth-T2">NF T2</th>' +
+    '<th id="sth-T3">NF T3</th>' +
+    '<th id="sth-T4">NF T4</th>' +
+    '<th id="sth-Annee">NF Année</th>' +
+    '<th>Quiz faits</th>' +
+    '<th>Moy. annuelle</th>' +
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    var nfClass = function(n) {
+      if (n === 0) return 'nf-ok';
+      if (n >= params.seuilDisq) return 'nf-danger';
+      if (n >= params.seuilZero) return 'nf-warn';
+      return 'nf-cell';
+    };
+    var disqBadge = r.isDisq ? '<span class="tag-disq">DISQUALIFIÉ</span>' : '';
+    html += '<tr>' +
+      '<td>' + capFull(r.p.prenom) + ' ' + r.p.nom + disqBadge + (admin ? ' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'" >Historique</button>' : '') + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T1)+'" id="sc-T1">' + r.nfByQ.T1 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T2)+'" id="sc-T2">' + r.nfByQ.T2 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T3)+'" id="sc-T3">' + r.nfByQ.T3 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.nfByQ.T4)+'" id="sc-T4">' + r.nfByQ.T4 + '</td>' +
+      '<td class="nf-cell '+nfClass(r.totalNF)+'"><strong>' + r.totalNF + '</strong></td>' +
+      '<td>' + r.totalQuiz + '</td>' +
+      '<td class="r-score">' + (r.moyAnnuelle !== null ? r.moyAnnuelle.toFixed(2) : '—') + '</td>' +
+      '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+function toggleStatsCol(q) {
+  var colMap = {T1:1, T2:2, T3:3, T4:4};
+  var btn = document.getElementById('statsFilter' + q);
+  if (!btn) return;
+  btn.classList.toggle('active');
+  var visible = btn.classList.contains('active');
+  if (q === 'Année') {
+    // Colonne NF Année = col 5 (index 5)
+    document.querySelectorAll('.stats-table tr').forEach(function(tr){
+      var cells = tr.querySelectorAll('th, td');
+      if (cells[5]) cells[5].style.display = visible ? '' : 'none';
+    });
+  } else {
+    var col = colMap[q];
+    document.querySelectorAll('.stats-table tr').forEach(function(tr){
+      var cells = tr.querySelectorAll('th, td');
+      if (cells[col]) cells[col].style.display = visible ? '' : 'none';
+    });
+  }
+}
+
+// ══ MANAGERS ═══════════════════════════════════════
+function loadManagers() {
+  if (gData && gData.config && gData.config.managers) return gData.config.managers;
+  try {
+    var s = localStorage.getItem(LS_MANAGERS);
+    if (s) return JSON.parse(s);
+  } catch(e){}
+  return [];
+}
+
+function isManager() {
+  if (!uid) return false;
+  var list = loadManagers();
+  return list.some(function(n){ return n.trim().toLowerCase() === (capFull(uid.prenom)+' '+uid.nom).trim().toLowerCase(); });
+}
+
+function addManager() {
+  var inp  = document.getElementById('managersInp');
+  if (!inp || !inp.value.trim()) return;
+  var list = loadManagers();
+  var name = inp.value.trim();
+  if (list.indexOf(name) < 0) list.push(name);
+  localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  syncConfig({managers: list});
+  inp.value = '';
+  renderManagersTags();
+}
+
+function removeManager(name) {
+  var list = loadManagers().filter(function(n){ return n !== name; });
+  localStorage.setItem(LS_MANAGERS, JSON.stringify(list));
+  syncConfig({managers: list});
+  renderManagersTags();
+}
+
+function renderManagersTags() {
+  var list = loadManagers();
+  var el   = document.getElementById('managersList');
+  if (!el) return;
+  el.innerHTML = list.map(function(n){
+    return '<span class="tag-item" style="background:rgba(17,169,166,.08);border-color:rgba(17,169,166,.3);color:var(--accent)">👔 ' + n +
+      '<button class="tag-del" onclick="removeManager(&apos;'+n+'&apos;)">×</button></span>';
+  }).join('') || '<span style="font-size:12px;color:var(--muted)">Aucun manager défini</span>';
+}
+
+// ══ VUE ÉQUIPE (managers + admin) ═════════════════
+function renderEquipe() {
+  var wrap = document.getElementById('equipeWrap');
+  if (!wrap || !gData) return;
+
+  var blacklist = loadBlacklist();
+  var team      = loadManagerTeam(); // null = pas encore configuré
+  var allPsFull = gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); });
+
+  // Manager non-admin : gestion config équipe
+  if (!admin) {
+    if (team === null) {
+      // 1ère visite : inviter à configurer
+      wrap.innerHTML = '<div style="text-align:center;padding:48px 20px">' +
+        '<div style="font-size:44px;margin-bottom:16px">👥</div>' +
+        '<h2 style="font-size:17px;font-weight:700;margin-bottom:8px">Configure ton équipe</h2>' +
+        '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Sélectionne les membres de ton équipe pour accéder à leurs résultats.<br>Cette configuration est sauvegardée sur cet appareil.</p>' +
+        '<button onclick="openTeamConfig()" style="padding:10px 28px;font-size:14px;font-weight:700;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer">Configurer mon équipe</button>' +
+      '</div>';
+      return;
+    }
+    // Déjà configuré mais liste vide → inviter à reconfigurer
+    if (team.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:48px 20px">' +
+        '<div style="font-size:44px;margin-bottom:16px">👥</div>' +
+        '<h2 style="font-size:17px;font-weight:700;margin-bottom:8px">Aucun membre dans ton équipe</h2>' +
+        '<p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px">Tu n&#39;as sélectionné aucun membre. Reconfigure ton équipe.</p>' +
+        '<button onclick="openTeamConfig()" style="padding:10px 28px;font-size:14px;font-weight:700;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer">Configurer mon équipe</button>' +
+      '</div>';
+      return;
+    }
+  }
+
+  // Filtrer selon équipe
+  var displayPs;
+  if (admin) {
+    displayPs = allPsFull;
+  } else {
+    displayPs = allPsFull.filter(function(p){
+      return team.indexOf(p.prenom+'|'+p.nom) !== -1;
+    });
+    if (displayPs.length === 0) displayPs = allPsFull; // fallback sécurité
+  }
+
+  var params  = loadParams();
+  var qLabels = {T1:'T1 · Jan–Mar', T2:'T2 · Avr–Juin', T3:'T3 · Jul–Sep', T4:'T4 · Oct–Déc', Annee:'Année'};
+
+  var html = '<div class="admin-banner" style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">' +
+    '<span style="display:flex;align-items:center;gap:8px">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+      (admin ? 'Vue Équipe — tous les participants (' + displayPs.length + ').' : 'Mon équipe — ' + displayPs.length + ' membre' + (displayPs.length>1?'s':'') + '.') +
+    '</span>' +
+    (!admin ? '<button onclick="openTeamConfig()" style="padding:5px 14px;font-size:12px;font-weight:700;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;white-space:nowrap">✏️ Modifier équipe</button>' : '') +
+  '</div>';
+
+  html += '<div class="q-selector" id="equipeQSelector">';
+  ['T1','T2','T3','T4','Annee'].forEach(function(q){
+    html += '<button class="q-btn'+(q==='T1'?' active':'')+'" onclick="renderEquipeTable(this.dataset.q,window._equipePs)" data-q="'+q+'" id="equipeQ'+q+'">'+qLabels[q]+'</button>';
+  });
+  html += '</div><div id="equipeTableWrap"></div>';
+
+  wrap.innerHTML = html;
+  window._equipePs = displayPs;
+  renderEquipeTable('T1', displayPs);
+}
+
+function renderEquipeTable(q, filteredPs) {
+  // Mettre à jour boutons
+  ['T1','T2','T3','T4','Annee'].forEach(function(qt){
+    var btn = document.getElementById('equipeQ'+qt);
+    if (btn) btn.classList.toggle('active', qt===q);
+  });
+
+  var blacklist = loadBlacklist();
+  var params    = loadParams();
+  var QS        = ['T1','T2','T3','T4'];
+  var allPs     = filteredPs || (gData ? gData.participants.filter(function(p){ return !isBlacklisted(p, blacklist); }) : []);
+
+  var rows = allPs.map(function(p){
+    var totalNF = 0, totalQuiz = 0, allScores = [];
+    QS.forEach(function(qt){
+      var qd = p.quarters[qt];
+      totalNF   += qd ? qd.nbNonFait : 0;
+      totalQuiz += qd ? qd.nbQuiz    : 0;
+      if (qd && qd.weeks) qd.weeks.forEach(function(w){ if(typeof w.score==='number') allScores.push(w.score); });
+    });
+    var moyAnn = allScores.length ? Math.round(allScores.reduce(function(a,b){return a+b;},0)/allScores.length*100)/100 : null;
+    var exemptDisq = params.exceptSeuilDisq.some(function(ex){ return matchName(p,ex); });
+    var isDisq = !exemptDisq && totalNF >= params.seuilDisq;
+    return {p:p, totalNF:totalNF, totalQuiz:totalQuiz, moyAnn:moyAnn, isDisq:isDisq};
+  });
+
+  var html = '<div class="rank-wrap"><table class="stats-table"><thead><tr>';
+  if (q === 'Annee') {
+    html += '<th style="text-align:left">Participant</th><th>Moy. T1</th><th>Moy. T2</th><th>Moy. T3</th><th>Moy. T4</th><th>Moy. Année</th><th>NF Année</th><th>Quiz faits</th>';
+  } else {
+    html += '<th style="text-align:left">Participant</th><th>Moyenne '+q+'</th><th>Quiz faits</th><th>Non faits</th><th>Moy. Année</th><th>NF Année</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  // Trier par moyenne desc (disqualifiés en bas)
+  var normal = rows.filter(function(r){ return !r.isDisq; });
+  var disqRows = rows.filter(function(r){ return r.isDisq; });
+  var sortFn = function(a,b){
+    if (q === 'Annee') return (b.moyAnn||0)-(a.moyAnn||0);
+    return ((b.p.quarters[q]&&b.p.quarters[q].moyenne)||0)-((a.p.quarters[q]&&a.p.quarters[q].moyenne)||0);
+  };
+  normal.sort(sortFn);
+  disqRows.sort(sortFn);
+
+  var renderRow = function(r, isDisq){
+    var isMe = uid && matchId(r.p, uid);
+    var nfClass = r.totalNF >= params.seuilDisq ? 'nf-danger' : r.totalNF >= params.seuilZero ? 'nf-warn' : 'nf-ok';
+    var badge = isDisq ? '<span class="tag-disq">DISQ.</span>' : '';
+    var meTag = isMe ? '<span class="tag-me">Moi</span>' : '';
+    if (q === 'Annee') {
+      return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+(admin||manager?' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'">Historique</button>':'')+'</td>' +
+        ['T1','T2','T3','T4'].map(function(qt){
+          var m = r.p.quarters[qt] && r.p.quarters[qt].moyenne;
+          return '<td class="r-score" style="font-size:13px">'+(m!==null&&m!==undefined?m.toFixed(2):'—')+'</td>';
+        }).join('') +
+        '<td class="r-score">'+(r.moyAnn!==null?r.moyAnn.toFixed(2):'—')+'</td>' +
+        '<td class="nf-cell '+nfClass+'">'+r.totalNF+'</td>' +
+        '<td>'+r.totalQuiz+'</td></tr>';
+    } else {
+      var qd = r.p.quarters[q];
+      var moy = qd ? qd.moyenne : null;
+      var nfQ = qd ? qd.nbNonFait : 0;
+      var nfQClass = nfQ >= params.seuilDisq ? 'nf-danger' : nfQ >= params.seuilZero ? 'nf-warn' : 'nf-ok';
+      return '<tr'+(isDisq?' class="row-disq"':'')+'>' +
+        '<td>'+capFull(r.p.prenom)+' '+r.p.nom+meTag+badge+(admin||manager?' <button class="btn-histo-proxy" data-prenom="'+r.p.prenom+'" data-nom="'+r.p.nom+'">Historique</button>':'')+'</td>' +
+        '<td class="r-score">'+(moy!==null&&moy!==undefined?moy.toFixed(2):'—')+'</td>' +
+        '<td>'+(qd?qd.nbQuiz:0)+'</td>' +
+        '<td class="nf-cell '+nfQClass+'">'+nfQ+'</td>' +
+        '<td class="r-score" style="font-size:12px">'+(r.moyAnn!==null?r.moyAnn.toFixed(2):'—')+'</td>' +
+        '<td class="nf-cell '+nfClass+'">'+r.totalNF+'</td></tr>';
+    }
+  };
+
+  normal.forEach(function(r){ html += renderRow(r, false); });
+  if (disqRows.length) {
+    html += '<tr><td colspan="8"><div class="disq-sep"></div></td></tr>';
+    disqRows.forEach(function(r){ html += renderRow(r, true); });
+  }
+  html += '</tbody></table></div>';
+  document.getElementById('equipeTableWrap').innerHTML = html;
+}
+
+// ══ SYNC CONFIG → gData + LS_RESULTS ══════════════
+// Toute modification de config passe par là
+function syncConfig(updates) {
+  if (!gData) return;
+  if (!gData.config) gData.config = {};
+  Object.keys(updates).forEach(function(k){ gData.config[k] = updates[k]; });
+
+  // Persister dans LS_RESULTS pour le prochain push GitHub
+  var raw = loadResults();
+  if (raw) {
+    if (!raw.config) raw.config = {};
+    Object.keys(updates).forEach(function(k){ raw.config[k] = updates[k]; });
+    saveResults(raw);
+  }
+}
+
+// ══ UPLOAD FLOW ════════════════════════════════════
+function showUpload() {
+  document.getElementById('uploadWrap').style.display  = 'block';
+  document.getElementById('mainWrap').style.display    = 'none';
+  var btn = document.getElementById('btnCancelUpload');
+  if (btn) btn.style.display = gData ? 'inline-flex' : 'none';
+}
+
+function cancelUpload() {
+  document.getElementById('uploadWrap').style.display = 'none';
+  document.getElementById('mainWrap').style.display   = 'block';
+  renderClassement(curQ);
+  renderHistory();
+  if (admin) { renderAdmin(); renderParamTags(); renderBlacklistTags(); renderGithubConfig(); renderManagersTags(); renderStats(); }
+  if (admin || isManager()) renderEquipe();
+}
+
+// ── Changer d'identité avec alerte préventive
+function openChangeIdentity() {
+  if (admin) {
+    if (!confirm('⚠️ Attention — tu es connecté en tant qu\'administrateur.\n\nChanger d\'identité te fera perdre l\'accès admin jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
+  } else if (isManager()) {
+    if (!confirm('⚠️ Attention — tu as un accès manager.\n\nChanger d\'identité te fera perdre cet accès jusqu\'à reconnexion.\n\nContinuer quand même ?')) return;
+  } else {
+    if (!confirm('🚫 Action non recommandée.\n\nChanger de nom peut affecter ton suivi de résultats.\n\nForcer quand même ?')) return;
+  }
+  openModal(true);
+}
+
+// ══ ADMIN UPLOAD INLINE ════════════════════════════
+function handleDropAdmin(e) {
+  e.preventDefault();
+  if (e.dataTransfer.files.length) handleFilesAdmin(e.dataTransfer.files);
+}
+
+function extractDateFromFilename(name) {
+  // Cherche un pattern ddmmyyyy ou dd-mm-yyyy ou dd_mm_yyyy dans le nom
+  var m = name.match(/(\d{2})[\-_]?(\d{2})[\-_]?(\d{4})/);
+  if (m) return m[1]+'/'+m[2]+'/'+m[3];
+  return null;
+}
+
+function handleFileAdmin(file) {
+  if (!file) return;
+  document.getElementById('dropZoneAdminFile').textContent = file.name;
+  var fileLabel = extractDateFromFilename(file.name) || file.name.replace(/\.[^.]+$/,'');
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      // Supporter xlsx ET csv
+      var entries = [];
+      if (file.name.match(/\.csv$/i)) {
+        var text = new TextDecoder('utf-8').decode(e.target.result);
+        entries = parseCSV(text);
+      } else {
+        var wb = XLSX.read(e.target.result, {type:'array'});
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        entries = parseCSVRows(rows);
+      }
+      if (!entries || !entries.length) throw new Error('Aucune donnée valide');
+      // Vérifier doublons avant merge
+      var existingLog = (gData && gData.importsLog) ? gData.importsLog : [];
+      var weekKeys = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{}));
+      var dupeByLabel = fileLabel && existingLog.some(function(l){ return l.label === fileLabel; });
+      var dupeByWeek  = weekKeys.some(function(wk){ return existingLog.some(function(l){ return l.week === wk; }); });
+      if (dupeByLabel || dupeByWeek) {
+        var dupeInfo = dupeByLabel ? 'le fichier "'+fileLabel+'" a déjà été importé' : 'la semaine '+weekKeys[0]+' existe déjà';
+        if (!confirm('⚠️ Doublon détecté — ' + dupeInfo + '.\n\nÉcraser les données existantes ?')) {
+          var status = document.getElementById('importAdminStatus');
+          status.style.display = 'block';
+          status.style.color = 'var(--warning,#d69e2e)';
+          status.textContent = '⚠️ Import annulé — doublon ignoré.';
+          return;
+        }
+        // Si on écrase : retirer l'entrée existante de importsLog
+        if (gData && gData.importsLog) {
+          gData.importsLog = gData.importsLog.filter(function(l){
+            return !(weekKeys.indexOf(l.week) !== -1 || (fileLabel && l.label === fileLabel));
+          });
+          var raw2 = loadResults();
+          if (raw2 && raw2.importsLog) {
+            raw2.importsLog = raw2.importsLog.filter(function(l){
+              return !(weekKeys.indexOf(l.week) !== -1 || (fileLabel && l.label === fileLabel));
+            });
+            saveResults(raw2);
+          }
+        }
+      }
+      var data = mergeCSVEntries(entries, fileLabel);
+      saveResults(data);
+      rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
+      var newGData = buildGData(data);
+      // Import admin = toujours prioritaire sur les données en mémoire
+      gData = newGData;
+      // S'assurer que importsLog est bien dans gData depuis data
+      if (!gData.importsLog || !gData.importsLog.length) gData.importsLog = data.importsLog || [];
+      var status = document.getElementById('importAdminStatus');
+      status.style.display = 'block';
+      status.style.color = 'var(--success)';
+      var nbWeeks = Object.keys(entries.reduce(function(a,e){a[e.weekKey]=1;return a;},{})).length;
+      var imported = gData.importsLog[gData.importsLog.length-1];
+      status.textContent = '✅ ' + entries.length + ' participations importées — Quiz du ' + (imported ? imported.label : '') + ' (' + nbWeeks + ' semaine(s))';
+      renderAdmin();
+      renderParamTags();
+      renderBlacklistTags();
+      renderGithubConfig();
+      renderManagersTags();
+      renderStats();
+      renderClassement(curQ);
+    } catch(err) {
+      var status = document.getElementById('importAdminStatus');
+      status.style.display = 'block';
+      status.style.color = 'var(--danger)';
+      status.textContent = '❌ Erreur : ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ══ IMPORT MULTIPLE ════════════════════════════════════════
+function handleFilesAdmin(files) {
+  if (!files || !files.length) return;
+  var fileArr = Array.from(files);
+  // FIX v0.31 : trier les fichiers par date extraite du nom (ordre chronologique)
+  // afin que les NF soient correctement déduits lors d'un import multiple
+  fileArr.sort(function(a, b) {
+    var da = extractDateFromFilename(a.name) || '';
+    var db = extractDateFromFilename(b.name) || '';
+    var pa = da.split('/'), pb = db.split('/');
+    if (pa.length === 3 && pb.length === 3) {
+      return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+    }
+    return a.name.localeCompare(b.name);
+  });
+  var status  = document.getElementById('importAdminStatus');
+  if (status) { status.style.display = 'block'; status.textContent = '⏳ Traitement de ' + fileArr.length + ' fichier(s)...'; }
+
+  var processed = 0, totalEntries = 0, errors = [];
+
+  function processNext(idx) {
+    if (idx >= fileArr.length) {
+      // Tous traités → push GitHub
+      saveResults(loadResults()); // s'assurer que LS est à jour
+      gData = buildGData(loadResults());
+      try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+      var summary = '✅ ' + processed + ' fichier(s) importé(s) — ' + totalEntries + ' participations';
+      if (errors.length) summary += ' — ⚠️ ' + errors.length + ' erreur(s): ' + errors.join(', ');
+      if (status) status.textContent = summary;
+      // Forcer re-render complet sans changer d'onglet
+      if (document.getElementById('mainWrap').style.display !== 'none') {
+        buildQSelector(); renderClassement(curQ); renderHistory();
+        if (admin) { renderAdmin(); renderStats(); }
+      } else {
+        showMain();
+      }
+      // Auto-push GitHub
+      var cfg = loadGithubConfig();
+      if (cfg && cfg.token) {
+        saveResults(loadResults());
+          setTimeout(function(){ ghStatus('', true); pushToGithub(); }, 1500);
+      }
+      return;
+    }
+    var file = fileArr[idx];
+    var fileLabel = extractDateFromFilename(file.name) || file.name.replace(/\.[^.]+$/, '');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var entries = [];
+        if (file.name.match(/\.csv$/i)) {
+          var text = new TextDecoder('utf-8').decode(e.target.result);
+          entries = parseCSV(text);
+        } else {
+          var wb = XLSX.read(e.target.result, {type:'array'});
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          entries = XLSX.utils.sheet_to_json(ws, {raw:false});
+        }
+        if (!entries || !entries.length) { errors.push(file.name + ' (vide)'); }
+        else {
+          var merged = mergeCSVEntries(entries, fileLabel);
+          saveResults(merged);
+          rawData = JSON.parse(JSON.stringify(merged)); // rawData FIX : tenir rawData à jour
+          gData = buildGData(merged); // BUG3 FIX : tenir gData à jour entre fichiers
+          totalEntries += entries.length;
+          processed++;
+          if (status) status.textContent = '⏳ ' + (idx+1) + '/' + fileArr.length + ' — ' + file.name;
+        }
+      } catch(err) { errors.push(file.name + ' (' + err.message + ')'); }
+      processNext(idx + 1);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  processNext(0);
+}
+
+  // ══ AJOUT MANUEL PARTICIPANT ══════════════════════════════
+  function populateWeekSelect() {
+  var sel = document.getElementById('addPartWeek');
+  if (!sel || !gData) return;
+  var weekSet = {};
+  ['T1','T2','T3','T4'].forEach(function(q){
+    if (gData.qCols && gData.qCols[q] && gData.qCols[q].weeks)
+      gData.qCols[q].weeks.forEach(function(w){ weekSet[w]=true; });
+  });
+  var weeks = Object.keys(weekSet).sort(function(a,b){
+    var pa=a.split('/'), pb=b.split('/');
+    return new Date(pb[2],pb[1]-1,pb[0])-new Date(pa[2],pa[1]-1,pa[0]);
+  });
+  sel.innerHTML = '<option value="">— Choisir une semaine —</option>';
+  weeks.forEach(function(w){ sel.innerHTML += '<option value="'+w+'">'+w+'</option>'; });
+}
+
+function addParticipantManual() {
+    var prenom = document.getElementById('addPartPrenom').value.trim();
+    var nom    = document.getElementById('addPartNom').value.trim().toUpperCase();
+    var week   = document.getElementById('addPartWeek').value.trim();
+    var scoreRaw = document.getElementById('addPartScore').value.trim().toUpperCase();
+    var statusEl = document.getElementById('addPartStatus');
+
+    // Validation
+    if (!prenom || !nom || !week || !scoreRaw) {
+      statusEl.textContent = '❌ Tous les champs sont requis.';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    // Valider sélection semaine
+    var dateParts = week.split('/');
+    if (dateParts.length !== 3) {
+      statusEl.textContent = '❌ Sélectionne une semaine dans la liste.';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    var score = scoreRaw === 'NF' ? 'NF' : scoreRaw === 'EX' ? 'EX' : parseInt(scoreRaw, 10); // EX FIX
+    if (scoreRaw !== 'NF' && scoreRaw !== 'EX' && (isNaN(score) || score < 0 || score > 10)) { // EX FIX
+      statusEl.textContent = '❌ Score invalide (0-10 ou NF).';
+      statusEl.style.display = 'block'; statusEl.style.color = 'var(--danger)'; return;
+    }
+    // Normaliser prénom
+    prenom = prenom.replace(/\b\w/g, function(c){ return c.toUpperCase(); })
+                   .replace(/\B\w/g, function(c){ return c.toLowerCase(); });
+
+    var data = loadResults();
+    if (!data) { statusEl.textContent = '❌ Aucun résultat chargé.'; statusEl.style.display='block'; return; }
+
+    // Trouver ou créer le participant
+    var p = data.participants.find(function(x){ return matchId(x, {nom:nom, prenom:prenom}); });
+    if (!p) {
+      p = {nom: nom, prenom: prenom, scores: {}};
+      data.participants.push(p);
+    }
+    if (p.scores[week] === 'EX' && score !== 'EX') { statusEl.textContent = 'Semaine exemptée (EX) — modifie le JSON directement.'; statusEl.style.display='block'; statusEl.style.color='var(--danger)'; return; } // EX FIX
+    p.scores[week] = score;
+
+    // Mettre à jour importsLog si semaine nouvelle
+    if (!data.importsLog) data.importsLog = [];
+    var alreadyLog = data.importsLog.some(function(l){ return l.week === week; });
+    if (!alreadyLog) {
+      data.importsLog.push({week: week, importedAt: new Date().toISOString(), count: 1, label: week});
+    }
+
+    saveResults(data);
+    rawData = JSON.parse(JSON.stringify(data)); // rawData FIX
+    gData = buildGData(data);
+    try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+    statusEl.textContent = '✅ ' + prenom + ' ' + nom + ' — semaine ' + week + ' ajouté(e).';
+    statusEl.style.color = 'var(--success)';
+    statusEl.style.display = 'block';
+
+    // Reset champs
+    document.getElementById('addPartPrenom').value = '';
+    document.getElementById('addPartNom').value = '';
+    document.getElementById('addPartWeek').value = '';
+    document.getElementById('addPartScore').value = '';
+
+    buildQSelector();
+    renderClassement(curQ);
+    renderAdmin();
+    populateWeekDelSelect();
+
+    // Auto-push GitHub
+    var cfg = loadGithubConfig();
+    if (cfg && cfg.token) {
+      setTimeout(function(){ pushToGithub(); }, 1500);
+    }
+  }
+
+  // ══ SUPPRESSION SEMAINE ════════════════════════════════════
+  function populateWeekDelSelect() {
+    var sel = document.getElementById('weekDelSelect');
+    if (!sel) return;
+    var raw = loadResults();
+    var weeks = [];
+    if (raw && raw.importsLog && raw.importsLog.length) {
+      raw.importsLog.forEach(function(l){ if (weeks.indexOf(l.week) < 0) weeks.push(l.week); });
+    } else if (gData && gData.importsLog) {
+      gData.importsLog.forEach(function(l){ if (weeks.indexOf(l.week) < 0) weeks.push(l.week); });
+    }
+    weeks.sort(function(a,b){
+      var pa=a.split('/'), pb=b.split('/');
+      return new Date(pa[2],pa[1]-1,pa[0]) - new Date(pb[2],pb[1]-1,pb[0]);
+    });
+    sel.innerHTML = '<option value="">— Choisir une semaine —</option>';
+    weeks.forEach(function(w){
+      sel.innerHTML += '<option value="'+w+'">Semaine du '+w+'</option>';
+    });
+  }
+
+  function deleteWeek() {
+    var sel    = document.getElementById('weekDelSelect');
+    var status = document.getElementById('weekDelStatus');
+    var week   = sel ? sel.value : '';
+    if (!week) { weekDelStatus('⚠️ Sélectionne une semaine', false); return; }
+    if (!confirm('Supprimer toutes les données de la semaine du ' + week + ' ? Cette action re-poussera le JSON vers GitHub.')) return;
+
+    var raw = loadResults() || {};
+    if (!raw.participants) { weekDelStatus('❌ Aucune donnée locale', false); return; }
+
+    // Supprimer le score de cette semaine pour chaque participant
+    raw.participants.forEach(function(p){
+      if (p.scores && p.scores[week] !== undefined) delete p.scores[week];
+    });
+
+    // Supprimer les entrées importsLog pour cette semaine
+    if (raw.importsLog) {
+      raw.importsLog = raw.importsLog.filter(function(l){ return l.week !== week; });
+    }
+
+    // Sauvegarder localement
+    saveResults(raw);
+    gData = buildGData(raw);
+    try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+    // Re-pousser vers GitHub
+    var cfg = loadGithubConfig();
+    if (!cfg.token) { weekDelStatus('✅ Supprimé localement (pas de token pour push)', true); renderAdmin(); return; }
+
+    weekDelStatus('⏳ Push en cours...', true);
+    var _params    = loadParams();
+    var _blacklist = loadBlacklist();
+    var _managers  = loadManagers();
+    var data = {
+      version: '0.26',
+      annee:   new Date().getFullYear(),
+      participants: raw.participants,
+      config: Object.assign({}, raw.config || {}, {
+        seuilZero: _params.seuilZero, seuilDisq: _params.seuilDisq,
+        exceptSeuilZero: _params.exceptSeuilZero, exceptSeuilDisq: _params.exceptSeuilDisq,
+        blacklist: _blacklist, managers: _managers
+      }),
+      importsLog: raw.importsLog || []
+    };
+
+    var url     = 'https://api.github.com/repos/' + cfg.repo.replace(/\/+$/,'') + '/contents/' + cfg.file;
+    var content = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    fetch(url, { headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'} })
+      .then(function(r){ return r.json(); })
+      .then(function(existing){
+        var body = { message:'GAB Quiz — suppression semaine '+week, content:content };
+        if (existing.sha) body.sha = existing.sha;
+        return fetch(url, { method:'PUT', headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'}, body:JSON.stringify(body) });
+      })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+      .then(function(){
+        weekDelStatus('✅ Semaine '+week+' supprimée — purge cache...', true);
+        fetch('https://purge.jsdelivr.net/gh/Lemtosh/GAB.@main/resultats.json')
+          .catch(function(){})
+          .finally(function(){
+            weekDelStatus('✅ Semaine '+week+' supprimée et JSON mis à jour', true);
+            setTimeout(fetchFromGithub, 1500);
+            renderAdmin(); renderClassement(curQ); renderHistory();
+          });
+      })
+      .catch(function(e){ weekDelStatus('❌ '+e.message, false); });
+  }
+
+  function weekDelStatus(msg, ok) {
+    var el = document.getElementById('weekDelStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.style.color = ok ? 'var(--success)' : 'var(--danger)';
+  }
+
+
+  // ══ RAFRAÎCHIR ═════════════════════════════════════════════
+  function refreshData() {
+    var icon  = document.getElementById('refreshIcon');
+    var label = document.getElementById('refreshLabel');
+    if (icon)  { icon.style.transform='rotate(360deg)'; setTimeout(function(){ icon.style.transition='none'; icon.style.transform='rotate(0deg)'; setTimeout(function(){ icon.style.transition='transform 0.7s ease'; },50); },750); }
+    if (label) { label.textContent='Chargement…'; }
+    fetchFromGithub();
+  }
+
+// ══ RESET JSON ════════════════════════════════════
+function openResetModal() {
+  // reset état
+  ['chkScores','chkConfig','chkManagers','chkBlacklist'].forEach(function(id){
+    document.getElementById(id).checked = false;
+  });
+  document.getElementById('resetStep1').style.display = 'block';
+  document.getElementById('resetStep2').style.display = 'none';
+  document.getElementById('resetErr').style.display = 'none';
+  document.getElementById('resetErr').textContent = '';
+  document.getElementById('resetModal').classList.add('open');
+}
+
+function closeResetModal() {
+  document.getElementById('resetModal').classList.remove('open');
+}
+
+function toggleResetCheck(id) {
+  var cb = document.getElementById(id);
+  cb.checked = !cb.checked;
+}
+
+function resetSelectAll() {
+  ['chkScores','chkConfig','chkManagers','chkBlacklist'].forEach(function(id){
+    document.getElementById(id).checked = true;
+  });
+}
+
+function resetStep2() {
+  var selected = [];
+  if (document.getElementById('chkScores').checked)    selected.push('Scores & imports (participants, importsLog)');
+  if (document.getElementById('chkConfig').checked)    selected.push('Configuration (seuilZero, seuilDisq, exceptions)');
+  if (document.getElementById('chkManagers').checked)  selected.push('Managers');
+  if (document.getElementById('chkBlacklist').checked) selected.push('Blacklist');
+  if (!selected.length) {
+    var e = document.getElementById('resetErr');
+    e.textContent = 'Sélectionne au moins un élément.';
+    e.style.display = 'block';
+    return;
+  }
+  document.getElementById('resetStep2Desc').innerHTML =
+    'Les éléments suivants seront remis à zéro&nbsp;:<br><strong>' + selected.join('<br>') + '</strong>';
+  document.getElementById('resetStep1').style.display = 'none';
+  document.getElementById('resetStep2').style.display = 'block';
+  document.getElementById('resetStatus').style.display = 'none';
+}
+
+function resetBackStep1() {
+  document.getElementById('resetStep1').style.display = 'block';
+  document.getElementById('resetStep2').style.display = 'none';
+}
+
+async function executeReset() {
+  var btn = document.getElementById('resetConfirmBtn');
+  var statusEl = document.getElementById('resetStatus');
+  btn.disabled = true;
+  btn.textContent = '⏳ Reset en cours...';
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = 'Mise à jour du JSON...';
+
+  // Charger le JSON actuel
+  var data = loadResults();
+  if (!data) data = { annee: new Date().getFullYear(), generated:'', participants:[], importsLog:[], config:{} };
+  if (!data.config) data.config = {};
+
+  // Appliquer les resets sélectionnés
+  if (document.getElementById('chkScores').checked) {
+    data.participants = [];
+    data.importsLog   = [];
+  }
+  if (document.getElementById('chkConfig').checked) {
+    data.config.seuilZero      = 6;
+    data.config.seuilDisq      = 10;
+    data.config.exceptSeuilZero = [];
+    data.config.exceptSeuilDisq = [];
+  }
+  if (document.getElementById('chkManagers').checked)  data.config.managers  = [];
+  if (document.getElementById('chkBlacklist').checked) data.config.blacklist = [];
+
+  data.generated = new Date().toISOString();
+  saveResults(data);
+  gData = buildGData(data);
+  try { localStorage.setItem(LS_DATA, JSON.stringify(gData)); } catch(e){}
+
+  // Push GitHub
+  var cfg = loadGithubConfig();
+  if (!cfg || !cfg.token) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '⚠️ Aucun token GitHub configuré — reset appliqué en local uniquement.';
+    btn.disabled = false; btn.textContent = 'Confirmer le reset';
+    setTimeout(function(){ closeResetModal(); showMain(); }, 2000);
+    return;
+  }
+
+  try {
+    var url = 'https://api.github.com/repos/' + cfg.repo + '/contents/' + cfg.file;
+    var getResp = await fetch(url, { headers:{ 'Authorization':'token '+cfg.token, 'Accept':'application/vnd.github.v3+json' }});
+    var fileMeta = await getResp.json();
+    var newContent = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+    var putResp = await fetch(url, {
+      method:'PUT',
+      headers:{ 'Authorization':'token '+cfg.token, 'Content-Type':'application/json', 'Accept':'application/vnd.github.v3+json' },
+      body: JSON.stringify({ message:'reset JSON v0.32 - ' + new Date().toISOString(), content: newContent, sha: fileMeta.sha })
+    });
+    if (putResp.ok) {
+      statusEl.style.color = 'var(--success)';
+      statusEl.textContent = '✅ Reset effectué et poussé sur GitHub.';
+      setTimeout(function(){ closeResetModal(); showMain(); renderAdmin(); renderParamTags(); renderBlacklistTags(); renderManagersTags(); }, 1500);
+    } else {
+      var err = await putResp.json();
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = '❌ Erreur GitHub : ' + (err.message || putResp.status);
+    }
+  } catch(ex) {
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = '❌ Erreur réseau : ' + ex.message;
+  }
+  btn.disabled = false; btn.textContent = 'Confirmer le reset';
+}
+</script>
+
+<!-- INFO POPUP — style GAB_SGP -->
+<div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle"
+  onclick="if(event.target===this)this.style.display='none';">
+  <div id="infoBox">
+    <h3 id="infoTitle">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Informations
+    </h3>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:center;margin:4px 0 12px;">
+        <img src="gab-logo.png" alt="GAB logo" style="height:56px;width:56px;object-fit:contain;border-radius:14px;display:block;">
+      </div>
+      <p style="margin:0;font-size:13px;font-weight:600;">© 2026 — GAB. — PHILIPPON Johann</p>
+      <p style="margin:0;font-size:12px;line-height:1.6;color:var(--muted);">Tous droits réservés.<br>Œuvre protégée par le droit d'auteur (art. L.111-1 du CPI).<br>Antériorité établie par dépôt e&#8209;Soleau inscrit auprès de l'INPI le 20/02/2026.</p>
+      <p style="margin:0;font-size:12px;line-height:1.6;color:var(--muted);">Accès en lecture autorisé. Toute copie, reproduction, modification, redistribution ou exploitation commerciale, même partielle, est strictement interdite sans accord écrit préalable de l'auteur.</p>
+      <p style="margin:0;font-size:12px;color:var(--muted);" id="infoVersionLineQuiz"></p>
+    </div>
+    <div class="ccFooter">
+      <button type="button" class="ccPrimary" onclick="document.getElementById('infoPopup').style.display='none';">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET JSON MODAL -->
+<div class="modal-ov" id="resetModal" onclick="if(event.target===this)closeResetModal()">
+  <div class="modal-box" style="max-width:420px;">
+    <!-- STEP 1 : sélection -->
+    <div id="resetStep1">
+      <h2 style="color:var(--danger)">⚠️ Reset JSON</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px;">Sélectionne les éléments à remettre à zéro. L'opération sera poussée sur GitHub.</p>
+      <button class="reset-select-all" onclick="resetSelectAll()">Tout sélectionner</button>
+      <div class="reset-check-list">
+        <div class="reset-check-item" onclick="toggleResetCheck('chkScores')">
+          <input type="checkbox" id="chkScores" onclick="event.stopPropagation();"/>
+          <label for="chkScores">Scores &amp; imports
+            <span class="reset-sub">participants, importsLog</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkConfig')">
+          <input type="checkbox" id="chkConfig" onclick="event.stopPropagation();"/>
+          <label for="chkConfig">Configuration
+            <span class="reset-sub">seuilZero, seuilDisq, exceptions</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkManagers')">
+          <input type="checkbox" id="chkManagers" onclick="event.stopPropagation();"/>
+          <label for="chkManagers">Managers
+            <span class="reset-sub">liste des managers</span>
+          </label>
+        </div>
+        <div class="reset-check-item" onclick="toggleResetCheck('chkBlacklist')">
+          <input type="checkbox" id="chkBlacklist" onclick="event.stopPropagation();"/>
+          <label for="chkBlacklist">Blacklist
+            <span class="reset-sub">participants exclus</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-err" id="resetErr"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-sm" style="flex:1;" onclick="closeResetModal()">Annuler</button>
+        <button class="btn-danger" style="margin-top:0;flex:1;" onclick="resetStep2()">Continuer →</button>
+      </div>
+    </div>
+    <!-- STEP 2 : confirmation -->
+    <div id="resetStep2" style="display:none;">
+      <h2 style="color:var(--danger)">⚠️ Confirmation finale</h2>
+      <p id="resetStep2Desc" style="font-size:13px;color:var(--muted);line-height:1.6;"></p>
+      <p style="font-size:13px;font-weight:700;margin-top:12px;">Cette action est irréversible. Les données seront écrasées sur GitHub.</p>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn-sm" style="flex:1;" onclick="resetBackStep1()">← Retour</button>
+        <button class="btn-danger" style="margin-top:0;flex:1;" id="resetConfirmBtn" onclick="executeReset()">Confirmer le reset</button>
+      </div>
+      <div id="resetStatus" style="font-size:12px;margin-top:10px;display:none;"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
