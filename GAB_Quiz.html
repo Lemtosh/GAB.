@@ -1528,7 +1528,8 @@ function showExConfirm() {
   var toEX = [], toNF = [];
   sel.forEach(function(wk) {
     var rawP = rawData && rawData.participants.find(function(p){ return matchId(p, eUid); });
-    (rawP && rawP.scores[wk] === 'EX' ? toNF : toEX).push(wk);
+    var _r=rawP&&rawP.scores[wk]; var _cv=(_r!==null&&typeof _r==='object')?_r.score:_r;
+    (_cv==='EX'?toNF:toEX).push(wk);
   });
   var name = capFull(eUid.prenom) + ' ' + eUid.nom;
   var lines = '';
@@ -1550,7 +1551,9 @@ function applyExToggle() {
   var rawP = rawData.participants.find(function(p){ return matchId(p, proxyUid); });
   if (!rawP) { closeExConfirm(); return; }
   sel.forEach(function(wk) {
-    if (rawP.scores[wk] === 'EX') { delete rawP.scores[wk]; }
+    var raw = rawP.scores[wk];
+    var curr = (raw !== null && typeof raw === 'object') ? raw.score : raw;
+    if (curr === 'EX') { delete rawP.scores[wk]; }
     else { rawP.scores[wk] = 'EX'; }
   });
   gData = buildGData(rawData);
