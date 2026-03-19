@@ -632,7 +632,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.12'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.13'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1688,15 +1688,6 @@ function renderAdmin() {
         viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
       });
     }
-    var _ew = document.getElementById('equipeWrap');
-    if (_ew && !_ew._proxyInit) {
-      _ew._proxyInit = true;
-      _ew.addEventListener('click', function(e) {
-        var btn = e.target.closest('.btn-histo-proxy');
-        if (!btn) return;
-        viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
-      });
-    }
   }
 }
 
@@ -1986,6 +1977,8 @@ function fetchFromGithub() {
         localStorage.setItem(LS_BLACKLIST, JSON.stringify(data.config.blacklist || []));
         localStorage.setItem(LS_MANAGERS,  JSON.stringify(data.config.managers  || []));
       } catch(e){}
+      // Recalculer manager après mise à jour LS_MANAGERS
+      if (!admin && uid) manager = isManager();
       // Purge des clés LS potentiellement périmées (évite données fantômes sur autre navigateur)
       try { localStorage.removeItem(LS_DATA); } catch(e){}
       saveResults(data);
@@ -2337,6 +2330,16 @@ function renderEquipe() {
   wrap.innerHTML = html;
   window._equipePs = displayPs;
   renderEquipeTable('T1', displayPs);
+  // Listener proxy — installé ici pour admin ET manager
+  var _ew = document.getElementById('equipeWrap');
+  if (_ew && !_ew._proxyInit) {
+    _ew._proxyInit = true;
+    _ew.addEventListener('click', function(e) {
+      var btn = e.target.closest('.btn-histo-proxy');
+      if (!btn) return;
+      viewParticipantHistory(btn.dataset.prenom, btn.dataset.nom);
+    });
+  }
 }
 
 function renderEquipeTable(q, filteredPs) {
