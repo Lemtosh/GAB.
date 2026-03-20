@@ -476,6 +476,45 @@
   }
   #glossaryCloseBtn:hover { color: var(--text); }
 
+
+  /* ── DATES EDITABLES ── */
+  .editableDateBtn {
+    background: none; border: none; cursor: pointer; padding: 2px 7px 2px 5px;
+    border-radius: 6px; font-size: inherit; font-family: inherit; font-weight: 700;
+    color: inherit; display: inline-flex; align-items: center; gap: 5px;
+    transition: background 0.14s, color 0.14s; line-height: inherit;
+  }
+  .editableDateBtn:hover { background: color-mix(in oklab, var(--accent) 14%, transparent); color: var(--accent); }
+  .editableDateBtn .edb-icon { opacity: 0.55; font-size: 11px; flex-shrink: 0; }
+  .editableDateBtn.edb-missing { color: var(--muted); font-weight: 500; font-style: italic; }
+  .editableDateBtn.edb-missing:hover { color: var(--accent); }
+  /* Badge deadline cliquable */
+  .dlBadgeBtn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 5px; font-size: 12px; font-weight: 700;
+    border: none; cursor: pointer; font-family: inherit; transition: filter 0.14s;
+  }
+  .dlBadgeBtn:hover { filter: brightness(0.88); }
+  /* Popover éditeur */
+  #dateEditPopover {
+    position: fixed; z-index: 10050;
+    background: var(--card); color: var(--text);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 16px 12px; min-width: 230px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    display: none;
+  }
+  #dateEditPopover.open { display: block; animation: ccIn 0.18s ease; }
+  #dateEditPopover h4 { font-size: 12px; font-weight: 700; margin: 0 0 10px; color: var(--accent); }
+  .dep-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+  .dep-row label { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .dep-row input { padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; width: 100%; }
+  .dep-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .dep-save { background: var(--accent); color: #fff; border: none; padding: 6px 16px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .dep-save:hover { filter: brightness(1.08); }
+  .dep-cancel { background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .dep-cancel:hover { border-color: var(--text); color: var(--text); }
+
 </style>
 </head>
 <body>
@@ -652,7 +691,7 @@
 // ════════════════════════════════════════════
 //  CONSTANTES & STORAGE
 // ════════════════════════════════════════════
-const LOCALVERSION = '0.29';
+const LOCALVERSION = '0.30';
   const SGP_KEY    = 'gabSGP_imports';
 const THEME_KEY  = 'theme';
 const MAX_DAYS   = 30;
@@ -1208,6 +1247,83 @@ function deleteHistory(i) {
   renderHistory();
 }
 
+
+// ════════════════════════════════════════════
+//  DATES EDITABLES
+// ════════════════════════════════════════════
+var _dateEditTarget = null;
+
+function openDateEdit(importId, field, anchorEl) {
+  _dateEditTarget = { importId: importId, field: field };
+  var imports = loadImports();
+  var imp = imports.find(function(i) { return i.id === importId; });
+  if (!imp) return;
+  var popover  = document.getElementById('dateEditPopover');
+  var titleEl  = document.getElementById('dateEditTitle');
+  var dateInp  = document.getElementById('dateEditDate');
+  var timeRow  = document.getElementById('dateEditTimeRow');
+  var timeInp  = document.getElementById('dateEditTime');
+  if (field === 'sgpDate') {
+    titleEl.textContent = 'Date de réception SGP';
+    var d = imp.sgpDate ? new Date(imp.sgpDate) : new Date();
+    dateInp.value = d.toISOString().slice(0, 10);
+    timeRow.style.display = 'none';
+  } else {
+    titleEl.textContent = 'Deadline';
+    var d = imp.deadline ? new Date(imp.deadline) : new Date();
+    dateInp.value = d.toISOString().slice(0, 10);
+    var hh = d.getHours().toString().padStart(2,'0');
+    var mm = d.getMinutes().toString().padStart(2,'0');
+    timeInp.value = hh + ':' + mm;
+    timeRow.style.display = 'flex';
+  }
+  var rect = anchorEl.getBoundingClientRect();
+  var top  = rect.bottom + 6;
+  var left = Math.min(rect.left, window.innerWidth - 250);
+  if (top + 160 > window.innerHeight) top = rect.top - 165;
+  popover.style.top  = top + 'px';
+  popover.style.left = left + 'px';
+  popover.classList.add('open');
+}
+
+function saveDateEdit() {
+  if (!_dateEditTarget) return;
+  var importId = _dateEditTarget.importId;
+  var field    = _dateEditTarget.field;
+  var dateInp  = document.getElementById('dateEditDate');
+  var timeInp  = document.getElementById('dateEditTime');
+  var imports  = loadImports();
+  var imp      = imports.find(function(i) { return i.id === importId; });
+  if (!imp || !dateInp.value) { closeDateEdit(); return; }
+  if (field === 'sgpDate') {
+    var d = new Date(dateInp.value + 'T00:00:00');
+    imp.sgpDate = d.toISOString();
+  } else {
+    var tv = timeInp.value || '17:00';
+    var parts = tv.split(':');
+    var d = new Date(dateInp.value + 'T' + parts[0].padStart(2,'0') + ':' + (parts[1]||'00').padStart(2,'0') + ':00');
+    imp.deadline = d.toISOString();
+  }
+  saveImports(imports);
+  closeDateEdit();
+  renderAll();
+  showToast('\u2705 Date mise \u00e0 jour.');
+}
+
+function closeDateEdit() {
+  var pop = document.getElementById('dateEditPopover');
+  if (pop) pop.classList.remove('open');
+  _dateEditTarget = null;
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDateEdit();
+});
+document.addEventListener('mousedown', function(e) {
+  var pop = document.getElementById('dateEditPopover');
+  if (pop && pop.classList.contains('open') && !pop.contains(e.target)) closeDateEdit();
+});
+
 // ════════════════════════════════════════════
 //  RENDER
 // ════════════════════════════════════════════
@@ -1296,12 +1412,27 @@ function renderAll() {
   _dlS += ' ' + _dlH + 'h' + _dlMn;
   var _now  = new Date();
   var _late = _now > _dl;
-  var _dlColor = _late ? '#e53935' : (_dl - _now < 86400000 ? '#f57c00' : '#2e7d32');
+  var _dlColor = !_dl ? '#78909c' : (_late ? '#e53935' : (_dl - _now < 86400000 ? '#f57c00' : '#2e7d32'));
+  var _sgpLabel  = _sgpD ? _sgpS : 'Date non d\u00e9tect\u00e9e';
+  var _sgpMissing = !activeImport.sgpDate ? ' edb-missing' : '';
+  var _dlLabel   = _dl  ? ((_late ? '\u26a0\ufe0f D\u00e9pass\u00e9' : '\u23f0 Deadline') + ' : ' + _dlS) : '\u23f0 D\u00e9finir la deadline';
+  var _dlMissing = !activeImport.deadline ? ' edb-missing' : '';
   metaBar.innerHTML = `
     <div class="importMeta">
       <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
-        <span><strong>${activeImport.items.length} contrat(s)</strong> — Retour SGP du <strong>${_sgpS}</strong> · ${pendingCount} action(s) en attente</span>
-        <span style="background:${_dlColor};color:#fff;padding:3px 10px;border-radius:5px;font-size:12px;font-weight:700;">${_late ? '⚠ Dépassé' : '⏰ Deadline'} : ${_dlS}</span>
+        <span>
+          <strong>${activeImport.items.length} contrat(s)</strong>
+          — Retour SGP du
+          <button class="editableDateBtn${_sgpMissing}" title="Modifier la date SGP" onclick="openDateEdit('${activeImport.id}','sgpDate',this)">
+            ${_sgpLabel}
+            <svg class="edb-icon" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          · ${pendingCount} action(s) en attente
+        </span>
+        <button class="dlBadgeBtn${_dlMissing}" style="background:${_dlColor};color:#fff;" title="Modifier la deadline" onclick="openDateEdit('${activeImport.id}','deadline',this)">
+          ${_dlLabel}
+          <svg class="edb-icon" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
       </div>
       <button class="btnDeleteImport" onclick="askDeleteImport('${activeImport.id}')">🗑 Supprimer cet import</button>
     </div>`;
@@ -1512,6 +1643,24 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="ccFooter" style="margin-top:16px;">
       <button type="button" class="ccPrimary" onclick="closeGlossary()">Fermer</button>
     </div>
+  </div>
+</div>
+
+
+<!-- ══ POPOVER EDITION DATE ══ -->
+<div id="dateEditPopover" role="dialog" aria-modal="false">
+  <h4 id="dateEditTitle">Date</h4>
+  <div class="dep-row">
+    <label for="dateEditDate">Date</label>
+    <input type="date" id="dateEditDate">
+  </div>
+  <div class="dep-row" id="dateEditTimeRow" style="display:none;">
+    <label for="dateEditTime">Heure limite</label>
+    <input type="time" id="dateEditTime" value="17:00">
+  </div>
+  <div class="dep-btns">
+    <button class="dep-cancel" onclick="closeDateEdit()">Annuler</button>
+    <button class="dep-save"   onclick="saveDateEdit()">Enregistrer</button>
   </div>
 </div>
 
