@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GAB — Livret de Suivi v0.0.27</title>
+<title>GAB — Livret de Suivi v0.0.38</title>
 <style>
 /* ============================================================
    VARIABLES & RESET
@@ -1718,6 +1718,16 @@ body.dark .homeLogoDark  {
       border: 1.5px solid #f59e0b !important;
       background: linear-gradient(135deg, #fffbeb 0%, var(--card) 100%) !important;
     }
+
+    .bilanCard--formation {
+      border-color: #f59e0b !important;
+      background: linear-gradient(135deg, #fffbeb 0%, var(--cardBg) 100%) !important;
+    }
+
+    .bilanCard--formation-ok {
+      border-color: #16a34a !important;
+      background: linear-gradient(135deg, #f0fdf4 0%, var(--cardBg) 100%) !important;
+    }
 </style>
 </head>
 <body>
@@ -2103,7 +2113,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.27</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.38</p>
   </div>
 </div>
 
@@ -2468,7 +2478,6 @@ const PAGES = [
         items: [
           'MRH',
           'CG',
-          'Saisie dans le Drive',
         ]
       },
     ]
@@ -2923,6 +2932,9 @@ function buildNav() {
 // NAVIGATION — Afficher une page
 // ───────────────────────────────────────────────────────────────
 function showPage(pageId) {
+  // Sauvegarder si données modifiées avant de changer de page
+  if (isDirty && sessionUnlocked && currentApprenantId) saveData();
+
   // Masquer toutes les vues
   document.querySelectorAll('.pageView').forEach(v => v.style.display = 'none');
 
@@ -3142,7 +3154,7 @@ function buildPageView(page) {
   actDiv.className = 'actionsRow';
   const pageIdx = PAGES.findIndex(p => p.id === page.id);
   const prevPage = pageIdx > 0 ? PAGES[pageIdx - 1].id : 'page-identity';
-  const nextPage = pageIdx < PAGES.length - 1 ? PAGES[pageIdx + 1].id : 'synthese';
+  const nextPage = pageIdx < PAGES.length - 1 ? PAGES[pageIdx + 1].id : 'page-synthese';
   actDiv.innerHTML = `
     <button class="btnSecondary" onclick="showPage('${prevPage}')">
       <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
@@ -3211,6 +3223,8 @@ function confirmP1Verif() {
     setTimeout(() => banner.remove(), 400);
   }
   showToast('✅ Compétences P1 confirmées');
+  // Rafraîchir le bilan (inconditionnel pour mise à jour au prochain affichage)
+  refreshSynthese();
 }
 
 function markDirty() {
@@ -3267,88 +3281,8 @@ function computeJalons() {
 // SYNTHÈSE GLOBALE
 // ───────────────────────────────────────────────────────────────
 function refreshSynthese() {
-  const grid   = document.getElementById('synthGrid');
-  const fill   = document.getElementById('globalProgressFill');
-  const lbl    = document.getElementById('globalProgressLabel');
-  if (!grid) return;
-
-  grid.innerHTML = '';
-  let globalTotal = 0, globalOk = 0;
-
-  // ── Bloc Formation initiale (P1)
-  const p1Page = PAGES.find(p => p.type === 'formation');
-  if (p1Page) {
-    let p1Total = 0, p1Acq = 0, p1Nv = 0;
-    const p1Selects = document.querySelectorAll(`select[data-page="${p1Page.id}"]`);
-    if (p1Selects.length > 0) {
-      // P1 déjà rendue dans le DOM
-      p1Total = p1Selects.length;
-      p1Selects.forEach(s => { if (s.value === 'ACQ') p1Acq++; else p1Nv++; });
-    } else {
-      // P1 pas encore rendue — compter depuis _pendingData ou localStorage
-      const cotSrc = _pendingData?.cotations || {};
-      p1Page.sections.forEach(section => {
-        section.items.forEach(item => {
-          p1Total++;
-          const k = p1Page.id + '|' + item + '|formation';
-          if (cotSrc[k] === 'ACQ') p1Acq++; else p1Nv++;
-        });
-      });
-    }
-    const p1Pct = p1Total > 0 ? Math.round(p1Acq / p1Total * 100) : 0;
-    const p1Verified = localStorage.getItem('p1_verified_' + currentApprenantId);
-    const p1Chip = document.createElement('div');
-    p1Chip.className = 'synthChip synthChipFormation';
-    p1Chip.onclick = () => showPage(p1Page.id);
-    p1Chip.innerHTML = `
-      <div class="synthChipTitle" style="color:var(--accent);">
-        🎓 Formation initiale — ${p1Page.label}
-        ${p1Verified ? '<span style="font-size:10px;color:#16a34a;font-weight:600;margin-left:6px;">✓ Vérifié</span>' : '<span style="font-size:10px;color:#f59e0b;font-weight:600;margin-left:6px;">⚠ À vérifier</span>'}
-      </div>
-      <div class="synthChipStats">
-        <span class="synthStat ok">✓ ${p1Acq} acquis</span>
-        <span class="synthStat none">○ ${p1Nv} non vu</span>
-      </div>
-      <div class="progressBar" style="margin-top:4px;">
-        <div class="progressFill" style="width:${p1Pct}%"></div>
-      </div>`;
-    grid.appendChild(p1Chip);
-    globalTotal += p1Total;
-    globalOk    += p1Acq;
-  }
-
-  PAGES.filter(p => p.type !== 'formation').forEach(page => {
-    const selects = document.querySelectorAll(`select[data-page="${page.id}"]`);
-    let total = selects.length, ok = 0, mid = 0, ko = 0, none = 0;
-    selects.forEach(s => {
-      if (s.value === 'ACQ') ok++;
-      else if (s.value === '+')  mid++;
-      else if (s.value === '–')  ko++;
-      else if (s.value === '')   none++;
-    });
-    globalTotal += total;
-    globalOk    += ok;
-
-    const chip = document.createElement('div');
-    chip.className = 'synthChip';
-    chip.onclick   = () => showPage(page.id);
-    chip.innerHTML = `
-      <div class="synthChipTitle">${page.shortLabel} — ${page.label}</div>
-      <div class="synthChipStats">
-        <span class="synthStat ok">✓ ${ok} acquis</span>
-        <span class="synthStat mid">~ ${mid} en cours</span>
-        <span class="synthStat ko">✗ ${ko} à revoir</span>
-        <span class="synthStat none">— ${none} non renseigné</span>
-      </div>
-      <div class="progressBar" style="margin-top:4px;">
-        <div class="progressFill" style="width:${total>0?Math.round(ok/total*100):0}%"></div>
-      </div>`;
-    grid.appendChild(chip);
-  });
-
-  const pct = globalTotal > 0 ? Math.round(globalOk / globalTotal * 100) : 0;
-  if (fill) fill.style.width = pct + '%';
-  if (lbl)  lbl.textContent  = pct + '% acquis (' + globalOk + '/' + globalTotal + ' compétences)';
+  // Stub — délègue au wrapper enrichi (_origRefreshSynthese2)
+  // Le vrai rendu est dans le wrapper défini plus bas dans le code
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -3424,23 +3358,29 @@ function collectData() {
     appreciations: {},
   };
 
-  // Cotations : tous les selects générés
+  // Cotations : base = _pendingData (pages non rendues), override = DOM (pages visitées)
+  if (_pendingData?.cotations) {
+    Object.assign(data.cotations, _pendingData.cotations);
+  }
   document.querySelectorAll('select.coteSelect').forEach(sel => {
     const k = sel.dataset.page + '|' + sel.dataset.item + '|' + sel.dataset.jalon;
-    data.cotations[k] = sel.value;
+    data.cotations[k] = sel.value; // DOM prime sur _pendingData
   });
 
-  // Observations textuelles
+  // Observations textuelles : base = _pendingData, override = DOM
+  if (_pendingData?.appreciations) {
+    Object.assign(data.appreciations, _pendingData.appreciations);
+  }
   PAGES.forEach(page => {
     if (page.type === 'formation') {
       const id = 'appreci_' + page.id + '_formation';
       const el = document.getElementById(id);
-      if (el) data.appreciations[id] = el.value;
+      if (el) data.appreciations[id] = el.value; // DOM prime
     } else {
       page.jalons.forEach(j => {
         const id = 'appreci_' + page.id + '_' + j;
         const el = document.getElementById(id);
-        if (el) data.appreciations[id] = el.value;
+        if (el) data.appreciations[id] = el.value; // DOM prime
       });
     }
   });
@@ -3606,13 +3546,13 @@ function addExportButton() {
   const btn = document.createElement('button');
   btn.className = 'topNavBtn';
   btn.id = 'btnExport';
-  btn.title = 'Exporter en CSV';
+  btn.title = 'Exporter en JSON';
   btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
     <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </svg><span>Export CSV</span>`;
-  btn.onclick = exportCSV;
+  </svg><span>Export</span>`;
+  btn.onclick = () => exportApprenantJSON(currentApprenantId);
 
   // Insérer avant le bouton Infos
   const btnInfo = document.getElementById('btnInfo');
@@ -4262,8 +4202,12 @@ async function createApprenant() {
         preData.cotations[p1Page.id + '|' + item + '|formation'] = 'ACQ';
       });
     });
-    const encrypted = await encryptData(preData, _sessionPassword);
-    localStorage.setItem(STORAGE_PREFIX + id, encrypted);
+    try {
+      const encrypted = await encryptData(preData, _sessionPassword);
+      localStorage.setItem(STORAGE_PREFIX + id, encrypted);
+    } catch(e) {
+      console.warn('Préfill P1 non sauvegardé (sera initialisé au chargement):', e);
+    }
   }
 
   showToast(`✅ Livret créé pour ${nom}`);
@@ -4322,6 +4266,20 @@ async function openApprenant(id) {
   _pendingData = null;
   await loadApprenantData(id);
 
+  // Garantir que _pendingData existe et contient les cotations P1
+  if (!_pendingData) _pendingData = { version: 1, cotations: {}, appreciations: {}, identity: {} };
+  const _p1Init = PAGES.find(p => p.type === 'formation');
+  if (_p1Init) {
+    const _p1HasData = Object.keys(_pendingData.cotations || {})
+      .some(k => k.startsWith(_p1Init.id + '|'));
+    if (!_p1HasData) {
+      // Aucune cotation P1 en mémoire → injecter ACQ par défaut
+      _p1Init.sections.forEach(s => s.items.forEach(item => {
+        _pendingData.cotations[_p1Init.id + '|' + item + '|formation'] = 'ACQ';
+      }));
+    }
+  }
+
   buildNav();
   showPage('page-identity');
   isDirty = false;
@@ -4333,7 +4291,56 @@ async function openApprenant(id) {
 async function saveData() {
   if (!sessionUnlocked || !currentApprenantId) return;
   try {
-    const data      = collectData();
+    const data = collectData();
+
+    // ── Propagation ACQ aux jalons suivants (si NV ou vide)
+    const ORDER = ['J+15','J+30','J+45','J+60'];
+    PAGES.forEach(page => {
+      if (page.type === 'formation') return; // P1 pas de jalons
+      page.sections.forEach(section => {
+        section.items.forEach(item => {
+          for (let i = 0; i < ORDER.length - 1; i++) {
+            const k = page.id + '|' + item + '|' + ORDER[i];
+            if (data.cotations[k] === 'ACQ') {
+              for (let j = i + 1; j < ORDER.length; j++) {
+                const kNext = page.id + '|' + item + '|' + ORDER[j];
+                const vNext = data.cotations[kNext] || '';
+                if (vNext === '' || vNext === 'NV') {
+                  data.cotations[kNext] = 'ACQ';
+                }
+              }
+              break; // Premier jalon ACQ trouvé suffit
+            }
+          }
+        });
+      });
+    });
+    // Appliquer les valeurs propagées dans le DOM
+    Object.entries(data.cotations).forEach(([k, v]) => {
+      const [pageId, ...rest] = k.split('|');
+      const jalon = rest[rest.length - 1];
+      const item  = rest.slice(0, -1).join('|');
+      // Chercher tous les selects de cette page/jalon et filtrer par dataset.item
+      document.querySelectorAll(
+        `select.coteSelect[data-page="${pageId}"][data-jalon="${jalon}"]`
+      ).forEach(sel => {
+        if (sel.dataset.item === item && sel.value !== v) {
+          sel.value = v;
+          sel.setAttribute('data-val', v);
+          // Déclencher l'event change pour mettre à jour la couleur/style
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+
+    // Mettre à jour _pendingData avec données propagées (source de vérité)
+    _pendingData = data;
+
+    // Rafraîchir la progression de toutes les pages rendues dans le DOM
+    PAGES.forEach(p => {
+      if (document.getElementById(p.id)) refreshPageProgress(p.id);
+    });
+
     const encrypted = await encryptData(data, _sessionPassword);
     localStorage.setItem(STORAGE_PREFIX + currentApprenantId, encrypted);
 
@@ -4500,7 +4507,7 @@ function importLivretJSON() {
   document.getElementById('importFileInput').click();
 }
 
-async function handleImportFile(input) {
+async async function handleImportFile(input) {
   const file = input.files[0];
   if (!file) return;
   input.value = '';
@@ -4521,6 +4528,15 @@ async function handleImportFile(input) {
       return;
     }
 
+    // Calculer le % ACQ depuis les données déchiffrées
+    let importPct = 0;
+    if (data?.cotations) {
+      const vals = Object.values(data.cotations);
+      const total = vals.length;
+      const acq   = vals.filter(v => v === 'ACQ' || v === 'TB').length;
+      importPct   = total > 0 ? Math.round(acq / total * 100) : 0;
+    }
+
     // Vérifier si l'apprenant existe déjà (même id)
     const existing = apprenantsList.find(a => a.id === envelope.id);
     if (existing) {
@@ -4528,7 +4544,7 @@ async function handleImportFile(input) {
       localStorage.setItem(STORAGE_PREFIX + envelope.id, envelope.data);
       const idx = apprenantsList.findIndex(a => a.id === envelope.id);
       apprenantsList[idx].savedAt = envelope.exportedAt;
-      apprenantsList[idx].pct    = 0; // sera recalculé à l'ouverture
+      apprenantsList[idx].pct    = importPct;
       saveIndex();
       showToast(`🔄 Livret de ${envelope.nom} mis à jour`);
     } else {
@@ -4536,11 +4552,11 @@ async function handleImportFile(input) {
       const entry = {
         id:       envelope.id,
         nom:      envelope.nom      || 'Importé',
-        tuteur: envelope.tuteur || '',
+        tuteur:   envelope.tuteur   || '',
         poste:    envelope.poste    || '',
         dateDebut:envelope.dateDebut|| '',
         savedAt:  envelope.exportedAt,
-        pct:      0,
+        pct:      importPct,
         exported: false,
       };
       apprenantsList.push(entry);
@@ -4775,7 +4791,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.27 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.38 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -5144,9 +5160,11 @@ function collectStatsReal(jalonFilter) {
 
     if (selects.length > 0) {
       // Page rendue dans le DOM
+      const isFormPage = (page.type === 'formation');
       selects.forEach(sel => {
         const sJalon = sel.dataset.jalon;
-        if (jalonFilter && sJalon !== jalonFilter) return;
+        // Pour les pages formation (pas de jalons), ignorer le filtre jalon
+        if (!isFormPage && jalonFilter && sJalon !== jalonFilter) return;
         const val = sel.value;
         if      (val === 'ACQ' || val === 'TB') acq++;
         else if (val === 'EC'  || val === 'B' || val === 'AB') ec++;
@@ -5262,15 +5280,21 @@ refreshSynthese = function() {
       const s = stats[page.id];
       if (!s) return;
 
+      const isFormPage = (page.type === 'formation');
+      const p1Verified = isFormPage ? localStorage.getItem('p1_verified_' + currentApprenantId) : null;
+
       // Badge
       let badgeClass = 'good', badgeText = `${s.acq} ACQ`;
-      if (s.na > 0)       { badgeClass = 'alert';    badgeText = `⚠ ${s.na} NA`; }
-      else if (s.ec > 0)  { badgeClass = 'progress'; badgeText = `↗ ${s.ec} EC`; }
+      if (isFormPage) {
+        badgeClass = p1Verified ? 'good' : 'progress';
+        badgeText  = p1Verified ? `✓ ${s.acq} ACQ` : `⚠ À vérifier`;
+      } else if (s.na > 0) { badgeClass = 'alert';    badgeText = `⚠ ${s.na} NA`; }
+      else if  (s.ec > 0)  { badgeClass = 'progress'; badgeText = `↗ ${s.ec} EC`; }
 
       const pctPage = s.total > 0 ? Math.round(s.acq / s.total * 100) : 0;
 
       const card = document.createElement('div');
-      card.className = 'bilanCard';
+      card.className = isFormPage ? (p1Verified ? 'bilanCard bilanCard--formation-ok' : 'bilanCard bilanCard--formation') : 'bilanCard';
       card.dataset.pageId    = page.id;
       card.dataset.pageLabel = page.label;
       card.onclick   = () => showPage(page.id);
@@ -5443,10 +5467,12 @@ collectStatsReal = function(jalonFilter) {
 
   PAGES.forEach(page => {
     let acq=0, ec=0, na=0, nv=0, none=0;
+    const isFormPage = (page.type === 'formation');
 
     page.sections.forEach(section => {
       section.items.forEach(item => {
-        const jalons = jalonFilter ? [jalonFilter] : page.jalons;
+        // Pour P1 (formation) : jalon unique 'formation', ignorer jalonFilter
+        const jalons = isFormPage ? ['formation'] : (jalonFilter ? [jalonFilter] : page.jalons);
         jalons.forEach(j => {
           const key = page.id + '|' + item + '|' + j;
 
@@ -5457,12 +5483,13 @@ collectStatsReal = function(jalonFilter) {
           );
           if (sel) {
             val = sel.value;
-          } else if (_livretData && _livretData.cotations) {
-            // Fallback : lire depuis les données en mémoire
-            val = _livretData.cotations[key] || '';
+          } else {
+            // Fallback : lire depuis _pendingData ou _livretData
+            const cotSrc = (_pendingData?.cotations) || (_livretData?.cotations) || {};
+            val = cotSrc[key] || '';
           }
 
-          // Normaliser : TB/B/AB → comportement
+          // Normaliser
           if      (val === 'ACQ' || val === 'TB') acq++;
           else if (val === 'EC'  || val === 'B')  ec++;
           else if (val === 'AB')                  ec++;
@@ -6012,7 +6039,7 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.27 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.38 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
