@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GAB — Livret de Suivi v0.0.39</title>
+<title>GAB — Livret de Suivi v0.0.40</title>
 <style>
 /* ============================================================
    VARIABLES & RESET
@@ -2113,7 +2113,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.39</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.40</p>
   </div>
 </div>
 
@@ -4507,12 +4507,12 @@ function importLivretJSON() {
   document.getElementById('importFileInput').click();
 }
 
-async function handleImportFile(input) {
+function handleImportFile(input) {
   const file = input.files[0];
   if (!file) return;
   input.value = '';
 
-  try {
+  (async () => { try {
     const text     = await file.text();
     const envelope = JSON.parse(text);
 
@@ -4569,7 +4569,7 @@ async function handleImportFile(input) {
   } catch(e) {
     showToast('❌ Erreur lors de l\'import', 3500);
     console.error(e);
-  }
+  } })();
 }
 
 // ───────────────────────────────────────────────────────────────
@@ -4791,7 +4791,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.39 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.40 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -6039,7 +6039,7 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.39 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.40 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
