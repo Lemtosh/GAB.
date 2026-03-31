@@ -158,6 +158,17 @@ body { padding-top: 46px; }
 }
 #unlockScreen.visible { display: flex; }
 
+.btnBackToGAB {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+.btnBackToGAB:hover { opacity: 1; color: var(--accent); text-decoration: underline; }
+
 .unlockBox {
   background: var(--cardBg);
   border: 1px solid var(--border);
@@ -1738,7 +1749,7 @@ body.dark .homeLogoDark  {
 <nav id="topNavBar" role="navigation" aria-label="Menu principal">
 
   <!-- Retour GAB -->
-  <a class="topNavBtn" href="#" id="linkGAB" onclick="window.history.back(); return false;" title="Retour GAB">
+  <a class="topNavBtn" href="index.html" id="linkGAB" title="Retour GAB">
     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
          fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="15 18 9 12 15 6"/>
@@ -1911,6 +1922,9 @@ body.dark .homeLogoDark  {
            autocomplete="off" />
     <div class="unlockError" id="unlockError">Clé incorrecte — vérifiez et réessayez.</div>
     <button class="btnUnlock" onclick="doUnlock()">Accéder au livret</button>
+    <a href="index.html" class="btnBackToGAB" title="Retourner à GAB sans saisir le code">
+      ← Retour à GAB
+    </a>
   </div>
 </div>
 
@@ -2113,7 +2127,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.42</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.44</p>
   </div>
 </div>
 
@@ -4803,7 +4817,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.42 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.44 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -6051,7 +6065,7 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.42 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.44 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
