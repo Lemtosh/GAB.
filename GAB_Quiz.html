@@ -641,7 +641,7 @@ tr.row-disq .r-score{color:var(--danger)!important;}
 
 <script>
 // ══ VERSION ══════════════════════════════════════
-var local_version = 'v1.14'; // ← modifier ici à chaque mise à jour
+var local_version = 'v1.15'; // ← modifier ici à chaque mise à jour
 
 // ══ CONSTANTS ═════════════════════════════════════
 var ADMIN_NOM    = 'LEMTOSH'; // insensible à la casse pour le matching
@@ -1061,9 +1061,50 @@ function buildGData(data) {
         var da=new Date(pa[2],pa[1]-1,pa[0]), db=new Date(pb[2],pb[1]-1,pb[0]);
         return da-db;
       });
-      var nums = weeks.filter(function(w){ return typeof w.score==='number'; });
       var nNF  = weeks.filter(function(w){ return w.score==='absent'; }).length;
       var nEX  = weeks.filter(function(w){ return w.score==='EX'; }).length; // EX FIX
+
+      // === v1.15 — seuilZero : NF comptés 0 après dépassement du seuil annuel ===
+      var _seuilZero = (config && config.seuilZero != null) ? config.seuilZero : 6;
+      var _exceptZ   = (config && config.exceptSeuilZero) ? config.exceptSeuilZero : [];
+      var _isExcept  = _exceptZ.some(function(ex){
+        var _parts = ex.trim().toLowerCase().split(' ');
+        if (_parts.length < 2) return false;
+        return p.prenom.toLowerCase() === _parts[0] && p.nom.toLowerCase() === _parts.slice(1).join(' ');
+      });
+      // Cumul NF annuel sur les AUTRES trimestres (déjà traités ou à venir dans le JSON)
+      var _nfBeforeThisQ = 0;
+      if (!_isExcept) {
+        ['T1','T2','T3','T4'].forEach(function(qt){
+          if (qt === q) return;
+          var _mths = QS_MONTHS[qt];
+          Object.keys(p.scores).forEach(function(ds){
+            var _dp = ds.split('/');
+            if (_dp.length < 3) return;
+            var _mo = parseInt(_dp[1], 10);
+            if (_mths.indexOf(_mo) < 0) return;
+            var _raw = p.scores[ds];
+            var _sc  = (_raw !== null && typeof _raw === 'object') ? _raw.score : _raw;
+            if (_sc === 'NF') _nfBeforeThisQ++;
+          });
+        });
+      }
+      // Construire nums en appliquant seuilZero semaine par semaine (ordre chronologique)
+      var nums = [];
+      var _nfCumul = _nfBeforeThisQ;
+      weeks.forEach(function(w) {
+        if (typeof w.score === 'number') {
+          nums.push(w);
+        } else if (w.score === 'absent' && !_isExcept) {
+          _nfCumul++;
+          if (_nfCumul > _seuilZero) {
+            // Ce NF dépasse le seuil → compté 0 dans la moyenne
+            nums.push({date: w.date, score: 0, temps: null, isNFZero: true});
+          }
+        }
+      });
+      // === fin v1.15 ===
+
       var moy  = nums.length ? Math.round(nums.reduce(function(s,w){return s+w.score;},0)/nums.length*100)/100 : null;
       var active = weeks.length > 0;
       qData[q] = {moyenne:moy, nbQuiz:nums.length, nbNonFait:nNF, nbEX:nEX, weeks:weeks, active:active};
