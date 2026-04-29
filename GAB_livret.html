@@ -2127,7 +2127,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.49</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.51</p>
   </div>
 </div>
 
@@ -4825,7 +4825,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.49 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.51 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -6073,7 +6073,7 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.49 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.51 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
@@ -6394,7 +6394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function syncFromGitHub() {
   if (!ghConfig || !ghConfig.token) {
-    showToast('⚠️ Configurez GitHub d'abord', 3000);
+    showToast('⚠️ Configurez GitHub d\'abord', 3000);
     return;
   }
 
@@ -6493,25 +6493,7 @@ async function syncFromGitHub() {
 
 const btnGhSyncLabel = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span>Sync GitHub</span>`;
 
-// ─── INJECTION BOUTON SYNC DANS LA NAVBAR ────────────────────
-const _origInjectGhNavBtn = injectGhNavBtn;
-injectGhNavBtn = function() {
-  _origInjectGhNavBtn();
-  const nav = document.getElementById('topNavBar');
-  if (!nav || document.getElementById('btnGhSync')) return;
 
-  const sep = document.createElement('div');
-  sep.className = 'topNavSep';
-  nav.insertBefore(sep, document.getElementById('btnGhConfig'));
-
-  const btn = document.createElement('button');
-  btn.className = 'topNavBtn';
-  btn.id = 'btnGhSync';
-  btn.title = 'Synchroniser les livrets depuis GitHub';
-  btn.innerHTML = btnGhSyncLabel;
-  btn.onclick = syncFromGitHub;
-  nav.insertBefore(btn, document.getElementById('btnGhConfig'));
-};
 
 
 function injectGhNavBtn() {
@@ -6543,6 +6525,21 @@ function injectGhNavBtn() {
   </svg><span>GitHub</span>`;
   btn.onclick = openGhConfigModal;
   nav.appendChild(btn);
+
+  // Bouton Sync GitHub
+  if (!document.getElementById('btnGhSync')) {
+    const sepSync = document.createElement('div');
+    sepSync.className = 'topNavSep';
+    nav.insertBefore(sepSync, btn);
+
+    const btnSync = document.createElement('button');
+    btnSync.className = 'topNavBtn';
+    btnSync.id = 'btnGhSync';
+    btnSync.title = 'Synchroniser les livrets depuis GitHub';
+    btnSync.innerHTML = btnGhSyncLabel;
+    btnSync.onclick = syncFromGitHub;
+    nav.insertBefore(btnSync, btn);
+  }
 
   updateGhStatusBadge();
 }
