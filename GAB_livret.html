@@ -2127,7 +2127,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.44</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.47</p>
   </div>
 </div>
 
@@ -3889,343 +3889,7 @@ function printLivret() {
     <title>Livret de Suivi — ${apprenant}</title>
     <style>${css}</style>
   </head><body>${pagesHtml}
-<!-- ============================================================
-  PATCH GITHUB API – à insérer juste avant la balise </body>
-  Fonctionnement :
-    - Un bouton ⚙ GitHub s'ajoute dans la navbar
-    - Un panneau permet de saisir owner/repo et PAT (stockés en localStorage chiffrés avec sessionPassword)
-    - saveData() écrit livret_save/<id>.json en clair dans le repo GitHub (PUT via Contents API)
-    - loadApprenantData() lit d'abord GitHub, fallback localStorage si hors ligne
-    - L'index global (gablivretindex) reste en localStorage
-    - Un indicateur de statut (✅ GitHub / 📦 Local) s'affiche dans la navbar
-================================================================ -->
-<script>
-// ─── CONFIG GITHUB ────────────────────────────────────────────
-const GH_CONFIG_KEY = 'gablivret_ghconfig'; // clé localStorage pour owner/repo/token
-let ghConfig = null; // { owner, repo, token } ou null
 
-// Charger la config GitHub depuis localStorage (valeur en clair – token stocké localement)
-function loadGhConfig() {
-  try {
-    const raw = localStorage.getItem(GH_CONFIG_KEY);
-    ghConfig = raw ? JSON.parse(raw) : null;
-  } catch { ghConfig = null; }
-  updateGhStatusBadge();
-}
-
-function saveGhConfig(owner, repo, token) {
-  ghConfig = { owner: owner.trim(), repo: repo.trim(), token: token.trim() };
-  localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(ghConfig));
-  updateGhStatusBadge();
-}
-
-function clearGhConfig() {
-  ghConfig = null;
-  localStorage.removeItem(GH_CONFIG_KEY);
-  updateGhStatusBadge();
-}
-
-// ─── BADGE STATUT NAVBAR ──────────────────────────────────────
-function updateGhStatusBadge() {
-  const badge = document.getElementById('ghStatusBadge');
-  if (!badge) return;
-  if (ghConfig && ghConfig.token) {
-    badge.textContent = '✅ GitHub';
-    badge.title = `Connecté : ${ghConfig.owner}/${ghConfig.repo}`;
-    badge.style.color = 'var(--accent)';
-  } else {
-    badge.textContent = '📦 Local';
-    badge.title = 'Sauvegarde locale uniquement';
-    badge.style.color = 'var(--muted)';
-  }
-}
-
-// ─── API GITHUB CONTENTS ─────────────────────────────────────
-// Retourne le SHA du fichier s'il existe déjà (nécessaire pour le PUT)
-async function getGhFileSha(path) {
-  if (!ghConfig) return null;
-  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
-  try {
-    const r = await fetch(url, {
-      headers: { Authorization: `token ${ghConfig.token}`, Accept: 'application/vnd.github+json' }
-    });
-    if (!r.ok) return null;
-    const json = await r.json();
-    return json.sha || null;
-  } catch { return null; }
-}
-
-// Écriture d'un fichier dans GitHub (crée ou met à jour)
-async function ghPutFile(path, contentStr, commitMsg) {
-  if (!ghConfig) return false;
-  const sha = await getGhFileSha(path);
-  const body = {
-    message: commitMsg,
-    content: btoa(unescape(encodeURIComponent(contentStr))), // base64 UTF-8
-    ...(sha ? { sha } : {})
-  };
-  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
-  try {
-    const r = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        Authorization: `token ${ghConfig.token}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-    return r.ok;
-  } catch { return false; }
-}
-
-// Lecture d'un fichier depuis GitHub
-async function ghGetFile(path) {
-  if (!ghConfig) return null;
-  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
-  try {
-    const r = await fetch(url, {
-      headers: { Authorization: `token ${ghConfig.token}`, Accept: 'application/vnd.github+json' }
-    });
-    if (!r.ok) return null;
-    const json = await r.json();
-    // Décoder base64 → UTF-8
-    return decodeURIComponent(escape(atob(json.content.replace(/
-/g, ''))));
-  } catch { return null; }
-}
-
-// ─── PATCH saveData → écriture GitHub ─────────────────────────
-const _origSaveDataGH = saveData;
-saveData = async function() {
-  if (!sessionUnlocked || !currentApprenantId) return;
-  // 1. Sauvegarde GitHub en JSON clair
-  if (ghConfig && ghConfig.token) {
-    try {
-      const data = collectData();
-      const apprenant = apprenantsList.find(a => a.id === currentApprenantId);
-      const envelope = {
-        format: 'gablivretv1_gh',
-        id: currentApprenantId,
-        nom: apprenant?.nom || '',
-        tuteur: apprenant?.tuteur || '',
-        poste: apprenant?.poste || '',
-        dateDebut: apprenant?.dateDebut || '',
-        savedAt: new Date().toISOString(),
-        data // JSON clair (pas chiffré)
-      };
-      const path = `livret_save/${currentApprenantId}.json`;
-      const msg = `GAB: sauvegarde ${apprenant?.nom || currentApprenantId} ${new Date().toISOString().slice(0,10)}`;
-      const ok = await ghPutFile(path, JSON.stringify(envelope, null, 2), msg);
-      if (ok) {
-        markClean();
-        showToast('✅ Livret sauvegardé sur GitHub');
-        const btn = document.getElementById('btnSave');
-        if (btn) { btn.style.color = 'var(--accent)'; setTimeout(() => btn.style.color = '', 1500); }
-        // Mettre à jour l'index local
-        const idx = apprenantsList.findIndex(a => a.id === currentApprenantId);
-        if (idx >= 0) {
-          apprenantsList[idx].savedAt = envelope.savedAt;
-          apprenantsList[idx].pct = computeGlobalPct();
-          apprenantsList[idx].nom = data.identity?.apprenant || apprenantsList[idx].nom;
-          apprenantsList[idx].tuteur = data.identity?.tuteur || apprenantsList[idx].tuteur;
-          apprenantsList[idx].poste = data.identity?.poste || apprenantsList[idx].poste;
-          apprenantsList[idx].dateDebut = data.identity?.dateDebut || apprenantsList[idx].dateDebut;
-          saveIndex();
-        }
-        return;
-      } else {
-        showToast('⚠️ Erreur GitHub – sauvegarde locale en secours', 3500);
-      }
-    } catch(e) {
-      showToast('⚠️ Erreur GitHub – sauvegarde locale en secours', 3500);
-      console.error('ghSave', e);
-    }
-  }
-  // 2. Fallback : localStorage (comportement original)
-  return _origSaveDataGH();
-};
-
-// ─── PATCH loadApprenantData → lecture GitHub ─────────────────
-const _origLoadApprenantData = loadApprenantData;
-loadApprenantData = async function(id) {
-  if (ghConfig && ghConfig.token) {
-    try {
-      const path = `livret_save/${id}.json`;
-      const raw = await ghGetFile(path);
-      if (raw) {
-        const envelope = JSON.parse(raw);
-        if (envelope && envelope.data) {
-          // Les données sont en clair dans GitHub
-          applyData(envelope.data);
-          showToast('📥 Livret chargé depuis GitHub');
-          return;
-        }
-      }
-      // Fichier absent ou vide sur GitHub → fallback localStorage
-    } catch(e) {
-      console.warn('ghLoad fallback localStorage', e);
-    }
-  }
-  return _origLoadApprenantData(id);
-};
-
-// ─── MODAL CONFIGURATION GITHUB ──────────────────────────────
-function openGhConfigModal() {
-  let modal = document.getElementById('ghConfigModal');
-  if (!modal) {
-    modal = document.createElement('div');
-    modal.id = 'ghConfigModal';
-    modal.className = 'confirmPopup';
-    document.body.appendChild(modal);
-  }
-  const cur = ghConfig || {};
-  modal.innerHTML = `
-    <div class="confirmBox" style="max-width:420px;text-align:left">
-      <h3 style="margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57
-          0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695
-          -.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99
-          .105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225
-          -.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405
-          c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225
-          0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3
-          0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-        </svg>
-        Configuration GitHub
-      </h3>
-      <p style="font-size:12px;color:var(--muted);margin:0 0 14px">
-        Les données seront sauvegardées en JSON clair dans <code>livret_save/&lt;id&gt;.json</code>
-        à la racine du dépôt.<br>Le token est stocké dans <code>localStorage</code> de ce navigateur.
-      </p>
-      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Owner / Organisation</label>
-      <input id="ghOwner" type="text" placeholder="ex: monorg" value="${cur.owner||''}"
-        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
-        border-radius:6px;font-size:13px;margin-bottom:10px;background:var(--bg);color:var(--text)">
-
-      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Nom du dépôt</label>
-      <input id="ghRepo" type="text" placeholder="ex: GAB_livrets" value="${cur.repo||''}"
-        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
-        border-radius:6px;font-size:13px;margin-bottom:10px;background:var(--bg);color:var(--text)">
-
-      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">
-        Personal Access Token (PAT)
-        <a href="https://github.com/settings/tokens/new?scopes=repo&description=GAB+Livret"
-           target="_blank" style="font-weight:400;font-size:11px;margin-left:6px;color:var(--accent)">
-          Créer un token →
-        </a>
-      </label>
-      <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" value="${cur.token||''}"
-        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
-        border-radius:6px;font-size:13px;margin-bottom:6px;background:var(--bg);color:var(--text)">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
-        Scope requis : <code>repo</code> (accès lecture/écriture au dépôt)
-      </div>
-
-      <div id="ghTestResult" style="font-size:12px;margin-bottom:12px;min-height:18px"></div>
-
-      <div class="btnRow" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <button class="btnSecondary" onclick="testGhConnection()" style="font-size:12px">
-          🔌 Tester la connexion
-        </button>
-        <div style="display:flex;gap:8px">
-          ${cur.token ? '<button class="btnDanger" onclick="clearGhConfig();document.getElementById('ghConfigModal').classList.remove('open');showToast('Configuration GitHub supprimée')" style="font-size:12px">Déconnecter</button>' : ''}
-          <button class="btnSecondary" onclick="document.getElementById('ghConfigModal').classList.remove('open')" style="font-size:12px">Annuler</button>
-          <button class="btnPrimary" onclick="applyGhConfig()" style="font-size:12px">Enregistrer</button>
-        </div>
-      </div>
-    </div>`;
-  modal.classList.add('open');
-}
-
-async function testGhConnection() {
-  const owner = document.getElementById('ghOwner').value.trim();
-  const repo  = document.getElementById('ghRepo').value.trim();
-  const token = document.getElementById('ghToken').value.trim();
-  const res   = document.getElementById('ghTestResult');
-  if (!owner || !repo || !token) {
-    res.innerHTML = '<span style="color:var(--danger)">⚠️ Remplissez tous les champs</span>';
-    return;
-  }
-  res.innerHTML = '<span style="color:var(--muted)">⏳ Test en cours…</span>';
-  try {
-    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
-    });
-    if (r.ok) {
-      const json = await r.json();
-      res.innerHTML = `<span style="color:var(--success,#1a7a46)">✅ Dépôt trouvé : <strong>${json.full_name}</strong> ${json.private ? '🔒 privé' : '🌐 public'}</span>`;
-    } else if (r.status === 401) {
-      res.innerHTML = '<span style="color:var(--danger)">❌ Token invalide ou expiré</span>';
-    } else if (r.status === 404) {
-      res.innerHTML = '<span style="color:var(--danger)">❌ Dépôt introuvable (vérifiez owner/repo)</span>';
-    } else {
-      res.innerHTML = `<span style="color:var(--danger)">❌ Erreur HTTP ${r.status}</span>`;
-    }
-  } catch(e) {
-    res.innerHTML = '<span style="color:var(--danger)">❌ Erreur réseau</span>';
-  }
-}
-
-function applyGhConfig() {
-  const owner = document.getElementById('ghOwner').value.trim();
-  const repo  = document.getElementById('ghRepo').value.trim();
-  const token = document.getElementById('ghToken').value.trim();
-  if (!owner || !repo || !token) {
-    document.getElementById('ghTestResult').innerHTML =
-      '<span style="color:var(--danger)">⚠️ Tous les champs sont requis</span>';
-    return;
-  }
-  saveGhConfig(owner, repo, token);
-  document.getElementById('ghConfigModal').classList.remove('open');
-  showToast('✅ Configuration GitHub enregistrée');
-}
-
-// ─── AJOUT DU BOUTON DANS LA NAVBAR ──────────────────────────
-// Patch buildNav pour injecter le bouton GitHub + badge statut
-const _origBuildNavGH = buildNav;
-buildNav = function() {
-  _origBuildNavGH();
-  const nav = document.getElementById('topNavBar');
-  if (!nav || document.getElementById('btnGhConfig')) return;
-
-  // Badge statut
-  const badge = document.createElement('span');
-  badge.id = 'ghStatusBadge';
-  badge.style.cssText = 'font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;cursor:default;white-space:nowrap;align-self:center';
-  nav.appendChild(badge);
-
-  // Séparateur
-  const sep = document.createElement('div');
-  sep.className = 'topNavSep';
-  nav.appendChild(sep);
-
-  // Bouton config GitHub
-  const btn = document.createElement('button');
-  btn.className = 'topNavBtn';
-  btn.id = 'btnGhConfig';
-  btn.title = 'Configuration GitHub';
-  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57
-    0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695
-    -.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99
-    .105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225
-    -.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405
-    c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225
-    0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3
-    0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-  </svg><span>GitHub</span>`;
-  btn.onclick = openGhConfigModal;
-  nav.appendChild(btn);
-
-  updateGhStatusBadge();
-};
-
-// ─── INIT ─────────────────────────────────────────────────────
-// Charger la config GitHub au démarrage (après DOMContentLoaded)
-document.addEventListener('DOMContentLoaded', loadGhConfig);
-</script>
 
 </body></html>`);
   win.document.close();
@@ -5156,7 +4820,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.44 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.47 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -6404,10 +6068,355 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.44 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.47 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
 
+
+<!-- ============================================================
+  PATCH GITHUB API – à insérer juste avant la balise </body>
+  Fonctionnement :
+    - Un bouton ⚙ GitHub s'ajoute dans la navbar
+    - Un panneau permet de saisir owner/repo et PAT (stockés en localStorage chiffrés avec sessionPassword)
+    - saveData() écrit livret_save/<id>.json en clair dans le repo GitHub (PUT via Contents API)
+    - loadApprenantData() lit d'abord GitHub, fallback localStorage si hors ligne
+    - L'index global (gablivretindex) reste en localStorage
+    - Un indicateur de statut (✅ GitHub / 📦 Local) s'affiche dans la navbar
+================================================================ -->
+<script>
+// ─── CONFIG GITHUB ────────────────────────────────────────────
+const GH_CONFIG_KEY = 'gablivret_ghconfig'; // clé localStorage pour owner/repo/token
+let ghConfig = null; // { owner, repo, token } ou null
+
+// Charger la config GitHub depuis localStorage (valeur en clair – token stocké localement)
+function loadGhConfig() {
+  try {
+    const raw = localStorage.getItem(GH_CONFIG_KEY);
+    ghConfig = raw ? JSON.parse(raw) : null;
+  } catch { ghConfig = null; }
+  updateGhStatusBadge();
+}
+
+function saveGhConfig(owner, repo, token) {
+  ghConfig = { owner: owner.trim(), repo: repo.trim(), token: token.trim() };
+  localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(ghConfig));
+  updateGhStatusBadge();
+}
+
+function clearGhConfig() {
+  ghConfig = null;
+  localStorage.removeItem(GH_CONFIG_KEY);
+  updateGhStatusBadge();
+}
+
+// ─── BADGE STATUT NAVBAR ──────────────────────────────────────
+function updateGhStatusBadge() {
+  const badge = document.getElementById('ghStatusBadge');
+  if (!badge) return;
+  if (ghConfig && ghConfig.token) {
+    badge.textContent = '✅ GitHub';
+    badge.title = `Connecté : ${ghConfig.owner}/${ghConfig.repo}`;
+    badge.style.color = 'var(--accent)';
+  } else {
+    badge.textContent = '📦 Local';
+    badge.title = 'Sauvegarde locale uniquement';
+    badge.style.color = 'var(--muted)';
+  }
+}
+
+// ─── API GITHUB CONTENTS ─────────────────────────────────────
+// Retourne le SHA du fichier s'il existe déjà (nécessaire pour le PUT)
+async function getGhFileSha(path) {
+  if (!ghConfig) return null;
+  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
+  try {
+    const r = await fetch(url, {
+      headers: { Authorization: `token ${ghConfig.token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (!r.ok) return null;
+    const json = await r.json();
+    return json.sha || null;
+  } catch { return null; }
+}
+
+// Écriture d'un fichier dans GitHub (crée ou met à jour)
+async function ghPutFile(path, contentStr, commitMsg) {
+  if (!ghConfig) return false;
+  const sha = await getGhFileSha(path);
+  const body = {
+    message: commitMsg,
+    content: btoa(unescape(encodeURIComponent(contentStr))), // base64 UTF-8
+    ...(sha ? { sha } : {})
+  };
+  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
+  try {
+    const r = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        Authorization: `token ${ghConfig.token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    return r.ok;
+  } catch { return false; }
+}
+
+// Lecture d'un fichier depuis GitHub
+async function ghGetFile(path) {
+  if (!ghConfig) return null;
+  const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/${path}`;
+  try {
+    const r = await fetch(url, {
+      headers: { Authorization: `token ${ghConfig.token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (!r.ok) return null;
+    const json = await r.json();
+    // Décoder base64 → UTF-8
+    return decodeURIComponent(escape(atob(json.content.replace(/\n/g, ''))));
+  } catch { return null; }
+}
+
+// ─── PATCH saveData → écriture GitHub ─────────────────────────
+const _origSaveDataGH = saveData;
+saveData = async function() {
+  if (!sessionUnlocked || !currentApprenantId) return;
+  // 1. Sauvegarde GitHub en JSON clair
+  if (ghConfig && ghConfig.token) {
+    try {
+      const data = collectData();
+      const apprenant = apprenantsList.find(a => a.id === currentApprenantId);
+      const envelope = {
+        format: 'gablivretv1_gh',
+        id: currentApprenantId,
+        nom: apprenant?.nom || '',
+        tuteur: apprenant?.tuteur || '',
+        poste: apprenant?.poste || '',
+        dateDebut: apprenant?.dateDebut || '',
+        savedAt: new Date().toISOString(),
+        data // JSON clair (pas chiffré)
+      };
+      const path = `livret_save/${currentApprenantId}.json`;
+      const msg = `GAB: sauvegarde ${apprenant?.nom || currentApprenantId} ${new Date().toISOString().slice(0,10)}`;
+      const ok = await ghPutFile(path, JSON.stringify(envelope, null, 2), msg);
+      if (ok) {
+        markClean();
+        showToast('✅ Livret sauvegardé sur GitHub');
+        const btn = document.getElementById('btnSave');
+        if (btn) { btn.style.color = 'var(--accent)'; setTimeout(() => btn.style.color = '', 1500); }
+        // Mettre à jour l'index local
+        const idx = apprenantsList.findIndex(a => a.id === currentApprenantId);
+        if (idx >= 0) {
+          apprenantsList[idx].savedAt = envelope.savedAt;
+          apprenantsList[idx].pct = computeGlobalPct();
+          apprenantsList[idx].nom = data.identity?.apprenant || apprenantsList[idx].nom;
+          apprenantsList[idx].tuteur = data.identity?.tuteur || apprenantsList[idx].tuteur;
+          apprenantsList[idx].poste = data.identity?.poste || apprenantsList[idx].poste;
+          apprenantsList[idx].dateDebut = data.identity?.dateDebut || apprenantsList[idx].dateDebut;
+          saveIndex();
+        }
+        return;
+      } else {
+        showToast('⚠️ Erreur GitHub – sauvegarde locale en secours', 3500);
+      }
+    } catch(e) {
+      showToast('⚠️ Erreur GitHub – sauvegarde locale en secours', 3500);
+      console.error('ghSave', e);
+    }
+  }
+  // 2. Fallback : localStorage (comportement original)
+  return _origSaveDataGH();
+};
+
+// ─── PATCH loadApprenantData → lecture GitHub ─────────────────
+const _origLoadApprenantData = loadApprenantData;
+loadApprenantData = async function(id) {
+  if (ghConfig && ghConfig.token) {
+    try {
+      const path = `livret_save/${id}.json`;
+      const raw = await ghGetFile(path);
+      if (raw) {
+        const envelope = JSON.parse(raw);
+        if (envelope && envelope.data) {
+          // Les données sont en clair dans GitHub
+          applyData(envelope.data);
+          showToast('📥 Livret chargé depuis GitHub');
+          return;
+        }
+      }
+      // Fichier absent ou vide sur GitHub → fallback localStorage
+    } catch(e) {
+      console.warn('ghLoad fallback localStorage', e);
+    }
+  }
+  return _origLoadApprenantData(id);
+};
+
+// ─── MODAL CONFIGURATION GITHUB ──────────────────────────────
+function openGhConfigModal() {
+  let modal = document.getElementById('ghConfigModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'ghConfigModal';
+    modal.className = 'confirmPopup';
+    document.body.appendChild(modal);
+  }
+  const cur = ghConfig || {};
+  modal.innerHTML = `
+    <div class="confirmBox" style="max-width:420px;text-align:left">
+      <h3 style="margin:0 0 12px;font-size:15px;display:flex;align-items:center;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57
+          0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695
+          -.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99
+          .105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225
+          -.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405
+          c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225
+          0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3
+          0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        Configuration GitHub
+      </h3>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 14px">
+        Les données seront sauvegardées en JSON clair dans <code>livret_save/&lt;id&gt;.json</code>
+        à la racine du dépôt.<br>Le token est stocké dans <code>localStorage</code> de ce navigateur.
+      </p>
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Owner / Organisation</label>
+      <input id="ghOwner" type="text" placeholder="ex: monorg" value="${cur.owner||''}"
+        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
+        border-radius:6px;font-size:13px;margin-bottom:10px;background:var(--bg);color:var(--text)">
+
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">Nom du dépôt</label>
+      <input id="ghRepo" type="text" placeholder="ex: GAB_livrets" value="${cur.repo||''}"
+        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
+        border-radius:6px;font-size:13px;margin-bottom:10px;background:var(--bg);color:var(--text)">
+
+      <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">
+        Personal Access Token (PAT)
+        <a href="https://github.com/settings/tokens/new?scopes=repo&description=GAB+Livret"
+           target="_blank" style="font-weight:400;font-size:11px;margin-left:6px;color:var(--accent)">
+          Créer un token →
+        </a>
+      </label>
+      <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" value="${cur.token||''}"
+        style="width:100%;box-sizing:border-box;padding:7px 10px;border:1.5px solid var(--border);
+        border-radius:6px;font-size:13px;margin-bottom:6px;background:var(--bg);color:var(--text)">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+        Scope requis : <code>repo</code> (accès lecture/écriture au dépôt)
+      </div>
+
+      <div id="ghTestResult" style="font-size:12px;margin-bottom:12px;min-height:18px"></div>
+
+      <div class="btnRow" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <button class="btnSecondary" onclick="testGhConnection()" style="font-size:12px">
+          🔌 Tester la connexion
+        </button>
+        <div style="display:flex;gap:8px">
+          ${cur.token ? '<button class="btnDanger" id="ghDisconnectBtn" style="font-size:12px">D&eacute;connecter</button>' : ''}
+          <button class="btnSecondary" onclick="document.getElementById('ghConfigModal').classList.remove('open')" style="font-size:12px">Annuler</button>
+          <button class="btnPrimary" onclick="applyGhConfig()" style="font-size:12px">Enregistrer</button>
+        </div>
+      </div>
+    </div>`;
+  modal.classList.add('open');
+  const ghDisBtn = document.getElementById('ghDisconnectBtn');
+  if (ghDisBtn) ghDisBtn.onclick = function() { clearGhConfig(); document.getElementById('ghConfigModal').classList.remove('open'); showToast('Configuration GitHub supprimée'); };
+}
+
+async function testGhConnection() {
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo  = document.getElementById('ghRepo').value.trim();
+  const token = document.getElementById('ghToken').value.trim();
+  const res   = document.getElementById('ghTestResult');
+  if (!owner || !repo || !token) {
+    res.innerHTML = '<span style="color:var(--danger)">⚠️ Remplissez tous les champs</span>';
+    return;
+  }
+  res.innerHTML = '<span style="color:var(--muted)">⏳ Test en cours…</span>';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (r.ok) {
+      const json = await r.json();
+      res.innerHTML = `<span style="color:var(--success,#1a7a46)">✅ Dépôt trouvé : <strong>${json.full_name}</strong> ${json.private ? '🔒 privé' : '🌐 public'}</span>`;
+    } else if (r.status === 401) {
+      res.innerHTML = '<span style="color:var(--danger)">❌ Token invalide ou expiré</span>';
+    } else if (r.status === 404) {
+      res.innerHTML = '<span style="color:var(--danger)">❌ Dépôt introuvable (vérifiez owner/repo)</span>';
+    } else {
+      res.innerHTML = `<span style="color:var(--danger)">❌ Erreur HTTP ${r.status}</span>`;
+    }
+  } catch(e) {
+    res.innerHTML = '<span style="color:var(--danger)">❌ Erreur réseau</span>';
+  }
+}
+
+function applyGhConfig() {
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo  = document.getElementById('ghRepo').value.trim();
+  const token = document.getElementById('ghToken').value.trim();
+  if (!owner || !repo || !token) {
+    document.getElementById('ghTestResult').innerHTML =
+      '<span style="color:var(--danger)">⚠️ Tous les champs sont requis</span>';
+    return;
+  }
+  saveGhConfig(owner, repo, token);
+  document.getElementById('ghConfigModal').classList.remove('open');
+  showToast('✅ Configuration GitHub enregistrée');
+}
+
+// ─── AJOUT DU BOUTON DANS LA NAVBAR ──────────────────────────
+// Patch buildNav pour injecter le bouton GitHub + badge statut
+const _origBuildNavGH = buildNav;
+buildNav = function() {
+  _origBuildNavGH();
+  // Le bouton GitHub est déjà injecté au DOMContentLoaded via injectGhNavBtn()
+  updateGhStatusBadge();
+};
+
+// ─── INIT ─────────────────────────────────────────────────────
+// Charger la config GitHub au démarrage (après DOMContentLoaded)
+document.addEventListener('DOMContentLoaded', () => {
+  loadGhConfig();
+  // Injecter le bouton GitHub dans la navbar dès le chargement
+  injectGhNavBtn();
+});
+
+function injectGhNavBtn() {
+  const nav = document.getElementById('topNavBar');
+  if (!nav || document.getElementById('btnGhConfig')) return;
+
+  const badge = document.createElement('span');
+  badge.id = 'ghStatusBadge';
+  badge.style.cssText = 'font-size:11px;font-weight:600;padding:2px 7px;border-radius:999px;cursor:default;white-space:nowrap;align-self:center';
+  nav.appendChild(badge);
+
+  const sep = document.createElement('div');
+  sep.className = 'topNavSep';
+  nav.appendChild(sep);
+
+  const btn = document.createElement('button');
+  btn.className = 'topNavBtn';
+  btn.id = 'btnGhConfig';
+  btn.title = 'Configuration GitHub';
+  btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57
+    0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695
+    -.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99
+    .105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225
+    -.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405
+    c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225
+    0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3
+    0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </svg><span>GitHub</span>`;
+  btn.onclick = openGhConfigModal;
+  nav.appendChild(btn);
+
+  updateGhStatusBadge();
+}
+</script>
 </body>
 </html>
