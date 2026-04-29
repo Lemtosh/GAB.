@@ -2127,7 +2127,7 @@ body.dark .homeLogoDark  {
     <h3>ℹ️ GAB — Livret de Suivi</h3>
     <p>Outil de suivi de compétences pour les apprenants.<br>Les données sont stockées localement (chiffrées).</p>
     <p>Accès sécurisé par clé d'accès.<br>Session verrouillée après 10 min d'inactivité.</p>
-    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.47</p>
+    <p style="font-size:11px;color:var(--muted);">© 2026 — GAB. — PHILIPPON Johann | Livret de Suivi v0.0.48</p>
   </div>
 </div>
 
@@ -4820,7 +4820,7 @@ refreshSynthese = function() {
 // ───────────────────────────────────────────────────────────────
 // INIT FINAL
 // ───────────────────────────────────────────────────────────────
-console.log('%cGAB Livret de Suivi — v0.0.47 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.48 | Passe C ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cMulti-apprenants · Export/Import JSON · AES-GCM · Auto-save', 'color:#555e6e;');
 
 
@@ -6068,7 +6068,7 @@ refreshSynthese = function() {
 // fin passe 3
 // fin passe 2
 // fin passe C
-console.log('%cGAB Livret de Suivi — v0.0.47 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
+console.log('%cGAB Livret de Suivi — v0.0.48 chargé ✅', 'color:#11a9a6;font-weight:bold;font-size:13px;');
 console.log('%cPour changer le mot de passe : await generateHash("VotreNouveauMotDePasse")', 'color:#555e6e;');
 
 </script>
@@ -6384,6 +6384,130 @@ document.addEventListener('DOMContentLoaded', () => {
   // Injecter le bouton GitHub dans la navbar dès le chargement
   injectGhNavBtn();
 });
+// ─── SYNCHRONISATION DEPUIS GITHUB ───────────────────────────
+// Lit livret_save/ sur GitHub, reconstruit l'index local et charge tous les apprenants
+
+async function syncFromGitHub() {
+  if (!ghConfig || !ghConfig.token) {
+    showToast('⚠️ Configurez GitHub d'abord', 3000);
+    return;
+  }
+
+  const btn = document.getElementById('btnGhSync');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Sync…'; }
+
+  try {
+    // 1. Lister les fichiers du dossier livret_save/
+    const url = `https://api.github.com/repos/${ghConfig.owner}/${ghConfig.repo}/contents/livret_save`;
+    const r = await fetch(url, {
+      headers: { Authorization: `token ${ghConfig.token}`, Accept: 'application/vnd.github+json' }
+    });
+
+    if (r.status === 404) {
+      showToast('📁 Dossier livret_save introuvable sur GitHub', 3500);
+      if (btn) { btn.disabled = false; btn.innerHTML = btnGhSyncLabel; }
+      return;
+    }
+    if (!r.ok) {
+      showToast('❌ Erreur GitHub ' + r.status, 3500);
+      if (btn) { btn.disabled = false; btn.innerHTML = btnGhSyncLabel; }
+      return;
+    }
+
+    const files = await r.json();
+    const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+
+    if (jsonFiles.length === 0) {
+      showToast('📭 Aucun livret trouvé sur GitHub', 3000);
+      if (btn) { btn.disabled = false; btn.innerHTML = btnGhSyncLabel; }
+      return;
+    }
+
+    // 2. Télécharger chaque fichier et reconstruire l'index
+    let imported = 0, updated = 0;
+
+    for (const file of jsonFiles) {
+      try {
+        const raw = await ghGetFile(file.path);
+        if (!raw) continue;
+        const envelope = JSON.parse(raw);
+        if (!envelope || !envelope.id || !envelope.data) continue;
+
+        const id = envelope.id;
+        const data = envelope.data; // JSON clair
+
+        // Calculer la progression
+        let pct = 0;
+        if (data.cotations) {
+          const vals = Object.values(data.cotations);
+          const total = vals.length;
+          const ok = vals.filter(v => v === 'ACQ' || v === 'TB').length;
+          pct = total > 0 ? Math.round(ok / total * 100) : 0;
+        }
+
+        // Mettre à jour ou créer l'entrée dans l'index
+        const existing = apprenantsList.findIndex(a => a.id === id);
+        const entry = {
+          id,
+          nom: envelope.nom || data.identity?.apprenant || 'Sans nom',
+          tuteur: envelope.tuteur || data.identity?.tuteur || '',
+          poste: envelope.poste || data.identity?.poste || '',
+          dateDebut: envelope.dateDebut || data.identity?.dateDebut || '',
+          savedAt: envelope.savedAt || null,
+          pct,
+          exported: false
+        };
+
+        if (existing >= 0) {
+          apprenantsList[existing] = entry;
+          updated++;
+        } else {
+          apprenantsList.push(entry);
+          imported++;
+        }
+      } catch(e) {
+        console.warn('Sync: erreur lecture', file.name, e);
+      }
+    }
+
+    saveIndex();
+    renderApprenants();
+
+    const msg = [];
+    if (imported > 0) msg.push(`${imported} nouveau${imported > 1 ? 'x' : ''}`);
+    if (updated > 0) msg.push(`${updated} mis à jour`);
+    showToast(`✅ Sync GitHub : ${msg.join(', ') || 'aucun changement'}`, 3500);
+
+  } catch(e) {
+    showToast('❌ Erreur de synchronisation', 3500);
+    console.error('syncFromGitHub', e);
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = btnGhSyncLabel; }
+}
+
+const btnGhSyncLabel = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span>Sync GitHub</span>`;
+
+// ─── INJECTION BOUTON SYNC DANS LA NAVBAR ────────────────────
+const _origInjectGhNavBtn = injectGhNavBtn;
+injectGhNavBtn = function() {
+  _origInjectGhNavBtn();
+  const nav = document.getElementById('topNavBar');
+  if (!nav || document.getElementById('btnGhSync')) return;
+
+  const sep = document.createElement('div');
+  sep.className = 'topNavSep';
+  nav.insertBefore(sep, document.getElementById('btnGhConfig'));
+
+  const btn = document.createElement('button');
+  btn.className = 'topNavBtn';
+  btn.id = 'btnGhSync';
+  btn.title = 'Synchroniser les livrets depuis GitHub';
+  btn.innerHTML = btnGhSyncLabel;
+  btn.onclick = syncFromGitHub;
+  nav.insertBefore(btn, document.getElementById('btnGhConfig'));
+};
+
 
 function injectGhNavBtn() {
   const nav = document.getElementById('topNavBar');
