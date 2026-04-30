@@ -1,0 +1,69 @@
+{
+  "format": "gablivretv1_gh",
+  "id": "amoldxbhmgz0k",
+  "nom": "Rabate Jules",
+  "tuteur": "Léa Frontini",
+  "poste": "Conseilelr",
+  "dateDebut": "2026-03-03",
+  "savedAt": "2026-04-30T11:12:45.942Z",
+  "data": {
+    "version": 1,
+    "savedAt": "2026-04-30T11:12:45.942Z",
+    "identity": {
+      "apprenant": "Rabate Jules",
+      "tuteur": "Léa Frontini",
+      "dateDebut": "2026-03-03",
+      "poste": "Conseilelr"
+    },
+    "cotations": {
+      "page-1|Présentation de l'entreprise|formation": "ACQ",
+      "page-1|Charte informatique|formation": "ACQ",
+      "page-1|Présentation du site internet : www.mieuxassure.com|formation": "ACQ",
+      "page-1|Où trouver l'espace personnel ?|formation": "ACQ",
+      "page-1|Où trouver DG, IPID ?|formation": "ACQ",
+      "page-1|Où trouver le carnet de contact ? (réclamation, sinistre, etc.)|formation": "ACQ",
+      "page-1|Où trouver le Commun, les NDS, Cloud Mieux Assuré ?|formation": "ACQ",
+      "page-1|Règles d'usage (transfert supp, transfert)|formation": "ACQ",
+      "page-1|Appel interne ou externe|formation": "ACQ",
+      "page-1|Enregistrement téléphonique|formation": "ACQ",
+      "page-1|Règle d'usage|formation": "ACQ",
+      "page-1|Ouverture et fonctionnement|formation": "ACQ",
+      "page-1|Agenda|formation": "ACQ",
+      "page-1|Signature générale|formation": "ACQ",
+      "page-1|Comment les trouver ?|formation": "ACQ",
+      "page-1|Comment les lire ?|formation": "ACQ",
+      "page-1|Quand les remettre au client (dématérialisé)|formation": "ACQ",
+      "page-1|À quoi servent-elles ?|formation": "ACQ",
+      "page-1|Qui est-il ?|formation": "ACQ",
+      "page-1|Que fait-il ?|formation": "ACQ",
+      "page-1|Privé|formation": "ACQ",
+      "page-1|Privé + Trajet travail / Lieu des études|formation": "ACQ",
+      "page-1|Affaire / Professionnel|formation": "ACQ",
+      "page-1|Tout déplacement|formation": "ACQ",
+      "page-1|Les états des contrats|formation": "ACQ",
+      "page-1|Les états des pièces justificatives|formation": "ACQ",
+      "page-1|Saisie des sinistres|formation": "ACQ",
+      "page-1|L'ajout d'une PJ supplémentaire|formation": "ACQ"
+    },
+    "appreciations": {},
+    "jalons": {
+      "j15": {
+        "val": "2026-03-18",
+        "manual": false
+      },
+      "j30": {
+        "val": "2026-04-01",
+        "manual": false
+      },
+      "j45": {
+        "val": "2026-04-16",
+        "manual": false
+      },
+      "j60": {
+        "val": "2026-05-01",
+        "manual": false
+      }
+    },
+    "catComments": {}
+  }
+}
